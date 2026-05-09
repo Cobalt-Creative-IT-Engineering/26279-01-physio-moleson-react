@@ -1,15 +1,13 @@
 // ─── Thème actif ──────────────────────────────────────────────────────────────
-// Changer cette valeur et rebuilder pour changer l'identité visuelle du site.
-// Le blueprint fournit uniquement le thème "base". Ajoutez vos propres thèmes
-// dans src/themes/ (voir src/themes/index.ts).
+// Le projet utilise un thème unique "base". Système de thèmes annuels conservé
+// du blueprint pour permettre des variantes futures (saison, événement…).
 import type { ThemeName } from "../themes/index";
 export const ACTIVE_THEME: ThemeName = "base";
 
 // ─── Coming Soon / Page d'attente ─────────────────────────────────────────
 // Deux leviers pour afficher une page d'attente avant l'ouverture du site :
-//   1. FORCE_COMING_SOON=true  → toujours afficher
-//   2. VITE_COMING_SOON_UNTIL=YYYY-MM-DDTHH:mm  → afficher tant que la date
-//      n'est pas atteinte (fuseau local du navigateur)
+//   1. FORCE_COMING_SOON=true             → toujours afficher
+//   2. VITE_COMING_SOON_UNTIL=YYYY-MM-DDTHH:mm → afficher tant que la date n'est pas atteinte
 
 export const FORCE_COMING_SOON = false;
 
@@ -20,33 +18,49 @@ export const COMING_SOON_UNTIL: Date | null = (() => {
   return isNaN(d.getTime()) ? null : d;
 })();
 
-// ─── Site Configuration ───────────────────────────────────────────────────
-// Centralise le nom du site, la langue et les éléments de navigation.
+// ─── Identité du site ─────────────────────────────────────────────────────
 
 export const SITE_CONFIG = {
-  name:        "Site Name",
+  name:        "Physio du Moléson",
+  tagline:     "Cabinet de physiothérapie à Bulle",
   lang:        "fr",
-  description: "Description du site (utilisée comme valeur par défaut pour les meta tags).",
+  description: "Cabinet de physiothérapie à Bulle. Une équipe de cinq thérapeutes diplômé·e·s à votre écoute, au pied du Moléson.",
 } as const;
 
-// ─── Réseaux sociaux ──────────────────────────────────────────────────────────
-// Remplissez uniquement les plateformes que vous utilisez. Les liens vides
-// seront ignorés par le composant Footer / ContactPage.
+// ─── Coordonnées ─────────────────────────────────────────────────────────
+// Ces valeurs servent de fallback. À terme, elles seront remplacées par des
+// champs ACF (Options Page "global") pour permettre l'édition côté WordPress.
+
+export const CONTACT = {
+  phone:        "026 303 93 43",
+  phoneTel:     "+41263039343",
+  email:        "physiomoleson@gmail.com",
+  addresses: [
+    { id: 66, label: "Cabinet n°66", street: "Rue Saint-Denis 66", postcode: "1630", city: "Bulle" },
+    { id: 68, label: "Cabinet n°68", street: "Rue Saint-Denis 68", postcode: "1630", city: "Bulle" },
+  ],
+} as const;
+
+// ─── Réseaux sociaux ──────────────────────────────────────────────────────
+// Vide = lien ignoré par Footer / ContactPage.
+
 export const SOCIAL_LINKS = {
-  facebook:  "",
   instagram: "",
-  twitter:   "",
+  facebook:  "",
   linkedin:  "",
   youtube:   "",
 } as const;
 
-// cta: true → s'affiche à droite du nav en style bouton
-// cta: false → lien standard à gauche du nav
+// ─── Navigation principale ────────────────────────────────────────────────
+// `cta: true` → s'affiche à droite en style bouton.
+
 export const NAV_ITEMS = [
-  { id: 1, title: "À propos",    url: "/about",    cta: false },
-  { id: 2, title: "Articles",    url: "/articles", cta: false },
-  { id: 3, title: "Infos",       url: "/info",     cta: false },
-  { id: 4, title: "Contact",     url: "/contact",  cta: true  },
+  { id: 1, title: "Accueil",     url: "/",          cta: false },
+  { id: 2, title: "Nos services", url: "/services", cta: false },
+  { id: 3, title: "Sensopro",    url: "/sensopro",  cta: false },
+  { id: 4, title: "Thérapeutes", url: "/equipe",    cta: false },
+  { id: 5, title: "Cabinet",     url: "/cabinet",   cta: false },
+  { id: 6, title: "Contact",     url: "/contact",   cta: true  },
 ] as const;
 
 export type NavItem = (typeof NAV_ITEMS)[number];

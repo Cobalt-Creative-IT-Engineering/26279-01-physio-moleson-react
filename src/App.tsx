@@ -2,19 +2,16 @@ import { useEffect } from "react";
 import { useRoute, navigate } from "./hooks/useRoute";
 import { Nav, Footer } from "./components/layout";
 import { ErrorBanner } from "./components/ui";
-import { HomePage }            from "./pages/HomePage";
-import { ArticlesPage }        from "./pages/ArticlesPage";
-import { ArticleDetailPage }   from "./pages/ArticleDetailPage";
-import { AboutPage }           from "./pages/AboutPage";
-import { InfoPage }            from "./pages/InfoPage";
-import { ContactPage }         from "./pages/ContactPage";
-import { LegalNoticePage }     from "./pages/LegalNoticePage";
-import { TermsPage }           from "./pages/TermsPage";
-import { ComingSoonPage }      from "./pages/ComingSoonPage";
-import { WPPageView }          from "./pages/WPPageView";
+import { HomePage }      from "./pages/HomePage";
+import { ServicesPage }  from "./pages/ServicesPage";
+import { SensoproPage }  from "./pages/SensoproPage";
+import { EquipePage }    from "./pages/EquipePage";
+import { CabinetPage }   from "./pages/CabinetPage";
+import { ContactPage }   from "./pages/ContactPage";
+import { ComingSoonPage } from "./pages/ComingSoonPage";
 import { ACTIVE_THEME, FORCE_COMING_SOON, COMING_SOON_UNTIL } from "./config/site";
-import { THEMES }              from "./themes/index";
-import { Decorations }         from "./themes/Decorations";
+import { THEMES }      from "./themes/index";
+import { Decorations } from "./themes/Decorations";
 import { initMeta, setPageMeta } from "./lib/meta";
 
 // ─── Application du thème ─────────────────────────────────────────────────────
@@ -37,25 +34,22 @@ document.addEventListener("click", (e) => {
   if (href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
   if (a.getAttribute("target") === "_blank") return;
   if (a.getAttribute("download") != null) return;
-  if (href.startsWith("#")) return; // ancres de page
+  if (href.startsWith("#")) return;
   e.preventDefault();
   navigate(href);
 });
 
 const PAGE_LABELS: Record<string, string> = {
-  "/articles":      "Articles",
-  "/about":         "À propos",
-  "/info":          "Infos",
-  "/contact":       "Contact",
-  "/legal-notice":  "Mentions légales",
-  "/terms":         "Conditions générales",
+  "/services": "Nos services",
+  "/sensopro": "Sensopro",
+  "/equipe":   "Thérapeutes",
+  "/cabinet":  "Cabinet",
+  "/contact":  "Contact",
 };
 
 function getPageLabel(route: string): string | undefined {
   if (route === "/" || route === "") return undefined;
-  if (PAGE_LABELS[route]) return PAGE_LABELS[route];
-  if (route.startsWith("/articles/")) return "Article";
-  return undefined;
+  return PAGE_LABELS[route];
 }
 
 /** Retourne true tant que la page d'attente doit être affichée. */
@@ -66,7 +60,7 @@ function shouldShowComingSoon(): boolean {
 }
 
 export default function App() {
-  const { route, slug, anchor } = useRoute();
+  const { route, anchor } = useRoute();
 
   // Infos du site WordPress (une seule fois) → initialise le module meta.
   useEffect(() => {
@@ -98,21 +92,20 @@ export default function App() {
     <div className="app">
       <Decorations />
       <Nav />
-      <PageView route={route} slug={slug} />
+      <main>
+        <PageView route={route} />
+      </main>
       <Footer />
     </div>
   );
 }
 
-function PageView({ route, slug }: { route: string; slug: string | null }) {
-  if (route === "/" || route === "")       return <HomePage />;
-  if (route === "/articles")               return <ArticlesPage />;
-  if (route.startsWith("/articles/"))      return <ArticleDetailPage slug={route.replace("/articles/", "")} />;
-  if (route === "/about")                  return <AboutPage />;
-  if (route === "/info")                   return <InfoPage />;
-  if (route === "/contact")                return <ContactPage />;
-  if (route === "/legal-notice")           return <LegalNoticePage />;
-  if (route === "/terms")                  return <TermsPage />;
-  if (route.startsWith("/page/") && slug)  return <WPPageView slug={slug} />;
+function PageView({ route }: { route: string }) {
+  if (route === "/" || route === "") return <HomePage />;
+  if (route === "/services")          return <ServicesPage />;
+  if (route === "/sensopro")          return <SensoproPage />;
+  if (route === "/equipe")            return <EquipePage />;
+  if (route === "/cabinet")           return <CabinetPage />;
+  if (route === "/contact")           return <ContactPage />;
   return <ErrorBanner message="Page non trouvée" />;
 }

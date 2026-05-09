@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Internal docs
+doc/*
+
 # Build output
 dist/
 dist-ssr/

@@ -1,4 +1,5 @@
 import { SITE_CONFIG, SOCIAL_LINKS, COMING_SOON_UNTIL } from "../config/site";
+import { Logo } from "../components/ui";
 
 // Affichée via App.tsx quand FORCE_COMING_SOON=true ou que la date
 // VITE_COMING_SOON_UNTIL n'est pas encore atteinte.
@@ -12,20 +13,26 @@ export function ComingSoonPage() {
   const socials = Object.entries(SOCIAL_LINKS).filter(([, url]) => !!url);
 
   return (
-    <main className="coming-soon">
-      <div className="coming-soon-inner">
-        <h1 className="coming-soon-title">{SITE_CONFIG.name}</h1>
-        <p className="coming-soon-lead">Site en préparation.</p>
+    <main className="min-h-screen flex items-center justify-center px-12 bg-bg-alt">
+      <div className="max-w-xl text-center flex flex-col items-center gap-6">
+        <Logo size={64} />
+        <span className="eyebrow">{SITE_CONFIG.tagline}</span>
+        <h1 className="font-display text-5xl md:text-6xl leading-none">
+          {SITE_CONFIG.name}
+        </h1>
+        <p className="text-lg text-ink-soft">Site en préparation.</p>
         {dateLabel && (
-          <p className="coming-soon-eta">
-            Ouverture prévue le <strong>{dateLabel}</strong>.
+          <p className="text-ink-mute">
+            Ouverture prévue le <strong className="text-ink">{dateLabel}</strong>.
           </p>
         )}
         {socials.length > 0 && (
-          <ul className="coming-soon-social">
+          <ul className="flex gap-6 mt-2">
             {socials.map(([name, url]) => (
               <li key={name}>
-                <a href={url} target="_blank" rel="noreferrer">{name}</a>
+                <a href={url} target="_blank" rel="noreferrer" className="text-ink-soft hover:text-primary capitalize">
+                  {name}
+                </a>
               </li>
             ))}
           </ul>
