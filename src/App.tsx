@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useRoute, navigate } from "./hooks/useRoute";
 import { Nav, Footer } from "./components/layout";
-import { ErrorBanner } from "./components/ui";
+import { CookieBanner } from "./components/ui";
 import { HomePage }      from "./pages/HomePage";
 import { ServicesPage }  from "./pages/ServicesPage";
 import { SensoproPage }  from "./pages/SensoproPage";
@@ -9,6 +9,7 @@ import { EquipePage }    from "./pages/EquipePage";
 import { CabinetPage }   from "./pages/CabinetPage";
 import { ContactPage }   from "./pages/ContactPage";
 import { ComingSoonPage } from "./pages/ComingSoonPage";
+import { NotFoundPage }  from "./pages/NotFoundPage";
 import { ACTIVE_THEME, FORCE_COMING_SOON, COMING_SOON_UNTIL } from "./config/site";
 import { THEMES }      from "./themes/index";
 import { Decorations } from "./themes/Decorations";
@@ -96,6 +97,7 @@ export default function App() {
         <PageView route={route} />
       </main>
       <Footer />
+      <CookieBanner />
     </div>
   );
 }
@@ -107,5 +109,5 @@ function PageView({ route }: { route: string }) {
   if (route === "/equipe")            return <EquipePage />;
   if (route === "/cabinet")           return <CabinetPage />;
   if (route === "/contact")           return <ContactPage />;
-  return <ErrorBanner message="Page non trouvée" />;
+  return <NotFoundPage />;
 }
