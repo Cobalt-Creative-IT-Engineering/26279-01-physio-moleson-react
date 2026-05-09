@@ -15,15 +15,35 @@ import {
 import type {
   WPPost,
   WPPage,
+  WPImage,
   ACFOptions,
   QueryParams,
   WPTaxonomyTerm,
   FetchState,
   UsePostsOptions,
+  GlobalOptions,
+  HeroOptions,
+  SensoproOptions,
+  CabinetOptions,
+  Service,
+  Therapeute,
+  HeroStat,
+  SensoproItem,
+  CabinetAddress,
+  SocialLinks,
 } from "../types/wordpress";
+import {
+  GlobalACF,
+  HeroACF,
+  SensoproACF,
+  CabinetACF,
+  ServiceACF,
+  TherapeuteACF,
+} from "../config/acf-schemas";
 
 // Re-export des types utiles
 export type { WPPost, WPPage, ACFOptions, QueryParams, WPTaxonomyTerm, FetchState, UsePostsOptions };
+export type { GlobalOptions, HeroOptions, SensoproOptions, CabinetOptions, Service, Therapeute };
 
 // ─── Cache en mémoire ─────────────────────────────────────────────────────
 
@@ -297,4 +317,210 @@ export function useGraphQLSiteSettings<T = Record<string, unknown>>() {
     () => graphqlFetch<T>(GQL_SITE_SETTINGS).catch(() => ({} as T)),
     { cacheKey: "gql-site-settings", staleMs: 120_000, persist: true }
   );
+}
+
+// ─── Domain hooks — Physio du Moléson ─────────────────────────────────────
+//
+// Hooks typés qui transforment les réponses brutes WP/ACF en objets métier.
+// Les composants consomment des `Therapeute[]`, `HeroOptions`, etc. — pas
+// du `Record<string, unknown>` brut. Voir doc/wordpress-setup.md pour la
+// configuration ACF requise côté WordPress.
+
+import { acfReader } from "../components/acf";
+
+/** Convertit une valeur brute (ACF image array | URL string) vers WPImage. */
+function toImage(raw: unknown): WPImage | null {
+  if (raw && typeof raw === "object" && "url" in raw) {
+    const o = raw as Record<string, unknown>;
+    return {
+      id:     typeof o.ID === "number" ? o.ID : (typeof o.id === "number" ? o.id : 0),
+      url:    String(o.url),
+      alt:    typeof o.alt === "string" ? o.alt : "",
+      width:  typeof o.width === "number" ? o.width : 0,
+      height: typeof o.height === "number" ? o.height : 0,
+    };
+  }
+  if (typeof raw === "string" && raw.startsWith("http")) {
+    return { id: 0, url: raw, alt: "", width: 0, height: 0 };
+  }
+  return null;
+}
+
+/** Convertit une galerie ACF (array d'images) vers WPImage[]. */
+function toGallery(raw: unknown): WPImage[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map(toImage).filter((i): i is WPImage => i !== null);
+}
+
+/** Lit un repeater {label} et retourne le tableau de labels. */
+function toLabelList(items: { label?: string }[]): string[] {
+  return items.map((i) => i.label ?? "").filter(Boolean);
+}
+
+// ─── Options pages ────────────────────────────────────────────────────────
+
+function parseGlobal(raw: Record<string, unknown> | null): GlobalOptions | null {
+  if (!raw) return null;
+  const r = acfReader(raw, GlobalACF);
+  const addressesRaw = r.repeater<{ label?: string; street?: string; postcode?: string; city?: string }>("addresses");
+  const social = (raw[GlobalACF.social] ?? {}) as Record<string, string>;
+
+  return {
+    logo:      toImage(raw[GlobalACF.logo]),
+    phone:     r.text("phone"),
+    email:     r.text("email"),
+    addresses: addressesRaw.map((a, i): CabinetAddress => ({
+      id:       i,
+      label:    a.label ?? "",
+      street:   a.street ?? "",
+      postcode: a.postcode ?? "",
+      city:     a.city ?? "",
+    })),
+    social: {
+      instagram: social.instagram || undefined,
+      facebook:  social.facebook  || undefined,
+      linkedin:  social.linkedin  || undefined,
+      youtube:   social.youtube   || undefined,
+    } as SocialLinks,
+  };
+}
+
+function parseHero(raw: Record<string, unknown> | null): HeroOptions | null {
+  if (!raw) return null;
+  const r = acfReader(raw, HeroACF);
+  return {
+    eyebrow:        r.text("eyebrow"),
+    titlePart1:     r.text("titlePart1"),
+    titleEmphasis:  r.text("titleEmphasis"),
+    titlePart2:     r.text("titlePart2"),
+    subtitle:       r.text("subtitle"),
+    ctaPrimary:     { label: r.text("ctaPrimary"),   url: r.text("ctaPrimaryUrl") },
+    ctaSecondary:   { label: r.text("ctaSecondary"), url: r.text("ctaSecondaryUrl") },
+    stats:          r.repeater<HeroStat>("stats"),
+    imageMain:      toImage(raw[HeroACF.imageMain]),
+    imageSecondary: toImage(raw[HeroACF.imageSecondary]),
+  };
+}
+
+function parseSensopro(raw: Record<string, unknown> | null): SensoproOptions | null {
+  if (!raw) return null;
+  const r = acfReader(raw, SensoproACF);
+  return {
+    eyebrow:           r.text("eyebrow"),
+    title:             r.text("title"),
+    intro:             r.text("intro"),
+    image:             toImage(raw[SensoproACF.image]),
+    benefits:          r.repeater<SensoproItem>("benefits"),
+    steps:             r.repeater<SensoproItem>("steps"),
+    firstSessionTitle: r.text("firstSessionTitle"),
+    firstSessionText:  r.text("firstSessionText"),
+  };
+}
+
+function parseCabinet(raw: Record<string, unknown> | null): CabinetOptions | null {
+  if (!raw) return null;
+  const r = acfReader(raw, CabinetACF);
+  return {
+    eyebrow:  r.text("eyebrow"),
+    title:    r.text("title"),
+    intro:    r.text("intro"),
+    tag66:    r.text("tag66"),
+    images66: toGallery(raw[CabinetACF.images66]),
+    tag68:    r.text("tag68"),
+    images68: toGallery(raw[CabinetACF.images68]),
+  };
+}
+
+export function useGlobalOptions() {
+  const state = useACFOptionsPage("global");
+  const data  = useMemo(() => parseGlobal(state.data), [state.data]);
+  return { ...state, data };
+}
+
+export function useHeroOptions() {
+  const state = useACFOptionsPage("hero");
+  const data  = useMemo(() => parseHero(state.data), [state.data]);
+  return { ...state, data };
+}
+
+export function useSensoproOptions() {
+  const state = useACFOptionsPage("sensopro");
+  const data  = useMemo(() => parseSensopro(state.data), [state.data]);
+  return { ...state, data };
+}
+
+export function useCabinetOptions() {
+  const state = useACFOptionsPage("cabinet");
+  const data  = useMemo(() => parseCabinet(state.data), [state.data]);
+  return { ...state, data };
+}
+
+// ─── Custom Post Types — service & therapeute ────────────────────────────
+
+/** Forme brute d'un post WP avec ACF inline (REST, plugin "ACF to REST API"). */
+type RawCPT = {
+  id:    number;
+  slug:  string;
+  title: { rendered: string };
+  acf?:  Record<string, unknown>;
+};
+
+function parseService(raw: RawCPT): Service {
+  const acf = raw.acf ?? {};
+  const r   = acfReader(acf, ServiceACF);
+  const tags = r.repeater<{ label?: string }>("tags");
+  return {
+    id:          raw.id,
+    slug:        raw.slug,
+    title:       raw.title?.rendered ?? "",
+    num:         r.text("num"),
+    short:       r.text("short"),
+    description: r.text("description"),
+    tags:        toLabelList(tags),
+    image:       toImage(acf[ServiceACF.image]),
+  };
+}
+
+function parseTherapeute(raw: RawCPT): Therapeute {
+  const acf = raw.acf ?? {};
+  const r   = acfReader(acf, TherapeuteACF);
+  const certifs = r.repeater<{ label?: string }>("certifs");
+  const specs   = r.repeater<{ spec?: string }>("specs");
+  const sinceRaw = acf[TherapeuteACF.since];
+  return {
+    id:          raw.id,
+    slug:        raw.slug,
+    name:        raw.title?.rendered ?? "",
+    role:        r.text("role"),
+    since:       typeof sinceRaw === "number" ? sinceRaw
+               : typeof sinceRaw === "string" && sinceRaw ? Number(sinceRaw)
+               : null,
+    certifs:     toLabelList(certifs),
+    bio:         r.text("bio"),
+    bioShort:    r.text("bioShort"),
+    extras:      r.text("extras"),
+    photo:       toImage(acf[TherapeuteACF.photo]),
+    tbookingUrl: r.text("tbookingUrl"),
+    specs:       specs.map((s) => s.spec ?? "").filter(Boolean),
+  };
+}
+
+/** Liste des services, ordonnés par menu_order côté WP. */
+export function useServices() {
+  const state = useCPT<RawCPT>("service", { perPage: 50, orderby: "menu_order", order: "asc" });
+  const services = useMemo(
+    () => (state.data ?? []).map(parseService),
+    [state.data]
+  );
+  return { ...state, services };
+}
+
+/** Liste des thérapeutes, ordonnés par menu_order côté WP. */
+export function useTherapeutes() {
+  const state = useCPT<RawCPT>("therapeute", { perPage: 50, orderby: "menu_order", order: "asc" });
+  const therapeutes = useMemo(
+    () => (state.data ?? []).map(parseTherapeute),
+    [state.data]
+  );
+  return { ...state, therapeutes };
 }

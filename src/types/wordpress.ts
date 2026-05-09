@@ -99,3 +99,106 @@ export type GQLImage = {
   sourceUrl: string;
   altText?: string;
 };
+
+// ─── Domain Types — Physio du Moléson ─────────────────────────────────────
+//
+// Types métier consommés par les composants. Les hooks de useWordPress.ts
+// transforment les réponses brutes ACF en ces objets typés (mappage des
+// repeaters, normalisation des images, etc.).
+
+/** Une statistique du Hero (Hero stats repeater). */
+export type HeroStat = { number: string; label: string };
+
+/** Un bénéfice ou une étape Sensopro. */
+export type SensoproItem = { number: string; title: string; description: string };
+
+/** Adresse d'un cabinet. */
+export type CabinetAddress = {
+  id: number;
+  label: string;
+  street: string;
+  postcode: string;
+  city: string;
+};
+
+/** Liens sociaux globaux. */
+export type SocialLinks = {
+  instagram?: string;
+  facebook?: string;
+  linkedin?: string;
+  youtube?: string;
+};
+
+/** Options Page "Global" — données de site réutilisables partout. */
+export interface GlobalOptions {
+  logo:      WPImage | null;
+  phone:     string;
+  email:     string;
+  addresses: CabinetAddress[];
+  social:    SocialLinks;
+}
+
+/** Options Page "Hero" — bloc d'accueil. */
+export interface HeroOptions {
+  eyebrow:         string;
+  titlePart1:      string;
+  titleEmphasis:   string;
+  titlePart2:      string;
+  subtitle:        string;
+  ctaPrimary:      { label: string; url: string };
+  ctaSecondary:    { label: string; url: string };
+  stats:           HeroStat[];
+  imageMain:       WPImage | null;
+  imageSecondary:  WPImage | null;
+}
+
+/** Options Page "Sensopro". */
+export interface SensoproOptions {
+  eyebrow:           string;
+  title:             string;
+  intro:             string; // HTML wysiwyg
+  image:             WPImage | null;
+  benefits:          SensoproItem[];
+  steps:             SensoproItem[];
+  firstSessionTitle: string;
+  firstSessionText:  string; // HTML wysiwyg
+}
+
+/** Options Page "Cabinet" — galeries des deux cabinets. */
+export interface CabinetOptions {
+  eyebrow:  string;
+  title:    string;
+  intro:    string; // HTML wysiwyg
+  tag66:    string;
+  images66: WPImage[];
+  tag68:    string;
+  images68: WPImage[];
+}
+
+/** Service (CPT). Le titre WordPress est le nom du service. */
+export interface Service {
+  id:          number;
+  slug:        string;
+  title:       string;
+  num:         string;
+  short:       string;
+  description: string; // HTML wysiwyg
+  tags:        string[];
+  image:       WPImage | null;
+}
+
+/** Thérapeute (CPT). Le titre WordPress est le nom du/de la thérapeute. */
+export interface Therapeute {
+  id:           number;
+  slug:         string;
+  name:         string;
+  role:         string;
+  since:        number | null;
+  certifs:      string[];
+  bio:          string; // HTML wysiwyg
+  bioShort:     string;
+  extras:       string;
+  photo:        WPImage | null;
+  tbookingUrl:  string;
+  specs:        string[];
+}
