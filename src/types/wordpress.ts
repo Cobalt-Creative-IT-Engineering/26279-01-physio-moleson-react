@@ -200,5 +200,4 @@ export interface Therapeute {
   extras:       string;
   photo:        WPImage | null;
   tbookingUrl:  string;
-  specs:        string[];
 }

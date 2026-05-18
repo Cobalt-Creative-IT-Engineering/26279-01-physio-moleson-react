@@ -37,8 +37,6 @@ import {
   HeroACF,
   SensoproACF,
   CabinetACF,
-  ServiceACF,
-  TherapeuteACF,
 } from "../config/acf-schemas";
 
 // Re-export des types utiles
@@ -352,11 +350,6 @@ function toGallery(raw: unknown): WPImage[] {
   return raw.map(toImage).filter((i): i is WPImage => i !== null);
 }
 
-/** Lit un repeater {label} et retourne le tableau de labels. */
-function toLabelList(items: { label?: string }[]): string[] {
-  return items.map((i) => i.label ?? "").filter(Boolean);
-}
-
 // ─── Options pages ────────────────────────────────────────────────────────
 
 function parseGlobal(raw: Record<string, unknown> | null): GlobalOptions | null {
@@ -455,71 +448,167 @@ export function useCabinetOptions() {
   return { ...state, data };
 }
 
-// ─── Custom Post Types — service & therapeute ────────────────────────────
+// ─── CPT via WPGraphQL — service & therapeute ────────────────────────────
 
-/** Forme brute d'un post WP avec ACF inline (REST, plugin "ACF to REST API"). */
-type RawCPT = {
-  id:    number;
-  slug:  string;
-  title: { rendered: string };
-  acf?:  Record<string, unknown>;
+/** Edge média ACF WPGraphQL → WPImage. */
+type GQLMediaEdge = {
+  node: {
+    sourceUrl: string;
+    altText: string | null;
+    databaseId: number;
+    mediaDetails: { width: number | null; height: number | null } | null;
+  };
+} | null;
+
+function fromGQLMedia(edge: GQLMediaEdge): WPImage | null {
+  const n = edge?.node ?? null;
+  if (!n) return null;
+  return {
+    id:     n.databaseId,
+    url:    n.sourceUrl,
+    alt:    n.altText ?? "",
+    width:  n.mediaDetails?.width ?? 0,
+    height: n.mediaDetails?.height ?? 0,
+  };
+}
+
+// ─── Services via WPGraphQL ───────────────────────────────────────────────
+// Groupe ACF exposé sous `services` (type `Services`), camelCase auto.
+
+const GQL_SERVICES = `
+  query Services {
+    services(first: 20, where: { orderby: { field: MENU_ORDER, order: ASC } }) {
+      nodes {
+        databaseId
+        slug
+        title
+        services {
+          numero
+          descriptionCourte
+          description
+          typeDePathologies { pathologie }
+          image { node { sourceUrl altText databaseId mediaDetails { width height } } }
+        }
+      }
+    }
+  }
+`;
+
+type GQLServiceNode = {
+  databaseId: number;
+  slug: string;
+  title: string | null;
+  services: {
+    numero: string | null;
+    descriptionCourte: string | null;
+    description: string | null;
+    typeDePathologies: { pathologie: string | null }[] | null;
+    image: GQLMediaEdge;
+  } | null;
 };
 
-function parseService(raw: RawCPT): Service {
-  const acf = raw.acf ?? {};
-  const r   = acfReader(acf, ServiceACF);
-  const tags = r.repeater<{ label?: string }>("tags");
+type GQLServicesResponse = { services: { nodes: GQLServiceNode[] } };
+
+function fromGQLService(n: GQLServiceNode): Service {
+  const a = n.services;
   return {
-    id:          raw.id,
-    slug:        raw.slug,
-    title:       raw.title?.rendered ?? "",
-    num:         r.text("num"),
-    short:       r.text("short"),
-    description: r.text("description"),
-    tags:        toLabelList(tags),
-    image:       toImage(acf[ServiceACF.image]),
+    id:          n.databaseId,
+    slug:        n.slug,
+    title:       n.title ?? "",
+    num:         a?.numero ?? "",
+    short:       a?.descriptionCourte ?? "",
+    description: a?.description ?? "",
+    tags:        (a?.typeDePathologies ?? [])
+                   .map((t) => t?.pathologie ?? "")
+                   .filter(Boolean),
+    image:       fromGQLMedia(a?.image ?? null),
   };
 }
 
-function parseTherapeute(raw: RawCPT): Therapeute {
-  const acf = raw.acf ?? {};
-  const r   = acfReader(acf, TherapeuteACF);
-  const certifs = r.repeater<{ label?: string }>("certifs");
-  const specs   = r.repeater<{ spec?: string }>("specs");
-  const sinceRaw = acf[TherapeuteACF.since];
+// ─── Thérapeutes via WPGraphQL ────────────────────────────────────────────
+// CPT exposé par WPGraphQL ; champs ACF via WPGraphQL for ACF (groupe
+// `therapeutes`, noms camelCase auto-générés depuis les slugs ACF).
+
+const GQL_THERAPEUTES = `
+  query Therapeutes {
+    therapeutes(first: 50, where: { orderby: { field: MENU_ORDER, order: ASC } }) {
+      nodes {
+        databaseId
+        slug
+        title
+        therapeutes {
+          role
+          debutDactivite
+          biographie
+          biographieCourt
+          specialites
+          urlTbooking
+          certifications { designation }
+          photo { node { sourceUrl altText databaseId mediaDetails { width height } } }
+        }
+      }
+    }
+  }
+`;
+
+type GQLTherapeuteNode = {
+  databaseId: number;
+  slug: string;
+  title: string | null;
+  therapeutes: {
+    role: string | null;
+    debutDactivite: number | null;
+    biographie: string | null;
+    biographieCourt: string | null;
+    specialites: string | null;
+    urlTbooking: string | null;
+    certifications: { designation: string | null }[] | null;
+    photo: GQLMediaEdge;
+  } | null;
+};
+
+type GQLTherapeutesResponse = { therapeutes: { nodes: GQLTherapeuteNode[] } };
+
+function fromGQLTherapeute(n: GQLTherapeuteNode): Therapeute {
+  const a = n.therapeutes;
   return {
-    id:          raw.id,
-    slug:        raw.slug,
-    name:        raw.title?.rendered ?? "",
-    role:        r.text("role"),
-    since:       typeof sinceRaw === "number" ? sinceRaw
-               : typeof sinceRaw === "string" && sinceRaw ? Number(sinceRaw)
-               : null,
-    certifs:     toLabelList(certifs),
-    bio:         r.text("bio"),
-    bioShort:    r.text("bioShort"),
-    extras:      r.text("extras"),
-    photo:       toImage(acf[TherapeuteACF.photo]),
-    tbookingUrl: r.text("tbookingUrl"),
-    specs:       specs.map((s) => s.spec ?? "").filter(Boolean),
+    id:          n.databaseId,
+    slug:        n.slug,
+    name:        n.title ?? "",
+    role:        a?.role ?? "",
+    since:       typeof a?.debutDactivite === "number" ? a.debutDactivite : null,
+    certifs:     (a?.certifications ?? [])
+                   .map((c) => c?.designation ?? "")
+                   .filter(Boolean),
+    bio:         a?.biographie ?? "",
+    bioShort:    a?.biographieCourt ?? "",
+    extras:      a?.specialites ?? "",
+    photo:       fromGQLMedia(a?.photo ?? null),
+    tbookingUrl: a?.urlTbooking ?? "",
   };
 }
 
-/** Liste des services, ordonnés par menu_order côté WP. */
+/** Liste des services via WPGraphQL, ordonnés par menu_order côté WP. */
 export function useServices() {
-  const state = useCPT<RawCPT>("service", { perPage: 50, orderby: "menu_order", order: "asc" });
+  const state = useFetch<GQLServicesResponse>(
+    () => graphqlFetch<GQLServicesResponse>(GQL_SERVICES),
+    { cacheKey: "gql-services", staleMs: 120_000, persist: true }
+  );
   const services = useMemo(
-    () => (state.data ?? []).map(parseService),
+    () => (state.data?.services?.nodes ?? []).map(fromGQLService),
     [state.data]
   );
   return { ...state, services };
 }
 
-/** Liste des thérapeutes, ordonnés par menu_order côté WP. */
+/** Liste des thérapeutes via WPGraphQL, ordonnés par menu_order côté WP. */
 export function useTherapeutes() {
-  const state = useCPT<RawCPT>("therapeute", { perPage: 50, orderby: "menu_order", order: "asc" });
+  const state = useFetch<GQLTherapeutesResponse>(
+    () => graphqlFetch<GQLTherapeutesResponse>(GQL_THERAPEUTES),
+    { cacheKey: "gql-therapeutes", staleMs: 120_000, persist: true }
+  );
   const therapeutes = useMemo(
-    () => (state.data ?? []).map(parseTherapeute),
+    () => (state.data?.therapeutes?.nodes ?? []).map(fromGQLTherapeute),
     [state.data]
   );
   return { ...state, therapeutes };

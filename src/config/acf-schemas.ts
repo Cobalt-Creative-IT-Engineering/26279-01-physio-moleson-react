@@ -75,32 +75,16 @@ export const CabinetACF = {
   images68:     "cabinet_68_images",      // gallery
 } as const;
 
-// ─── CPT : `service` (4 entrées attendues) ───────────────────────────────
-
-export const ServiceACF = {
-  num:         "service_num",          // "01"…"04" (manuel pour le contrôle d'ordre)
-  short:       "service_short",        // "Rhumatologie, orthopédie, traumatologie"
-  description: "service_description",  // wysiwyg
-  // Repeater : { label }
-  tags:        "service_tags",
-  image:       "service_image",
-} as const;
-
-// ─── CPT : `therapeute` (5 entrées attendues) ────────────────────────────
-
-export const TherapeuteACF = {
-  role:         "therapeute_role",          // "Physiothérapeute & ostéopathe"
-  since:        "therapeute_since",         // number
-  // Repeater : { label }
-  certifs:      "therapeute_certifs",
-  bio:          "therapeute_bio",           // wysiwyg, bio complète (modal)
-  bioShort:     "therapeute_bio_short",     // textarea, bio courte (hover card)
-  extras:       "therapeute_extras",        // "Ostéopathie · Sport · Posturologie"
-  photo:        "therapeute_photo",
-  tbookingUrl:  "therapeute_tbooking_url",
-  // Repeater : { spec } — valeurs : "generale", "femme", "sport", "domicile", etc.
-  specs:        "therapeute_specs",
-} as const;
+// ─── CPT `service` & `therapeute` ─────────────────────────────────────────
+//
+// Ces deux CPT ne passent PAS par ce fichier : ils sont consommés via
+// WPGraphQL (WPGraphQL for ACF), pas via le REST ACF. Le mapping des champs
+// est défini directement dans les queries `GQL_SERVICES` / `GQL_THERAPEUTES`
+// de src/hooks/useWordPress.ts (noms camelCase auto-générés par WPGraphQL,
+// ex. `debut_dactivite` → `debutDactivite`).
+//
+// Seules les Options pages ci-dessus (Global/Hero/Sensopro/Cabinet) restent
+// en REST ACF et utilisent ce fichier de schémas.
 
 // ─── Type utilitaire ──────────────────────────────────────────────────────
 
