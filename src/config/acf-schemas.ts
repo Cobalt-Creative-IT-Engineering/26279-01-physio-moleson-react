@@ -61,19 +61,9 @@ export const SensoproACF = {
   firstSessionText:  "sensopro_first_session_text", // wysiwyg
 } as const;
 
-// ─── Options Page : Cabinet ──────────────────────────────────────────────
-
-export const CabinetACF = {
-  eyebrow:      "cabinet_eyebrow",
-  title:        "cabinet_title",
-  intro:        "cabinet_intro",          // wysiwyg
-  // Cabinet n°66
-  tag66:        "cabinet_66_tag",         // "Près de la voie de chemin de fer"
-  images66:     "cabinet_66_images",      // gallery
-  // Cabinet n°68
-  tag68:        "cabinet_68_tag",         // "Reconnaissable aux télécabines en vitrine"
-  images68:     "cabinet_68_images",      // gallery
-} as const;
+// ─── Cabinet ──────────────────────────────────────────────────────────────
+// Migré en GraphQL (Options Page `cabinets`). Mapping dans `GQL_CABINET`
+// de src/hooks/useWordPress.ts. Plus de schéma REST ici.
 
 // ─── CPT `service` & `therapeute` ─────────────────────────────────────────
 //

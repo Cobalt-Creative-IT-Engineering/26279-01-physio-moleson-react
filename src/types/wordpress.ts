@@ -166,7 +166,6 @@ export interface SensoproOptions {
 
 /** Options Page "Cabinet" — galeries des deux cabinets. */
 export interface CabinetOptions {
-  eyebrow:  string;
   title:    string;
   intro:    string; // HTML wysiwyg
   tag66:    string;

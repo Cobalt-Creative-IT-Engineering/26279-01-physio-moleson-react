@@ -36,7 +36,6 @@ import {
   GlobalACF,
   HeroACF,
   SensoproACF,
-  CabinetACF,
 } from "../config/acf-schemas";
 
 // Re-export des types utiles
@@ -344,12 +343,6 @@ function toImage(raw: unknown): WPImage | null {
   return null;
 }
 
-/** Convertit une galerie ACF (array d'images) vers WPImage[]. */
-function toGallery(raw: unknown): WPImage[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.map(toImage).filter((i): i is WPImage => i !== null);
-}
-
 // ─── Options pages ────────────────────────────────────────────────────────
 
 function parseGlobal(raw: Record<string, unknown> | null): GlobalOptions | null {
@@ -410,17 +403,49 @@ function parseSensopro(raw: Record<string, unknown> | null): SensoproOptions | n
   };
 }
 
-function parseCabinet(raw: Record<string, unknown> | null): CabinetOptions | null {
-  if (!raw) return null;
-  const r = acfReader(raw, CabinetACF);
+// ─── Cabinet via WPGraphQL (ACF Options Page `cabinets`) ──────────────────
+// Asymétrie côté WP : cabinet66 → `gallerie`, cabinet68 → `images`.
+
+const GQL_CABINET = `
+  query Cabinet {
+    cabinets {
+      cabinet {
+        titre
+        description
+        cabinet66 {
+          tag
+          gallerie { nodes { sourceUrl altText databaseId mediaDetails { width height } } }
+        }
+        cabinet68 {
+          tag
+          images { nodes { sourceUrl altText databaseId mediaDetails { width height } } }
+        }
+      }
+    }
+  }
+`;
+
+type GQLCabinetResponse = {
+  cabinets: {
+    cabinet: {
+      titre: string | null;
+      description: string | null;
+      cabinet66: { tag: string | null; gallerie: GQLMediaConnection } | null;
+      cabinet68: { tag: string | null; images: GQLMediaConnection } | null;
+    } | null;
+  } | null;
+};
+
+function fromGQLCabinet(d: GQLCabinetResponse | null): CabinetOptions | null {
+  const c = d?.cabinets?.cabinet;
+  if (!c) return null;
   return {
-    eyebrow:  r.text("eyebrow"),
-    title:    r.text("title"),
-    intro:    r.text("intro"),
-    tag66:    r.text("tag66"),
-    images66: toGallery(raw[CabinetACF.images66]),
-    tag68:    r.text("tag68"),
-    images68: toGallery(raw[CabinetACF.images68]),
+    title:    c.titre ?? "",
+    intro:    c.description ?? "",
+    tag66:    c.cabinet66?.tag ?? "",
+    images66: fromGQLGallery(c.cabinet66?.gallerie ?? null),
+    tag68:    c.cabinet68?.tag ?? "",
+    images68: fromGQLGallery(c.cabinet68?.images ?? null),
   };
 }
 
@@ -443,25 +468,25 @@ export function useSensoproOptions() {
 }
 
 export function useCabinetOptions() {
-  const state = useACFOptionsPage("cabinet");
-  const data  = useMemo(() => parseCabinet(state.data), [state.data]);
+  const state = useFetch<GQLCabinetResponse>(
+    () => graphqlFetch<GQLCabinetResponse>(GQL_CABINET),
+    { cacheKey: "gql-cabinet", staleMs: 120_000, persist: true }
+  );
+  const data = useMemo(() => fromGQLCabinet(state.data), [state.data]);
   return { ...state, data };
 }
 
 // ─── CPT via WPGraphQL — service & therapeute ────────────────────────────
 
-/** Edge média ACF WPGraphQL → WPImage. */
-type GQLMediaEdge = {
-  node: {
-    sourceUrl: string;
-    altText: string | null;
-    databaseId: number;
-    mediaDetails: { width: number | null; height: number | null } | null;
-  };
-} | null;
+/** Nœud média WPGraphQL (MediaItem). */
+type GQLMediaNode = {
+  sourceUrl: string;
+  altText: string | null;
+  databaseId: number;
+  mediaDetails: { width: number | null; height: number | null } | null;
+};
 
-function fromGQLMedia(edge: GQLMediaEdge): WPImage | null {
-  const n = edge?.node ?? null;
+function mediaNodeToImage(n: GQLMediaNode | null | undefined): WPImage | null {
   if (!n) return null;
   return {
     id:     n.databaseId,
@@ -470,6 +495,18 @@ function fromGQLMedia(edge: GQLMediaEdge): WPImage | null {
     width:  n.mediaDetails?.width ?? 0,
     height: n.mediaDetails?.height ?? 0,
   };
+}
+
+/** Edge image unique ACF (`field { node { … } }`). */
+type GQLMediaEdge = { node: GQLMediaNode } | null;
+function fromGQLMedia(edge: GQLMediaEdge): WPImage | null {
+  return mediaNodeToImage(edge?.node ?? null);
+}
+
+/** Galerie ACF (`field { nodes [ … ] }`) → WPImage[]. */
+type GQLMediaConnection = { nodes: GQLMediaNode[] } | null;
+function fromGQLGallery(conn: GQLMediaConnection): WPImage[] {
+  return (conn?.nodes ?? []).map(mediaNodeToImage).filter((i): i is WPImage => i !== null);
 }
 
 // ─── Services via WPGraphQL ───────────────────────────────────────────────
