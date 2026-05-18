@@ -22,24 +22,23 @@ import type {
   FetchState,
   UsePostsOptions,
   GlobalOptions,
-  HeroOptions,
+  AccueilOptions,
+  CTA,
   SensoproOptions,
   CabinetOptions,
   Service,
   Therapeute,
-  HeroStat,
   SensoproItem,
   CabinetAddress,
   SocialLinks,
 } from "../types/wordpress";
 import {
   GlobalACF,
-  HeroACF,
 } from "../config/acf-schemas";
 
 // Re-export des types utiles
 export type { WPPost, WPPage, ACFOptions, QueryParams, WPTaxonomyTerm, FetchState, UsePostsOptions };
-export type { GlobalOptions, HeroOptions, SensoproOptions, CabinetOptions, Service, Therapeute };
+export type { GlobalOptions, AccueilOptions, SensoproOptions, CabinetOptions, Service, Therapeute };
 
 // ─── Cache en mémoire ─────────────────────────────────────────────────────
 
@@ -370,20 +369,60 @@ function parseGlobal(raw: Record<string, unknown> | null): GlobalOptions | null 
   };
 }
 
-function parseHero(raw: Record<string, unknown> | null): HeroOptions | null {
-  if (!raw) return null;
-  const r = acfReader(raw, HeroACF);
+// ─── Accueil via WPGraphQL (ACF Options Page `accueil`) ───────────────────
+
+const GQL_ACCUEIL = `
+  query Accueil {
+    accueil {
+      accueils {
+        sourcil
+        titre
+        sousTitre
+        ctaPrimaire { label url }
+        ctaSecondaire { label url }
+        images {
+          image1 { node { sourceUrl altText databaseId mediaDetails { width height } } }
+          image2 { node { sourceUrl altText databaseId mediaDetails { width height } } }
+        }
+        valeurs { label nombre }
+      }
+    }
+  }
+`;
+
+type GQLAccueilResponse = {
+  accueil: {
+    accueils: {
+      sourcil: string | null;
+      titre: string | null;
+      sousTitre: string | null;
+      ctaPrimaire: { label: string | null; url: string | null } | null;
+      ctaSecondaire: { label: string | null; url: string | null } | null;
+      images: { image1: GQLMediaEdge; image2: GQLMediaEdge } | null;
+      valeurs: { label: string | null; nombre: number | null }[] | null;
+    } | null;
+  } | null;
+};
+
+function fromGQLAccueil(d: GQLAccueilResponse | null): AccueilOptions | null {
+  const a = d?.accueil?.accueils;
+  if (!a) return null;
+  const cta = (c: { label: string | null; url: string | null } | null): CTA => ({
+    label: c?.label ?? "",
+    url:   c?.url ?? "",
+  });
   return {
-    eyebrow:        r.text("eyebrow"),
-    titlePart1:     r.text("titlePart1"),
-    titleEmphasis:  r.text("titleEmphasis"),
-    titlePart2:     r.text("titlePart2"),
-    subtitle:       r.text("subtitle"),
-    ctaPrimary:     { label: r.text("ctaPrimary"),   url: r.text("ctaPrimaryUrl") },
-    ctaSecondary:   { label: r.text("ctaSecondary"), url: r.text("ctaSecondaryUrl") },
-    stats:          r.repeater<HeroStat>("stats"),
-    imageMain:      toImage(raw[HeroACF.imageMain]),
-    imageSecondary: toImage(raw[HeroACF.imageSecondary]),
+    eyebrow:        a.sourcil ?? "",
+    title:          a.titre ?? "",
+    subtitle:       a.sousTitre ?? "",
+    ctaPrimary:     cta(a.ctaPrimaire ?? null),
+    ctaSecondary:   cta(a.ctaSecondaire ?? null),
+    stats:          (a.valeurs ?? []).map((v) => ({
+                      number: v.nombre != null ? String(v.nombre) : "",
+                      label:  v.label ?? "",
+                    })),
+    imageMain:      fromGQLMedia(a.images?.image1 ?? null),
+    imageSecondary: fromGQLMedia(a.images?.image2 ?? null),
   };
 }
 
@@ -495,9 +534,12 @@ export function useGlobalOptions() {
   return { ...state, data };
 }
 
-export function useHeroOptions() {
-  const state = useACFOptionsPage("hero");
-  const data  = useMemo(() => parseHero(state.data), [state.data]);
+export function useAccueilOptions() {
+  const state = useFetch<GQLAccueilResponse>(
+    () => graphqlFetch<GQLAccueilResponse>(GQL_ACCUEIL),
+    { cacheKey: "gql-accueil", staleMs: 120_000, persist: true }
+  );
+  const data = useMemo(() => fromGQLAccueil(state.data), [state.data]);
   return { ...state, data };
 }
 

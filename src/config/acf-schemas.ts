@@ -28,23 +28,9 @@ export const GlobalACF = {
   social:    "global_social",
 } as const;
 
-// ─── Options Page : Hero (page d'accueil) ────────────────────────────────
-
-export const HeroACF = {
-  eyebrow:        "hero_eyebrow",          // "Cabinet de physiothérapie · Bulle"
-  titlePart1:     "hero_title_part1",      // "Une équipe"
-  titleEmphasis:  "hero_title_emphasis",   // "à votre écoute," (italic primary)
-  titlePart2:     "hero_title_part2",      // "votre santé en mouvement."
-  subtitle:       "hero_subtitle",         // wysiwyg/textarea
-  ctaPrimary:     "hero_cta_primary_label",
-  ctaPrimaryUrl:  "hero_cta_primary_url",
-  ctaSecondary:   "hero_cta_secondary_label",
-  ctaSecondaryUrl:"hero_cta_secondary_url",
-  // Repeater : { number, label }
-  stats:          "hero_stats",
-  imageMain:      "hero_image_main",
-  imageSecondary: "hero_image_secondary",
-} as const;
+// ─── Accueil (ex-Hero) ────────────────────────────────────────────────────
+// Migré en GraphQL (Options Page `accueil`). Mapping dans `GQL_ACCUEIL`
+// de src/hooks/useWordPress.ts. Plus de schéma REST ici.
 
 // ─── Sensopro ─────────────────────────────────────────────────────────────
 // Migré en GraphQL (Options Page `sensopros`). Mapping dans `GQL_SENSOPRO`

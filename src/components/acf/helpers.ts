@@ -1,14 +1,17 @@
 /**
  * Helpers pour accéder aux champs ACF de façon typée.
  *
- * Utilisation avec un schéma (recommandé) :
- *   const hero = acfReader(options, HeroACF);
- *   hero.text('title')    // TypeScript autocomplete sur les clés du schéma
- *   hero.image('logo')    // retourne { url, alt } | null
+ * Utilisé par les hooks REST restants (Options page `global`).
+ * Les CPT et les autres Options pages passent désormais par WPGraphQL.
+ *
+ * Utilisation avec un schéma :
+ *   const g = acfReader(options, GlobalACF);
+ *   g.text('email')      // TypeScript autocomplete sur les clés du schéma
+ *   g.image('logo')      // retourne { url, alt } | null
  *
  * Utilisation directe (clé string) :
- *   acfText(acf, 'hero_title')
- *   acfImage(acf, 'hero_logo')
+ *   acfText(acf, 'global_email')
+ *   acfImage(acf, 'global_logo')
  */
 
 // ─── Type guard ───────────────────────────────────────────────────────────

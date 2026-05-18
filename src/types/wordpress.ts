@@ -106,8 +106,11 @@ export type GQLImage = {
 // transforment les réponses brutes ACF en ces objets typés (mappage des
 // repeaters, normalisation des images, etc.).
 
-/** Une statistique du Hero (Hero stats repeater). */
+/** Une statistique d'accueil (répéteur `valeurs`). */
 export type HeroStat = { number: string; label: string };
+
+/** Bouton d'appel à l'action. */
+export type CTA = { label: string; url: string };
 
 /** Un bénéfice ou une étape Sensopro. */
 export type SensoproItem = { number: string; title: string; description: string };
@@ -138,18 +141,16 @@ export interface GlobalOptions {
   social:    SocialLinks;
 }
 
-/** Options Page "Hero" — bloc d'accueil. */
-export interface HeroOptions {
-  eyebrow:         string;
-  titlePart1:      string;
-  titleEmphasis:   string;
-  titlePart2:      string;
-  subtitle:        string;
-  ctaPrimary:      { label: string; url: string };
-  ctaSecondary:    { label: string; url: string };
-  stats:           HeroStat[];
-  imageMain:       WPImage | null;
-  imageSecondary:  WPImage | null;
+/** Options Page "Accueil" — bloc hero de la page d'accueil. */
+export interface AccueilOptions {
+  eyebrow:        string;  // sourcil
+  title:          string;  // titre
+  subtitle:       string;  // sousTitre
+  ctaPrimary:     CTA;
+  ctaSecondary:   CTA;
+  stats:          HeroStat[];   // valeurs
+  imageMain:      WPImage | null;
+  imageSecondary: WPImage | null;
 }
 
 /** Options Page "Sensopro". */
