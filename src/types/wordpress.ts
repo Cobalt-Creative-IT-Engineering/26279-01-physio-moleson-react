@@ -154,7 +154,6 @@ export interface HeroOptions {
 
 /** Options Page "Sensopro". */
 export interface SensoproOptions {
-  eyebrow:           string;
   title:             string;
   intro:             string; // HTML wysiwyg
   image:             WPImage | null;

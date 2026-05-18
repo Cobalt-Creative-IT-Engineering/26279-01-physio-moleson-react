@@ -46,20 +46,9 @@ export const HeroACF = {
   imageSecondary: "hero_image_secondary",
 } as const;
 
-// ─── Options Page : Sensopro ──────────────────────────────────────────────
-
-export const SensoproACF = {
-  eyebrow:           "sensopro_eyebrow",
-  title:             "sensopro_title",
-  intro:             "sensopro_intro",            // wysiwyg
-  image:             "sensopro_image",
-  // Repeater : { number, title, description }
-  benefits:          "sensopro_benefits",
-  // Repeater : { number, title, description }
-  steps:             "sensopro_steps",
-  firstSessionTitle: "sensopro_first_session_title",
-  firstSessionText:  "sensopro_first_session_text", // wysiwyg
-} as const;
+// ─── Sensopro ─────────────────────────────────────────────────────────────
+// Migré en GraphQL (Options Page `sensopros`). Mapping dans `GQL_SENSOPRO`
+// de src/hooks/useWordPress.ts. Plus de schéma REST ici.
 
 // ─── Cabinet ──────────────────────────────────────────────────────────────
 // Migré en GraphQL (Options Page `cabinets`). Mapping dans `GQL_CABINET`

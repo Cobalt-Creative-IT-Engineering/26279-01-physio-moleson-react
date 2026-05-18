@@ -35,7 +35,6 @@ import type {
 import {
   GlobalACF,
   HeroACF,
-  SensoproACF,
 } from "../config/acf-schemas";
 
 // Re-export des types utiles
@@ -388,18 +387,59 @@ function parseHero(raw: Record<string, unknown> | null): HeroOptions | null {
   };
 }
 
-function parseSensopro(raw: Record<string, unknown> | null): SensoproOptions | null {
-  if (!raw) return null;
-  const r = acfReader(raw, SensoproACF);
+// ─── Sensopro via WPGraphQL (ACF Options Page `sensopros`) ────────────────
+
+const GQL_SENSOPRO = `
+  query Sensopro {
+    sensopros {
+      sensopro {
+        titre
+        intro
+        premiereSession
+        premiereSessionDescription
+        image { node { sourceUrl altText databaseId mediaDetails { width height } } }
+        benefices { numero titre description }
+        etapes { numero titre description }
+      }
+    }
+  }
+`;
+
+type GQLSensoproItem = { numero: string | null; titre: string | null; description: string | null };
+
+type GQLSensoproResponse = {
+  sensopros: {
+    sensopro: {
+      titre: string | null;
+      intro: string | null;
+      premiereSession: string | null;
+      premiereSessionDescription: string | null;
+      image: GQLMediaEdge;
+      benefices: GQLSensoproItem[] | null;
+      etapes: GQLSensoproItem[] | null;
+    } | null;
+  } | null;
+};
+
+function toSensoproItems(items: GQLSensoproItem[] | null): SensoproItem[] {
+  return (items ?? []).map((i) => ({
+    number:      i.numero ?? "",
+    title:       i.titre ?? "",
+    description: i.description ?? "",
+  }));
+}
+
+function fromGQLSensopro(d: GQLSensoproResponse | null): SensoproOptions | null {
+  const s = d?.sensopros?.sensopro;
+  if (!s) return null;
   return {
-    eyebrow:           r.text("eyebrow"),
-    title:             r.text("title"),
-    intro:             r.text("intro"),
-    image:             toImage(raw[SensoproACF.image]),
-    benefits:          r.repeater<SensoproItem>("benefits"),
-    steps:             r.repeater<SensoproItem>("steps"),
-    firstSessionTitle: r.text("firstSessionTitle"),
-    firstSessionText:  r.text("firstSessionText"),
+    title:             s.titre ?? "",
+    intro:             s.intro ?? "",
+    image:             fromGQLMedia(s.image ?? null),
+    benefits:          toSensoproItems(s.benefices ?? null),
+    steps:             toSensoproItems(s.etapes ?? null),
+    firstSessionTitle: s.premiereSession ?? "",
+    firstSessionText:  s.premiereSessionDescription ?? "",
   };
 }
 
@@ -462,8 +502,11 @@ export function useHeroOptions() {
 }
 
 export function useSensoproOptions() {
-  const state = useACFOptionsPage("sensopro");
-  const data  = useMemo(() => parseSensopro(state.data), [state.data]);
+  const state = useFetch<GQLSensoproResponse>(
+    () => graphqlFetch<GQLSensoproResponse>(GQL_SENSOPRO),
+    { cacheKey: "gql-sensopro", staleMs: 120_000, persist: true }
+  );
+  const data = useMemo(() => fromGQLSensopro(state.data), [state.data]);
   return { ...state, data };
 }
 
