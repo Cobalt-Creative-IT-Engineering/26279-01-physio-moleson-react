@@ -1,8 +1,18 @@
 import { SITE_CONFIG, SOCIAL_LINKS, CONTACT, NAV_ITEMS } from "../../config/site";
+import { useGlobalOptions } from "../../hooks/useWordPress";
 import { Logo } from "../ui";
 
 export function Footer() {
-  const socials = Object.entries(SOCIAL_LINKS).filter(([, url]) => !!url);
+  const { data: g } = useGlobalOptions();
+
+  const phone     = g?.phone || CONTACT.phone;
+  const email     = g?.email || CONTACT.email;
+  const addresses = g && g.addresses.length ? g.addresses : CONTACT.addresses;
+
+  const socials = Object.entries({
+    instagram: g?.social.instagram ?? SOCIAL_LINKS.instagram,
+    facebook:  g?.social.facebook  ?? SOCIAL_LINKS.facebook,
+  }).filter(([, url]) => !!url) as [string, string][];
 
   return (
     <footer
@@ -44,15 +54,15 @@ export function Footer() {
               Cabinet
             </div>
             <ul className="flex flex-col gap-2.5 text-[13.5px]" style={{ color: "oklch(0.7 0.015 200)" }}>
-              {CONTACT.addresses.map((a) => (
+              {addresses.map((a) => (
                 <li key={a.id}>{a.street}</li>
               ))}
-              <li>{CONTACT.addresses[0].postcode} {CONTACT.addresses[0].city}, Suisse</li>
+              <li>{addresses[0]?.postcode} {addresses[0]?.city}, Suisse</li>
               <li>
-                <a href={`tel:${CONTACT.phoneTel}`} className="hover:text-bg transition-colors">{CONTACT.phone}</a>
+                <a href={`tel:${CONTACT.phoneTel}`} className="hover:text-bg transition-colors">{phone}</a>
               </li>
               <li>
-                <a href={`mailto:${CONTACT.email}`} className="hover:text-bg transition-colors">{CONTACT.email}</a>
+                <a href={`mailto:${email}`} className="hover:text-bg transition-colors">{email}</a>
               </li>
             </ul>
 

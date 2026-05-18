@@ -61,9 +61,8 @@ export function acfRepeater<T>(acf: Record<string, unknown>, key: string): T[] {
  * Crée un lecteur ACF typé à partir d'un schéma.
  *
  * @example
- *   const hero = acfReader(options, HeroACF);
- *   const title = hero.text('title');   // keyof HeroACF → autocomplétion TS
- *   const logo  = hero.image('logo');
+ *   const r = acfReader(options, { email: 'global_email' } as const);
+ *   const email = r.text('email');   // autocomplétion TS sur les clés
  */
 export function acfReader<S extends Record<string, string>>(
   data: Record<string, unknown> | null | undefined,

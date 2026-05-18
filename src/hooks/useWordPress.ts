@@ -32,9 +32,6 @@ import type {
   CabinetAddress,
   SocialLinks,
 } from "../types/wordpress";
-import {
-  GlobalACF,
-} from "../config/acf-schemas";
 
 // Re-export des types utiles
 export type { WPPost, WPPage, ACFOptions, QueryParams, WPTaxonomyTerm, FetchState, UsePostsOptions };
@@ -321,50 +318,51 @@ export function useGraphQLSiteSettings<T = Record<string, unknown>>() {
 // du `Record<string, unknown>` brut. Voir doc/wordpress-setup.md pour la
 // configuration ACF requise côté WordPress.
 
-import { acfReader } from "../components/acf";
+// ─── Global via WPGraphQL (ACF Options Page `optGlobale`) ─────────────────
 
-/** Convertit une valeur brute (ACF image array | URL string) vers WPImage. */
-function toImage(raw: unknown): WPImage | null {
-  if (raw && typeof raw === "object" && "url" in raw) {
-    const o = raw as Record<string, unknown>;
-    return {
-      id:     typeof o.ID === "number" ? o.ID : (typeof o.id === "number" ? o.id : 0),
-      url:    String(o.url),
-      alt:    typeof o.alt === "string" ? o.alt : "",
-      width:  typeof o.width === "number" ? o.width : 0,
-      height: typeof o.height === "number" ? o.height : 0,
-    };
+const GQL_GLOBAL = `
+  query Global {
+    optGlobale {
+      optionsGlobale {
+        telephone
+        email
+        logo { node { sourceUrl altText databaseId mediaDetails { width height } } }
+        adresses { lieu adresse npa ville }
+        reseauxSociaux { facebook instagram }
+      }
+    }
   }
-  if (typeof raw === "string" && raw.startsWith("http")) {
-    return { id: 0, url: raw, alt: "", width: 0, height: 0 };
-  }
-  return null;
-}
+`;
 
-// ─── Options pages ────────────────────────────────────────────────────────
+type GQLGlobalResponse = {
+  optGlobale: {
+    optionsGlobale: {
+      telephone: string | null;
+      email: string | null;
+      logo: GQLMediaEdge;
+      adresses: { lieu: string | null; adresse: string | null; npa: string | null; ville: string | null }[] | null;
+      reseauxSociaux: { facebook: string | null; instagram: string | null } | null;
+    } | null;
+  } | null;
+};
 
-function parseGlobal(raw: Record<string, unknown> | null): GlobalOptions | null {
-  if (!raw) return null;
-  const r = acfReader(raw, GlobalACF);
-  const addressesRaw = r.repeater<{ label?: string; street?: string; postcode?: string; city?: string }>("addresses");
-  const social = (raw[GlobalACF.social] ?? {}) as Record<string, string>;
-
+function fromGQLGlobal(d: GQLGlobalResponse | null): GlobalOptions | null {
+  const g = d?.optGlobale?.optionsGlobale;
+  if (!g) return null;
   return {
-    logo:      toImage(raw[GlobalACF.logo]),
-    phone:     r.text("phone"),
-    email:     r.text("email"),
-    addresses: addressesRaw.map((a, i): CabinetAddress => ({
+    logo:  fromGQLMedia(g.logo ?? null),
+    phone: g.telephone ?? "",
+    email: g.email ?? "",
+    addresses: (g.adresses ?? []).map((a, i): CabinetAddress => ({
       id:       i,
-      label:    a.label ?? "",
-      street:   a.street ?? "",
-      postcode: a.postcode ?? "",
-      city:     a.city ?? "",
+      label:    a.lieu ?? "",
+      street:   a.adresse ?? "",
+      postcode: a.npa ?? "",
+      city:     a.ville ?? "",
     })),
     social: {
-      instagram: social.instagram || undefined,
-      facebook:  social.facebook  || undefined,
-      linkedin:  social.linkedin  || undefined,
-      youtube:   social.youtube   || undefined,
+      instagram: g.reseauxSociaux?.instagram || undefined,
+      facebook:  g.reseauxSociaux?.facebook  || undefined,
     } as SocialLinks,
   };
 }
@@ -529,8 +527,11 @@ function fromGQLCabinet(d: GQLCabinetResponse | null): CabinetOptions | null {
 }
 
 export function useGlobalOptions() {
-  const state = useACFOptionsPage("global");
-  const data  = useMemo(() => parseGlobal(state.data), [state.data]);
+  const state = useFetch<GQLGlobalResponse>(
+    () => graphqlFetch<GQLGlobalResponse>(GQL_GLOBAL),
+    { cacheKey: "gql-global", staleMs: 120_000, persist: true }
+  );
+  const data = useMemo(() => fromGQLGlobal(state.data), [state.data]);
   return { ...state, data };
 }
 
