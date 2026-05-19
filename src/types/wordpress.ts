@@ -165,13 +165,18 @@ export interface SensoproOptions {
 }
 
 /** Options Page "Cabinet" — galeries des deux cabinets. */
+/** Une journée du planning hebdomadaire d'un cabinet. */
+export type ScheduleDay = { day: string; names: string[] };
+
 export interface CabinetOptions {
-  title:    string;
-  intro:    string; // HTML wysiwyg
-  tag66:    string;
-  images66: WPImage[];
-  tag68:    string;
-  images68: WPImage[];
+  title:      string;
+  intro:      string; // HTML wysiwyg
+  tag66:      string;
+  images66:   WPImage[];
+  schedule66: ScheduleDay[];
+  tag68:      string;
+  images68:   WPImage[];
+  schedule68: ScheduleDay[];
 }
 
 /** Service (CPT). Le titre WordPress est le nom du service. */

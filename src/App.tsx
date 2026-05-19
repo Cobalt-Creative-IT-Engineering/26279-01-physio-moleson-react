@@ -7,7 +7,6 @@ import { ServicesPage }  from "./pages/ServicesPage";
 import { SensoproPage }  from "./pages/SensoproPage";
 import { EquipePage }    from "./pages/EquipePage";
 import { CabinetPage }   from "./pages/CabinetPage";
-import { ContactPage }   from "./pages/ContactPage";
 import { ComingSoonPage } from "./pages/ComingSoonPage";
 import { NotFoundPage }  from "./pages/NotFoundPage";
 import { ACTIVE_THEME, FORCE_COMING_SOON, COMING_SOON_UNTIL } from "./config/site";
@@ -45,7 +44,6 @@ const PAGE_LABELS: Record<string, string> = {
   "/sensopro": "Sensopro",
   "/equipe":   "Thérapeutes",
   "/cabinet":  "Cabinet",
-  "/contact":  "Contact",
 };
 
 function getPageLabel(route: string): string | undefined {
@@ -74,6 +72,11 @@ export default function App() {
   // Meta par défaut selon la route (les pages de détail écrasent avec leurs propres infos).
   useEffect(() => {
     setPageMeta({ title: getPageLabel(route) });
+  }, [route]);
+
+  // L'ancienne page /contact est désormais une section de l'accueil.
+  useEffect(() => {
+    if (route === "/contact") navigate("/#contact");
   }, [route]);
 
   // Scroll : ancre si présente, sinon remonte en haut.
@@ -108,6 +111,6 @@ function PageView({ route }: { route: string }) {
   if (route === "/sensopro")          return <SensoproPage />;
   if (route === "/equipe")            return <EquipePage />;
   if (route === "/cabinet")           return <CabinetPage />;
-  if (route === "/contact")           return <ContactPage />;
+  if (route === "/contact")           return <HomePage />; // redirigé vers /#contact
   return <NotFoundPage />;
 }

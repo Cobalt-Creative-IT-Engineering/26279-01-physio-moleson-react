@@ -1,4 +1,4 @@
-import logoSrc from "../../assets/logo/logo_base.webp";
+import logoSrc from "../../assets/logo/logo-dark.png";
 
 type Props = {
   size?: number;

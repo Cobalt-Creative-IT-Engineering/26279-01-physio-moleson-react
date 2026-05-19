@@ -16,7 +16,7 @@ export function SensoproPage() {
   }, []);
 
   return (
-    <section className="section-y bg-bg-alt border-t border-line-soft">
+    <section className="section-y">
       <div className="container-x">
         <div className="section-header">
           <span className="eyebrow">Entraînement Sensopro</span>
@@ -125,7 +125,7 @@ export function SensoproPage() {
                     <a href={`mailto:${CONTACT.email}`} className="btn btn-ghost">
                       {CONTACT.email}
                     </a>
-                    <a href="/contact" className="btn btn-ghost">
+                    <a href="/#contact" className="btn btn-ghost">
                       Demander un RDV via le formulaire
                     </a>
                   </div>

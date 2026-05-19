@@ -1,6 +1,7 @@
 import { SITE_CONFIG, SOCIAL_LINKS, CONTACT, NAV_ITEMS } from "../../config/site";
 import { useGlobalOptions } from "../../hooks/useWordPress";
-import { Logo } from "../ui";
+import { Logo, Icon } from "../ui";
+import type { IconName } from "../ui";
 
 export function Footer() {
   const { data: g } = useGlobalOptions();
@@ -75,10 +76,10 @@ export function Footer() {
                       target="_blank"
                       rel="noreferrer"
                       aria-label={name}
-                      className="w-8 h-8 rounded-full border inline-flex items-center justify-center capitalize text-xs transition-colors"
+                      className="w-8 h-8 rounded-full border inline-flex items-center justify-center transition-colors hover:text-bg"
                       style={{ borderColor: "oklch(0.35 0.015 200)", color: "oklch(0.78 0.03 155)" }}
                     >
-                      {name[0]}
+                      <Icon name={name as IconName} size={14} />
                     </a>
                   </li>
                 ))}

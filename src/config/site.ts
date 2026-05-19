@@ -39,6 +39,11 @@ export const CONTACT = {
     { id: 66, label: "Cabinet n°66", street: "Rue Saint-Denis 66", postcode: "1630", city: "Bulle" },
     { id: 68, label: "Cabinet n°68", street: "Rue Saint-Denis 68", postcode: "1630", city: "Bulle" },
   ],
+  // Horaires du secrétariat téléphonique. `highlight` = ligne mise en avant.
+  secretariat: [
+    { days: "Mercredi · non-stop",  hours: "09:00 — 12:00 · 13:00 — 17:00", highlight: true  },
+    { days: "Lun · Mar · Jeu · Ven", hours: "Sur rappel · 07:30 — 18:00",   highlight: false },
+  ],
 } as const;
 
 // ─── Réseaux sociaux ──────────────────────────────────────────────────────
@@ -60,7 +65,7 @@ export const NAV_ITEMS = [
   { id: 3, title: "Sensopro",    url: "/sensopro",  cta: false },
   { id: 4, title: "Thérapeutes", url: "/equipe",    cta: false },
   { id: 5, title: "Cabinet",     url: "/cabinet",   cta: false },
-  { id: 6, title: "Contact",     url: "/contact",   cta: true  },
+  { id: 6, title: "Prendre rendez-vous",     url: "/#contact", cta: true  },
 ] as const;
 
 export type NavItem = (typeof NAV_ITEMS)[number];

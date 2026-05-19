@@ -1,13 +1,95 @@
 import { useState, useEffect } from "react";
 import { useCabinetOptions } from "../hooks/useWordPress";
-import type { WPImage } from "../types/wordpress";
+import type { WPImage, ScheduleDay } from "../types/wordpress";
 import { Skeleton, ErrorBanner, WPContent } from "../components/ui";
 import { CONTACT } from "../config/site";
 import { setPageMeta } from "../lib/meta";
 
+/* ─── Lightbox galerie ─────────────────────────────────────────────────── */
+
+function Lightbox({
+  images,
+  index,
+  onClose,
+  onNav,
+}: {
+  images: WPImage[];
+  index: number;
+  onClose: () => void;
+  onNav: (i: number) => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") onNav((index + 1) % images.length);
+      if (e.key === "ArrowLeft") onNav((index - 1 + images.length) % images.length);
+    };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [index, images.length, onClose, onNav]);
+
+  const img = images[index];
+  const many = images.length > 1;
+
+  return (
+    <div
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10"
+      style={{ background: "oklch(0.22 0.02 200 / 0.78)", backdropFilter: "blur(6px)", animation: "fadeIn 200ms ease-out" }}
+    >
+      <button
+        onClick={onClose}
+        aria-label="Fermer"
+        className="absolute top-5 right-5 w-10 h-10 rounded-full inline-flex items-center justify-center text-white/80 hover:text-white border border-white/30 hover:border-white/60 transition-colors"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 6L6 18M6 6l12 12" /></svg>
+      </button>
+
+      {many && (
+        <>
+          <button
+            onClick={(e) => { e.stopPropagation(); onNav((index - 1 + images.length) % images.length); }}
+            aria-label="Image précédente"
+            className="absolute left-4 md:left-8 w-11 h-11 rounded-full inline-flex items-center justify-center text-white/80 hover:text-white border border-white/30 hover:border-white/60 transition-colors"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onNav((index + 1) % images.length); }}
+            aria-label="Image suivante"
+            className="absolute right-4 md:right-8 w-11 h-11 rounded-full inline-flex items-center justify-center text-white/80 hover:text-white border border-white/30 hover:border-white/60 transition-colors"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
+          </button>
+        </>
+      )}
+
+      <figure onClick={(e) => e.stopPropagation()} className="flex flex-col items-center gap-3" style={{ animation: "slideUp 300ms cubic-bezier(0.2,0,0,1)" }}>
+        <img
+          src={img.url}
+          alt={img.alt || "Cabinet"}
+          className="max-h-[82vh] max-w-[90vw] object-contain rounded-card shadow-lg"
+        />
+        {many && (
+          <figcaption className="font-mono text-[11px] tracking-[0.14em] uppercase text-white/70">
+            {index + 1} / {images.length}
+          </figcaption>
+        )}
+      </figure>
+    </div>
+  );
+}
+
 /* ─── Galerie d'un cabinet ─────────────────────────────────────────────── */
 
 function CabinetGallery({ images, tag, n }: { images: WPImage[]; tag: string; n: number }) {
+  const [lightbox, setLightbox] = useState<number | null>(null);
   const slot = (i: number) => images[i] ?? null;
   const labels = [
     `Vue principale · cabinet n°${n}`,
@@ -16,20 +98,37 @@ function CabinetGallery({ images, tag, n }: { images: WPImage[]; tag: string; n:
     "Salle d'attente",
   ];
 
-  const Img = ({ img, label, className }: { img: WPImage | null; label: string; className?: string }) =>
-    img ? (
-      <img src={img.url} alt={img.alt || label} loading="lazy" className={`w-full h-full object-cover ${className ?? ""}`} />
-    ) : (
-      <div className={`ph ph-dark w-full h-full ${className ?? ""}`}>
-        <span className="ph-label">{label}</span>
-      </div>
+  const Cell = ({ i, label }: { i: number; label: string }) => {
+    const img = slot(i);
+    if (!img) {
+      return (
+        <div className="ph w-full h-full">
+          <span className="ph-label">{label}</span>
+        </div>
+      );
+    }
+    return (
+      <button
+        type="button"
+        onClick={() => setLightbox(i)}
+        aria-label={`Agrandir : ${img.alt || label}`}
+        className="group block w-full h-full cursor-zoom-in"
+      >
+        <img
+          src={img.url}
+          alt={img.alt || label}
+          loading="lazy"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+        />
+      </button>
     );
+  };
 
   return (
     <div>
       <div className="grid grid-cols-3 grid-rows-[300px_140px] gap-2">
         <div className="col-span-3 row-start-1 relative overflow-hidden rounded-card shadow-lg">
-          <Img img={slot(0)} label={labels[0]} />
+          <Cell i={0} label={labels[0]} />
           {tag && (
             <div
               className="absolute top-3.5 left-3.5 px-3 py-1.5 rounded-btn text-[10px] tracking-[0.18em] uppercase font-mono pointer-events-none z-[2]"
@@ -41,13 +140,71 @@ function CabinetGallery({ images, tag, n }: { images: WPImage[]; tag: string; n:
         </div>
         {[1, 2, 3].map((i) => (
           <div key={i} className="relative overflow-hidden rounded-card">
-            <Img img={slot(i)} label={labels[i]} />
+            <Cell i={i} label={labels[i]} />
           </div>
         ))}
       </div>
-      <div className="mt-2.5 font-mono text-[11px] tracking-[0.14em] uppercase" style={{ color: "oklch(0.78 0.025 155)" }}>
+      <div className="mt-2.5 font-mono text-[11px] tracking-[0.14em] uppercase text-ink-mute">
         Galerie · cabinet n°{n}
       </div>
+
+      {lightbox !== null && images[lightbox] && (
+        <Lightbox
+          images={images}
+          index={lightbox}
+          onClose={() => setLightbox(null)}
+          onNav={setLightbox}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ─── Planning hebdomadaire ────────────────────────────────────────────── */
+
+function SchedulePanel({ schedule, n }: { schedule: ScheduleDay[]; n: number }) {
+  return (
+    <div>
+      <div className="flex items-baseline justify-between mb-5">
+        <h2 className="text-[26px]">Qui consulte au n°{n} ?</h2>
+        <span className="font-mono text-[10px] tracking-[0.18em] uppercase text-ink-mute">
+          Planning hebdo
+        </span>
+      </div>
+
+      {schedule.length === 0 ? (
+        <div className="bg-surface border border-line rounded-card px-6 py-8 text-[13.5px] text-ink-mute">
+          Planning à venir.
+        </div>
+      ) : (
+        <div className="bg-surface border border-line rounded-card overflow-hidden">
+          {schedule.map((row, i) => (
+            <div
+              key={row.day}
+              className="grid grid-cols-[110px_1fr] items-center gap-4 px-5 py-4"
+              style={{ borderBottom: i < schedule.length - 1 ? "1px solid var(--color-line)" : "none" }}
+            >
+              <div className="font-display text-lg text-ink">{row.day}</div>
+              <div className="flex flex-wrap gap-1.5">
+                {row.names.map((name) => (
+                  <span
+                    key={name}
+                    className="px-3 py-1 text-[12.5px] rounded-btn bg-primary-bg text-primary border border-primary-soft"
+                  >
+                    {name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <p className="text-[12.5px] text-ink-mute mt-3.5 leading-relaxed">
+        Le planning peut varier selon les semaines et les absences. Pour une
+        consultation avec un·e thérapeute spécifique, mentionnez-le lors de
+        votre prise de rendez-vous.
+      </p>
     </div>
   );
 }
@@ -69,23 +226,22 @@ export function CabinetPage() {
   const is66 = activeId === 66;
   const tag = data ? (is66 ? data.tag66 : data.tag68) : "";
   const images = data ? (is66 ? data.images66 : data.images68) : [];
+  const schedule = data ? (is66 ? data.schedule66 : data.schedule68) : [];
 
   return (
-    <section className="section-y" style={{ background: "var(--color-primary)", color: "oklch(0.96 0.01 155)" }}>
+    <section className="section-y">
       <div className="container-x">
-        <div className="section-header" style={{ marginBottom: 56 }}>
-          <span className="eyebrow" style={{ color: "oklch(0.88 0.025 155)" }}>Le cabinet</span>
-          <h1 style={{ color: "oklch(0.98 0.008 100)" }}>
-            {data?.title || "Deux cabinets à la rue Saint-Denis."}
-          </h1>
-          {data?.intro
-            ? <WPContent html={data.intro} className="text-[17px] leading-relaxed max-w-[560px]" />
-            : (
-              <p style={{ color: "oklch(0.88 0.025 155)" }}>
-                Au centre de Bulle, rue Saint-Denis — deux espaces avec salles de
-                traitement, salle d'attente et fitness médical.
-              </p>
-            )}
+        <div className="section-header">
+          <span className="eyebrow">Le cabinet</span>
+          <h1>{data?.title || "Deux cabinets à la rue Saint-Denis."}</h1>
+          {data?.intro ? (
+            <WPContent html={data.intro} className="text-lg text-ink-soft max-w-[560px]" />
+          ) : (
+            <p>
+              Au centre de Bulle, rue Saint-Denis — deux espaces avec salles de
+              traitement, salle d'attente et fitness médical.
+            </p>
+          )}
         </div>
 
         {status === "loading" && !data && (
@@ -101,49 +257,53 @@ export function CabinetPage() {
 
         {data && (
           <div className="grid lg:grid-cols-[1.1fr_1fr] gap-16 items-start">
-            <CabinetGallery images={images} tag={tag} n={activeId} />
+            {/* Colonne gauche : galerie + sélecteur cabinet */}
+            <div className="flex flex-col gap-4">
+              <CabinetGallery images={images} tag={tag} n={activeId} />
 
-            <div className="flex flex-col gap-3">
-              {CONTACT.addresses.map((a) => {
-                const isActive = a.id === activeId;
-                return (
-                  <button
-                    key={a.id}
-                    onClick={() => setActiveId(a.id)}
-                    className="text-left rounded-card px-6 py-5 border transition-all"
-                    style={{
-                      background: isActive ? "oklch(0.98 0.008 100)" : "oklch(0.5 0.05 165 / 0.4)",
-                      color: isActive ? "var(--color-primary)" : "oklch(0.96 0.01 155)",
-                      borderColor: isActive ? "oklch(0.98 0.008 100)" : "oklch(0.5 0.05 165)",
-                    }}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <span
-                        className="w-6 h-6 rounded-full inline-flex items-center justify-center text-[11px] font-mono"
-                        style={{
-                          background: isActive ? "var(--color-primary)" : "oklch(0.5 0.05 165)",
-                          color: isActive ? "oklch(0.98 0.008 100)" : "oklch(0.88 0.025 155)",
-                        }}
-                      >
-                        {a.id === 66 ? "A" : "B"}
-                      </span>
-                      <div>
-                        <div className="font-display text-lg leading-none">{a.label}</div>
-                        <div className="text-[11px] opacity-70 mt-1">{a.street} · {a.postcode} {a.city}</div>
+              <div className="grid grid-cols-2 gap-3">
+                {CONTACT.addresses.map((a) => {
+                  const isActive = a.id === activeId;
+                  return (
+                    <button
+                      key={a.id}
+                      onClick={() => setActiveId(a.id)}
+                      className="text-left rounded-card px-5 py-4 border bg-surface transition-all"
+                      style={{
+                        borderColor: isActive ? "var(--color-primary)" : "var(--color-line)",
+                        background: isActive ? "var(--color-primary-bg)" : "var(--color-surface)",
+                      }}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span
+                          className="w-6 h-6 rounded-full inline-flex items-center justify-center text-[11px] font-mono"
+                          style={{
+                            background: isActive ? "var(--color-primary)" : "var(--color-primary-bg)",
+                            color: isActive ? "oklch(0.98 0.005 100)" : "var(--color-primary)",
+                          }}
+                        >
+                          {a.id === 66 ? "A" : "B"}
+                        </span>
+                        <div>
+                          <div
+                            className="font-display text-base leading-none"
+                            style={{ color: isActive ? "var(--color-primary)" : "var(--color-ink)" }}
+                          >
+                            {a.label}
+                          </div>
+                          <div className="text-[11px] text-ink-mute mt-1">
+                            {a.street}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </button>
-                );
-              })}
-
-              <a
-                href={`tel:${CONTACT.phoneTel}`}
-                className="mt-2 text-[13px] underline underline-offset-4"
-                style={{ color: "oklch(0.88 0.025 155)" }}
-              >
-                {CONTACT.phone}
-              </a>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
+
+            {/* Colonne droite : planning hebdomadaire */}
+            <SchedulePanel schedule={schedule} n={activeId} />
           </div>
         )}
       </div>
