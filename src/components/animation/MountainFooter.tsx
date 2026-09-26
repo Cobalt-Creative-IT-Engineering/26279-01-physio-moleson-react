@@ -160,7 +160,10 @@ export function MountainFooter({ snow = true, speed = 1 }: Props) {
       k = k * k * (3 - 2 * k);
       const q = a.map((v, j) => v + (b[j] - v) * k);
 
-      const legs = [fx - 5 * s, fx].map((x) => {
+      // Vu de profil et quasi immobile : les deux jambes et les deux bras sont
+      // superposés et d'une seule couleur, sans décalage de profondeur (qui
+      // dédoublait les membres). Le coureur, lui, garde ses deux tons.
+      const legs = [fx, fx].map((x) => {
         const kn: [number, number] = [x + Math.sin(q[1]) * sh, ground - Math.cos(q[1]) * sh];
         const hp: [number, number] = [kn[0] + Math.sin(q[2]) * th, kn[1] - Math.cos(q[2]) * th];
         return [x, kn, hp] as [number, [number, number], [number, number]];
@@ -179,7 +182,7 @@ export function MountainFooter({ snow = true, speed = 1 }: Props) {
           `M${h[0]} ${h[1]}L${kn[0]} ${kn[1]}L${x} ${ground - 2.5 * s}L${x + 7 * s} ${ground - 2.5 * s}`));
       l.torso?.setAttribute("d", `M${hp[0]} ${hp[1]}L${sho[0]} ${sho[1]}`);
       set(l.head, { cx: head[0], cy: head[1], r: hr });
-      l.arm0?.setAttribute("d", `M${s2[0] - 3 * s} ${s2[1]}L${el[0] - 3 * s} ${el[1]}L${hd[0] - 2 * s} ${hd[1]}`);
+      l.arm0?.setAttribute("d", `M${s2[0]} ${s2[1]}L${el[0]} ${el[1]}L${hd[0]} ${hd[1]}`);
       l.arm1?.setAttribute("d", `M${s2[0]} ${s2[1]}L${el[0]} ${el[1]}L${hd[0]} ${hd[1]}`);
 
       drawRunner();
@@ -241,7 +244,7 @@ export function MountainFooter({ snow = true, speed = 1 }: Props) {
 
       {/* Contreforts lointains */}
       <path
-        d="M0 320 L0 190 L60 150 L110 176 L170 118 L222 160 L282 104 L334 142 L392 92 L452 134 L500 120 L1000 130 L1080 108 L1130 150 L1190 82 L1242 128 L1300 98 L1352 146 L1402 112 L1440 138 L1440 320 Z"
+        d="M0 320 L0 190 L60 150 L110 176 L170 118 L222 160 L282 104 L334 142 L392 92 L452 134 L500 120 L560 96 L620 124 L690 90 L750 118 L800 94 L852 126 L906 100 L958 134 L1000 122 L1080 108 L1130 150 L1190 82 L1242 128 L1300 98 L1352 146 L1402 112 L1440 138 L1440 320 Z"
         style={{ fill: "var(--anim-sauge-200)", stroke: "var(--anim-sauge-200)", strokeWidth: 8, strokeLinejoin: "round" }}
       />
       <path
@@ -276,8 +279,8 @@ export function MountainFooter({ snow = true, speed = 1 }: Props) {
       {/* Haltérophile + coureur */}
       <g>
         <circle ref={rl("plateB")} style={{ fill: "var(--anim-sauge-600)" }} />
-        <path   ref={rl("arm0")}  style={stroke(terraBack, 5)} />
-        <path   ref={rl("leg0")}  style={stroke(terraBack, 5)} />
+        <path   ref={rl("arm0")}  style={stroke(terra, 5)} />
+        <path   ref={rl("leg0")}  style={stroke(terra, 5)} />
         <path   ref={rl("torso")} style={stroke(terra, 5)} />
         <path   ref={rl("leg1")}  style={stroke(terra, 5)} />
         <circle ref={rl("head")}  style={{ fill: terra }} />

@@ -58,6 +58,12 @@ function pose(t: number) {
   const c = t % 24;
   const r = smooth(5.2, 6.4, c) * (1 - smooth(18.6, 19.8, c));
   const j = c >= 12 && c < 15 ? smooth(12, 12.2, c) * (1 - smooth(14.8, 15, c)) : 0;
+  const q = c >= 12 && c < 15 ? (c - 12) % 1 : 0;
+  // Pendant le saut, on n'avance QUE en l'air (décollage vers 0,3, réception
+  // vers 0,9) : pieds au sol pendant l'accroupissement et la réception, la
+  // silhouette ne doit pas glisser. Vitesse aérienne relevée pour couvrir à peu
+  // près la même distance qu'avant sur un temps plus court.
+  const glide = smooth(0.26, 0.32, q) * (1 - smooth(0.86, 0.92, q));
   return {
     r,
     j,
@@ -67,8 +73,8 @@ function pose(t: number) {
     S:    lerp(0.45, 0.75, r),
     E:    lerp(0.3, 1.6, r),
     fq:   lerp(0.95, 1.45, r),
-    q:    c >= 12 && c < 15 ? (c - 12) % 1 : 0,
-    spd:  lerp(lerp(62, 175, r), 120, j),
+    q,
+    spd:  lerp(lerp(62, 175, r), 200 * glide, j),
   };
 }
 

@@ -91,23 +91,20 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="flex justify-between items-center pt-7 text-[11.5px] tracking-[0.04em] flex-wrap gap-4" style={{ color: "var(--color-on-dark-mute)" }}>
-          <div className="flex gap-6 items-center flex-wrap">
-            <span>© {new Date().getFullYear()} {SITE_CONFIG.name}</span>
-            <span style={{ opacity: 0.5 }}>·</span>
-            <span>
-              Développé par{" "}
-              <a
-                href="https://cobalt-it.ch/"
-                target="_blank"
-                rel="noreferrer"
-                className="border-b pb-px"
-                style={{ color: "var(--color-sauge)", borderColor: "var(--color-dark-line)" }}
-              >
-                Cobalt
-              </a>
-            </span>
-          </div>
+        <div className="flex justify-between items-center pt-7 text-[14px] tracking-[0.02em] flex-wrap gap-4" style={{ color: "var(--color-on-dark-mute)" }}>
+          <span>© {new Date().getFullYear()} {SITE_CONFIG.name}</span>
+          <span>
+            Développé par{" "}
+            <a
+              href="https://cobalt-it.ch/"
+              target="_blank"
+              rel="noreferrer"
+              className="border-b pb-px"
+              style={{ color: "var(--color-sauge)", borderColor: "var(--color-dark-line)" }}
+            >
+              Cobalt
+            </a>
+          </span>
         </div>
       </div>
       </footer>

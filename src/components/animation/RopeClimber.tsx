@@ -6,10 +6,11 @@ import { useEffect, useRef } from "react";
  * L'haltérophile du fichier d'origine n'est pas repris : seule la corde est
  * gardée, en bande étroite sur le bord droit de l'accueil.
  *
- * Particularité : rien ne bouge tout seul. La position du grimpeur suit la
- * progression du défilement (lissée), et la corde reçoit une impulsion
- * proportionnelle à la VITESSE de défilement, amortie par un ressort — d'où
- * le balancement quand on descend vite, et l'immobilité quand on s'arrête.
+ * La position du grimpeur suit la progression du défilement (lissée), et la
+ * corde reçoit une impulsion proportionnelle à la VITESSE de défilement,
+ * amortie par un ressort — d'où le balancement quand on descend vite.
+ * Au repos, un léger mouvement subsiste : lent balancement de pendule et onde
+ * qui descend la corde, de faible amplitude pour rester en arrière-plan.
  *
  * Décoratif : aria-hidden. La boucle s'arrête hors écran, et le composant ne
  * s'affiche pas du tout si le visiteur a demandé moins de mouvement — une
@@ -45,7 +46,7 @@ export function RopeClimber({ className = "" }: Props) {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
 
     let W = 0, H = 0, raf = 0, visible = true;
-    let p = 0, pPrev = 0, phi = 0, theta = 0, omega = 0;
+    let p = 0, pPrev = 0, phi = 0, theta = 0, omega = 0, t = 0;
     let last = performance.now();
 
     const resize = () => {
@@ -84,11 +85,26 @@ export function RopeClimber({ className = "" }: Props) {
       omega += (-theta * 18 - omega * 3.5 + vel * 0.06) * dt;
       theta += omega * dt;
 
-      const rx0 = W * 0.5, topY = 0, len = ground - 6 * s;
-      const ropeX = (y: number) => rx0 + Math.tan(theta) * (y - topY);
+      // Mouvement de repos : balancement de ~1° sur ~5 s, et onde qui descend
+      // la corde en s'amplifiant vers l'extrémité libre (nulle au point
+      // d'attache).
+      t += dt;
+      const sway = 0.018 * Math.sin(t * 1.3);
+      const wave = 4 * s * Math.sin(t * 0.9 + 0.8);
 
-      set(E.rope,  { x1: rx0, y1: topY, x2: ropeX(len), y2: len });
-      set(E.rope2, { x1: rx0, y1: topY, x2: ropeX(len), y2: len });
+      const rx0 = W * 0.5, topY = 0, len = ground - 6 * s;
+      const ropeX = (y: number) => {
+        const u = Math.max(0, Math.min(1, (y - topY) / len));
+        return rx0 + Math.tan(theta + sway) * (y - topY) + wave * u * Math.sin(t * 2.1 - u * 4);
+      };
+
+      let d = `M${rx0} ${topY}`;
+      for (let i = 1; i <= 24; i++) {
+        const y = topY + (len * i) / 24;
+        d += `L${ropeX(y)} ${y}`;
+      }
+      E.rope?.setAttribute("d", d);
+      E.rope2?.setAttribute("d", d);
       set(E.knot,  { cx: ropeX(len), cy: len, r: 6 * s });
 
       const Ytop = H * 0.12, Ybot = ground - to - 42 * s;
@@ -166,8 +182,8 @@ export function RopeClimber({ className = "" }: Props) {
       className={className}
       style={{ display: "block" }}
     >
-      <line   ref={r("rope")}  style={{ stroke: "var(--anim-neutre-500)", strokeLinecap: "round" }} />
-      <line   ref={r("rope2")} style={{ stroke: "var(--anim-neutre-400)", strokeDasharray: "5 7", strokeLinecap: "round" }} />
+      <path   ref={r("rope")}  style={{ fill: "none", stroke: "var(--anim-neutre-500)", strokeLinecap: "round", strokeLinejoin: "round" }} />
+      <path   ref={r("rope2")} style={{ fill: "none", stroke: "var(--anim-neutre-400)", strokeDasharray: "5 7", strokeLinecap: "round", strokeLinejoin: "round" }} />
       <circle ref={r("knot")}  style={{ fill: "var(--anim-neutre-500)" }} />
       <g>
         <path   ref={r("arm0")}  style={st(back)} />

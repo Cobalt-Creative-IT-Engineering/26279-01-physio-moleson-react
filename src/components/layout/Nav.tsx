@@ -37,8 +37,8 @@ export function Nav() {
         <a href="/" className="flex items-center gap-3 cursor-pointer" onClick={() => setOpen(false)}>
           <Logo size={36} />
           <div className="leading-tight">
-            <div className="font-display text-[18px] tracking-[0.02em] text-ink">{SITE_CONFIG.name}</div>
-            <div className="label text-[10px] text-ink-mute">Bulle · depuis 2021</div>
+            <div className="font-display font-medium text-[18px] tracking-[0.02em] text-ink">{SITE_CONFIG.name}</div>
+            <div className="label text-[12px] text-ink-mute">Bulle depuis 2021</div>
           </div>
         </a>
 
@@ -49,20 +49,27 @@ export function Nav() {
               <a
                 key={item.id}
                 href={item.url}
-                className="relative py-1.5 transition-colors duration-200"
-                style={{ color: active ? "var(--color-primary-text)" : "var(--color-ink)" }}
+                aria-current={active ? "page" : undefined}
+                className={`group relative py-1.5 transition-colors duration-200 hover:text-primary-text ${
+                  active ? "text-primary-text" : "text-ink"
+                }`}
               >
                 {item.title}
-                {active && (
-                  <span className="absolute bottom-0 left-0 right-0 h-px bg-primary" />
-                )}
+                {/* Filet terracotta : plein sur la page active, déployé depuis
+                    la gauche au survol pour les autres. */}
+                <span
+                  aria-hidden
+                  className={`absolute bottom-0 left-0 right-0 h-px bg-primary origin-left transition-transform duration-300 ease-out motion-reduce:transition-none ${
+                    active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100 group-focus-visible:scale-x-100"
+                  }`}
+                />
               </a>
             );
           })}
         </nav>
 
         <div className="hidden lg:flex gap-3 items-center">
-          <a href={`tel:${CONTACT.phoneTel}`} className="text-[15px] text-ink-soft hover:text-ink">
+          <a href={`tel:${CONTACT.phoneTel}`} className="text-[15px] text-ink-soft hover:text-primary-text transition-colors">
             {CONTACT.phone}
           </a>
           {rightItems.map((item) => (
@@ -95,7 +102,7 @@ export function Nav() {
             <a
               key={item.id}
               href={item.url}
-              className="py-3 text-ink border-b border-line-soft last:border-0"
+              className="py-3 text-ink hover:text-primary-text transition-colors border-b border-line-soft last:border-0"
               onClick={() => setOpen(false)}
             >
               {item.title}
