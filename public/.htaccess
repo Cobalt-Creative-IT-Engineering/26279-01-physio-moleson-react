@@ -1,0 +1,189 @@
+# Configuration Apache pour le déploiement de dist/.
+# Copié tel quel dans dist/ par Vite — décompressez le zip dans le web root, rien à ajouter.
+# Prérequis côté serveur : mod_rewrite actif et "AllowOverride All" sur le vhost,
+# sans quoi ce fichier est purement et simplement ignoré.
+
+# ---------------------------------------------------------------------------
+# Un seul domaine indexable
+#
+# Cet hébergement répond sur plusieurs noms (domaine principal, alias, adresse de
+# recette) qui servent TOUS la même racine. Sans garde, le même site s'indexe
+# plusieurs fois : contenu dupliqué, et adresses de travail exposées.
+#
+# La logique est inversée à dessein : on n'énumère pas les hôtes à exclure, on
+# déclare le SEUL qui doit être indexé. Tout alias ajouté plus tard est donc
+# couvert sans rien changer ici.
+#
+# L'en-tête couvre tout ce que sert le serveur — sitemap et fichiers statiques
+# compris — ce que robots.txt ne sait pas faire.
+#
+# Domaine canonique du projet : physio-moleson.ch. Les adresses de recette
+# Infomaniak (*.preview.infomaniak.website et consorts) servent la même racine et
+# se retrouvent donc en noindex, ce qui est le comportement voulu.
+# ---------------------------------------------------------------------------
+<IfModule mod_headers.c>
+  SetEnvIfNoCase Host "^(www\\.)?physio-moleson\\.ch$" CANONICAL_HOST
+  Header always set X-Robots-Tag "noindex, nofollow" env=!CANONICAL_HOST
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# À ACTIVER APRÈS LA BASCULE DNS — redirection vers le domaine canonique
+#
+# Une fois physio-moleson.ch en service avec son certificat, décommentez : les
+# autres noms redirigent alors vers lui au lieu de servir un site concurrent.
+#
+# N'activez pas ces lignes AVANT que DNS et certificat soient en place : elles
+# renverraient les visiteurs vers une adresse qui ne répond pas encore.
+# ---------------------------------------------------------------------------
+# <IfModule mod_rewrite.c>
+#   RewriteCond %{HTTP_HOST} !^physio-moleson\.ch$ [NC]
+#   RewriteRule ^ https://physio-moleson.ch%{REQUEST_URI} [R=301,L]
+# </IfModule>
+
+# ---------------------------------------------------------------------------
+# Arbitrage index.html / index.php
+#
+# Sans effet sur un hébergement dédié au front : il n'y a pas d'index.php, Apache
+# sert index.html de toute façon. La directive compte dès que WordPress PARTAGE
+# cette racine (index.php, wp-admin/, wp-content/ à côté du build) : les deux
+# index se disputent alors la home, et l'arbitrage par défaut varie d'un
+# hébergeur à l'autre. On tranche ici en faveur du front, une fois pour toutes.
+# /wp-admin/ n'est pas affecté : il ne contient pas d'index.html.
+# ---------------------------------------------------------------------------
+<IfModule mod_dir.c>
+  DirectoryIndex index.html index.php
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# Mode maintenance
+#
+#   ACTIVER    : créer un fichier vide nommé ".maintenance" à la racine du site,
+#                à côté d'index.html (FTP, gestionnaire de fichiers, ou en SSH :
+#                touch .maintenance)
+#   DÉSACTIVER : supprimer ce fichier.
+#
+# Le drapeau est un fichier SÉPARÉ, et non une ligne à décommenter ici, parce que
+# ce .htaccess est écrasé à chaque déploiement du zip : une bascule inscrite dans
+# ce fichier serait silencieusement perdue au déploiement suivant. Le .maintenance,
+# lui, ne fait pas partie du zip, donc il survit aux mises en ligne.
+#
+# Ce bloc doit rester AVANT la réécriture SPA : celle-ci se termine par un [L] qui
+# capterait toutes les requêtes avant que la maintenance ait pu s'appliquer.
+# ---------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Pour continuer à consulter le site pendant la maintenance : décommentez et
+  # renseignez votre IP publique. Les autres visiteurs voient la page.
+  # RewriteCond %{REMOTE_ADDR} !=203.0.113.42
+
+  RewriteCond %{DOCUMENT_ROOT}/.maintenance -f
+  RewriteCond %{REQUEST_URI} !^/\.infomaniak-maintenance\.html$
+  RewriteCond %{REQUEST_URI} !^/favicon\.png$
+  RewriteRule ^ - [R=503,L]
+</IfModule>
+
+# Le 503 est délibéré : renvoyer la page de maintenance en 200 reviendrait à dire
+# aux moteurs de recherche que CECI est le contenu du site, avec un risque de
+# désindexation. Le 503 signale une indisponibilité temporaire.
+ErrorDocument 503 /.infomaniak-maintenance.html
+
+# Le nom commence par un point parce que c'est celui qu'attend Infomaniak dans le
+# web root. Beaucoup d'hébergements refusent par défaut l'accès aux fichiers cachés :
+# on rouvre explicitement celui-ci, sans quoi le ErrorDocument ci-dessus renverrait
+# un 403 au lieu de la page de maintenance.
+<IfModule mod_authz_core.c>
+  <Files ".infomaniak-maintenance.html">
+    Require all granted
+  </Files>
+</IfModule>
+
+<IfModule mod_headers.c>
+  # Accompagne le 503 : sans Retry-After, certains crawlers réessaient trop tôt.
+  Header always set Retry-After "3600" "expr=%{REQUEST_STATUS} == 503"
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# URL canonique de l'accueil
+#
+# /index.html est un fichier réel : Apache le sert directement, sans passer par la
+# réécriture SPA. Le routeur React le normalise désormais vers "/", mais cette
+# règle évite en plus que l'accueil soit accessible — et indexé — sous deux URL.
+#
+# Le test porte sur THE_REQUEST, la ligne de requête d'origine, que les réécritures
+# internes ne modifient pas. Sans cette précaution, la réécriture SPA vers
+# /index.html redéclencherait cette règle : boucle de redirection.
+# ---------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteCond %{THE_REQUEST} \s/+index\.html[\s?] [NC]
+  RewriteRule ^index\.html$ / [R=301,L]
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# Réécriture SPA
+# Le routing passe par l'History API : toute URL profonde doit renvoyer index.html,
+# sinon Apache répond 404 sur /articles/mon-article et consorts.
+# ---------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Déploiement dans un sous-dossier (https://exemple.com/app/) : décommentez et
+  # ajustez, puis remplacez "/index.html" ci-dessous par "index.html".
+  # RewriteBase /
+
+  # Un fichier ou un dossier réellement présent est servi tel quel.
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Tout le reste est confié au routeur client.
+  RewriteRule . /index.html [L]
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# Cache
+# ---------------------------------------------------------------------------
+<IfModule mod_headers.c>
+  # Les fichiers de /assets/ portent un hash de contenu dans leur nom (index-DgfW3RHs.js) :
+  # un changement de contenu change le nom, donc ils sont immuables.
+  # Le test porte sur le chemin et non sur l'extension, car les fichiers de public/
+  # (favicon.png, apple-touch-icon.png, robots.txt, sitemap.xml) n'ont PAS de hash —
+  # les figer un an serait une erreur.
+  SetEnvIf Request_URI "^/assets/" ASSET_IMMUTABLE
+  Header set Cache-Control "public, max-age=31536000, immutable" env=ASSET_IMMUTABLE
+
+  # Ne pas se fier au seul ciblage par chemin ci-dessus : Infomaniak pose ses
+  # propres en-têtes au niveau serveur, et le fait par EXTENSION. Le favicon s'y
+  # retrouve figé un an alors qu'il n'a aucun hash de contenu — le remplacer
+  # n'atteindrait jamais les visiteurs déjà venus. Constaté en production, cette
+  # règle reprend la main.
+  <FilesMatch "^(favicon\.png|apple-touch-icon\.png|robots\.txt|sitemap\.xml)$">
+    Header set Cache-Control "public, max-age=3600"
+  </FilesMatch>
+
+  # index.html ne doit jamais être mis en cache : il référence les assets hashés.
+  # Un index.html périmé pointe vers des fichiers supprimés au déploiement suivant,
+  # ce qui donne une page blanche impossible à diagnostiquer côté client.
+  # La page de maintenance est soumise à la même règle : mise en cache, elle
+  # continuerait de s'afficher chez le visiteur après la fin de la maintenance.
+  <FilesMatch "^(index\.html|\.infomaniak-maintenance\.html)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# Compression — le bundle JS passe d'environ 165 ko à 53 ko.
+# Sans effet si l'hébergeur l'active déjà globalement.
+# ---------------------------------------------------------------------------
+<IfModule mod_deflate.c>
+  # text/javascript est le type RÉELLEMENT servi : les mime.types récents
+  # (RFC 9239) mappent .js dessus et laissent application/javascript commenté.
+  # Ne cibler que ce dernier revient à livrer le plus gros fichier texte du site
+  # sans compression — vérifié sur un Apache local : le HTML et le CSS étaient
+  # compressés, le bundle JS non. On garde les deux types pour les hébergements
+  # restés sur l'ancien mapping.
+  AddOutputFilterByType DEFLATE text/html text/css text/plain \
+                                text/xml application/xml \
+                                text/javascript application/javascript \
+                                application/json image/svg+xml
+</IfModule>

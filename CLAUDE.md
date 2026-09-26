@@ -5,7 +5,7 @@ Guide rapide pour assister sur ce dépôt. Voir [README.md](README.md) pour la m
 ## Contexte projet
 
 - **Site** : physio-moleson.ch — site vitrine du Cabinet physio du Moléson
-- **Architecture** : WordPress headless. WP = source de contenu (REST + ACF + GraphQL). Frontend React déployé sur Netlify.
+- **Architecture** : WordPress headless. WP = source de contenu (REST + ACF + GraphQL). Frontend React livré en fichiers statiques sur un hébergement Apache (Infomaniak) : la CI GitHub builde et publie un `dist.zip` qu'on décompresse dans le web root. Plus de Netlify.
 - **Origine** : dérivé du blueprint interne [`wp-react-headless-blueprint`](https://github.com/Cobalt-Creative-IT-Engineering/wp-react-headless-blueprint). Si une question d'architecture revient sur "pourquoi c'est fait comme ça", la réponse est probablement "convention du blueprint".
 - **Langue** : tout est en français (UI, commentaires, doc, commits).
 
@@ -27,7 +27,8 @@ Aucun lint/test runner configuré. Si on en ajoute un : Vitest pour les tests, E
 
 ## Conventions à respecter
 
-- **Une page = un fichier** dans [src/pages/](src/pages/), routée explicitement dans le `PageView` de [src/App.tsx](src/App.tsx). Pas de routing implicite, pas de react-router. Le routing utilise [src/hooks/useRoute.ts](src/hooks/useRoute.ts) (History API maison).
+- **Une page = un fichier** dans [src/pages/](src/pages/), routée explicitement dans `resolvePage` de [src/App.tsx](src/App.tsx). Pas de routing implicite, pas de react-router. Le routing utilise [src/hooks/useRoute.ts](src/hooks/useRoute.ts) (History API maison).
+- **Table de routes unique** : `resolvePage` renvoie l'élément de page ou `null`. Le mince `PageView` transforme ce `null` en `NotFoundPage`, et `App()` s'appuie sur la **même** fonction pour décider du `noindex`. L'hébergement statique répond 200 à toute URL inconnue, donc sans ce drapeau une faute de frappe s'indexerait comme une page valide (« soft 404 »). Ne pas dupliquer cette liste ailleurs : elle dériverait. Ajouter une route = une entrée dans `resolvePage`, une dans `NAV_ITEMS` ([src/config/site.ts](src/config/site.ts)) et une dans [public/sitemap.xml](public/sitemap.xml).
 - **Données WP** : passer **toujours** par les hooks de [src/hooks/useWordPress.ts](src/hooks/useWordPress.ts) (`usePost`, `usePage`, `useACFOptionsPage`, `useCPT`, etc.) plutôt que d'appeler `fetch` directement. Ces hooks gèrent le cache mémoire + `sessionStorage` et l'état `loading/error/success`.
 - **Champs ACF** : ne jamais référencer un slug ACF brut (`"hero_title"`) dans un composant. Déclarer le mapping dans [src/config/acf-schemas.ts](src/config/acf-schemas.ts) puis lire via `acfReader(data, MonSchema).text("title")`. Quand un champ est renommé côté WP, on ne touche qu'au schéma.
 - **Meta tags** : utiliser `setPageMeta({ title, description, image })` depuis [src/lib/meta.ts](src/lib/meta.ts) dans chaque page de détail. Le shell `App.tsx` pose déjà des valeurs par défaut.
@@ -42,11 +43,16 @@ Aucun lint/test runner configuré. Si on en ajoute un : Vitest pour les tests, E
 - **Images ACF en REST** : ACF peut retourner un `integer` (ID d'attachment) au lieu de l'objet image complet selon la config "Return format". Utiliser `useMediaBatch(ids)` pour résoudre en lot.
 - **Cache `sessionStorage`** : TTL 30 min par défaut. Si on modifie du contenu côté WP et qu'on ne le voit pas, vider le sessionStorage du navigateur ou attendre l'invalidation.
 - **Coming Soon** : `FORCE_COMING_SOON` dans [src/config/site.ts](src/config/site.ts) ou `VITE_COMING_SOON_UNTIL=YYYY-MM-DDTHH:mm` dans `.env.local` permettent de bloquer le site sur la page d'attente. Penser à les désactiver avant un go-live.
+- **`VITE_*` gravées au build** : ces variables sont inlinées dans le bundle par Vite au moment du `npm run build`. Les définir sur le serveur de destination n'a **aucun effet** (aucun process Node n'y tourne). En production, `VITE_WP_URL` se définit dans les variables du dépôt GitHub ; changer d'URL WordPress impose un rebuild.
+- **`include-hidden-files: true` dans la CI** : `upload-artifact` exclut les fichiers cachés par défaut, et [public/.htaccess](public/.htaccess) en est un. Sans cette ligne, le zip part sans les règles de réécriture et chaque lien profond tombe en 404.
+- **Mode maintenance = fichier drapeau** : `.htaccess` sert la page de maintenance en 503 tant qu'un fichier `.maintenance` existe à la racine du site. Le drapeau est un fichier **séparé** et non une ligne à décommenter, parce que le `.htaccess` est écrasé à chaque déploiement du zip. Le bloc maintenance doit rester **au-dessus** de la réécriture SPA, dont le `[L]` capterait sinon toutes les requêtes. Le point initial de `.infomaniak-maintenance.html` est imposé par Infomaniak : ne pas le renommer.
+- **Un seul domaine indexable** : le `.htaccess` pose `X-Robots-Tag: noindex, nofollow` sur tout hôte autre que `physio-moleson.ch`, les adresses de recette servant la même racine. La redirection 301 des alias vers le domaine canonique est présente mais commentée — à activer après la bascule DNS et le certificat, pas avant.
+- **`sitemap.xml` tenu à la main** : rien ne le régénère. Il décrit les routes du front React, pas les permaliens WordPress. Une route ajoutée ou retirée dans `resolvePage` doit y être reportée.
 - **Thème actif** : `ACTIVE_THEME` est typé comme littéral pour permettre le tree-shaking. Pour ajouter un thème il faut étendre `ThemeName`, créer le bloc CSS `html.theme-<nom>` et ajouter une entrée dans `THEMES` (voir commentaire dans [src/themes/index.ts](src/themes/index.ts)).
 
 ## Points d'extension fréquents
 
-- **Ajouter une page WP statique** : créer `src/pages/MaPage.tsx` qui consomme `usePage("slug-wp")`, puis ajouter la route dans `App.tsx` (`PageView` + `PAGE_LABELS`). Pour une route dynamique style `/mon-cpt/:slug`, suivre le pattern de `ArticleDetailPage`.
+- **Ajouter une page WP statique** : créer `src/pages/MaPage.tsx` qui consomme `usePage("slug-wp")`, puis ajouter la route dans `resolvePage` de `App.tsx` (+ `PAGE_LABELS`) et dans [public/sitemap.xml](public/sitemap.xml). Pour une route dynamique style `/mon-cpt/:slug`, suivre le pattern de `ArticleDetailPage`.
 - **Ajouter un schéma ACF** : déclarer un nouveau `const MonSchema = { ... } as const` dans [src/config/acf-schemas.ts](src/config/acf-schemas.ts), puis le consommer via `acfReader`.
 - **Nouvelle variable d'env** : ajouter dans `.env.example` (commiter), typer dans [src/vite-env.d.ts](src/vite-env.d.ts), lire via `import.meta.env.VITE_*`.
 - **Nouveau CPT** : utiliser `useCPT<MonType>("mon-cpt", { ... })`. Pas besoin d'écrire un fetcher dédié.

@@ -71,7 +71,14 @@ export default function App() {
 
   // Meta par défaut selon la route (les pages de détail écrasent avec leurs propres infos).
   useEffect(() => {
-    setPageMeta({ title: getPageLabel(route) });
+    // L'hébergement statique répond 200 à toute URL inconnue : c'est le routeur
+    // client qui tranche. Sans ce noindex, un lien périmé ou une faute de frappe
+    // s'indexerait comme une page valide.
+    const found = resolvePage(route) !== null;
+    setPageMeta({
+      title:   found ? getPageLabel(route) : "Page non trouvée",
+      noindex: !found,
+    });
   }, [route]);
 
   // L'ancienne page /contact est désormais une section de l'accueil.
@@ -105,12 +112,24 @@ export default function App() {
   );
 }
 
-function PageView({ route }: { route: string }) {
+/**
+ * Résout une route vers sa page, ou null si aucune ne correspond.
+ *
+ * Table unique, volontairement : la garde noindex de App() s'appuie sur cette
+ * même fonction. Une route ajoutée ici est donc automatiquement considérée
+ * comme valide par les moteurs, sans second endroit à tenir à jour.
+ * Toute route ajoutée ici doit aussi l'être dans public/sitemap.xml.
+ */
+function resolvePage(route: string) {
   if (route === "/" || route === "") return <HomePage />;
   if (route === "/services")          return <ServicesPage />;
   if (route === "/sensopro")          return <SensoproPage />;
   if (route === "/equipe")            return <EquipePage />;
   if (route === "/cabinet")           return <CabinetPage />;
   if (route === "/contact")           return <HomePage />; // redirigé vers /#contact
-  return <NotFoundPage />;
+  return null;
+}
+
+function PageView({ route }: { route: string }) {
+  return resolvePage(route) ?? <NotFoundPage />;
 }

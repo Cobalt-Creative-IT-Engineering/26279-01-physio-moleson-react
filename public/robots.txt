@@ -1,2 +1,5 @@
 User-agent: *
 Allow: /
+
+# Décrit les routes du front React, pas les permaliens WordPress.
+Sitemap: https://physio-moleson.ch/sitemap.xml

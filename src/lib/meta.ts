@@ -17,6 +17,14 @@ export interface PageMeta {
   description?: string;
   image?: string;
   type?: "website" | "article";
+  /**
+   * Retire la page de l'index des moteurs.
+   * Indispensable sur la route 404 : l'hébergement statique renvoie 200 pour
+   * toute URL inconnue (le serveur sert index.html et c'est le routeur client
+   * qui décide), donc sans ce drapeau un lien périmé ou une faute de frappe
+   * s'indexe comme une page valide — un "soft 404".
+   */
+  noindex?: boolean;
 }
 
 /**
@@ -48,6 +56,14 @@ export function setPageMeta(meta: PageMeta = {}) {
   } else {
     removeMeta("property", "og:image");
     removeMeta("name",     "twitter:image");
+  }
+
+  // Toujours repositionné à chaque changement de route : sans le retrait
+  // explicite, une page valide atteinte depuis la 404 resterait désindexée.
+  if (meta.noindex) {
+    setMeta("name", "robots", "noindex, follow");
+  } else {
+    removeMeta("name", "robots");
   }
 }
 

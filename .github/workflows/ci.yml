@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Permet de builder un dist.zip à la demande, éventuellement contre un autre WP
+  # (staging) sans toucher à la variable du repo.
+  workflow_dispatch:
+    inputs:
+      wp_url:
+        description: "URL WordPress (sans slash final) — défaut : variable de repo VITE_WP_URL"
+        required: false
+        type: string
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Typecheck · Build · dist.zip
+    runs-on: ubuntu-latest
+    env:
+      # Les variables VITE_* sont INLINÉES dans le bundle au moment du build : elles
+      # doivent être présentes ici, pas sur le serveur de destination. Ce n'est pas un
+      # secret (l'URL finit en clair dans le JS), d'où une variable de repo et non un secret.
+      VITE_WP_URL: ${{ inputs.wp_url || vars.VITE_WP_URL }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Sans cette garde, src/lib/wordpress.ts retombe sur son placeholder
+      # "https://votre-wordpress.com" et produit un zip qui se déploie sans erreur
+      # mais ne charge aucun contenu. Mieux vaut rougir ici.
+      - name: Vérifier VITE_WP_URL
+        run: |
+          if [ -z "$VITE_WP_URL" ]; then
+            echo "::error::VITE_WP_URL est vide. Définissez-la dans Settings → Secrets and variables → Actions → Variables."
+            exit 1
+          fi
+          echo "Build contre $VITE_WP_URL"
+
+      # `npm run build` = tsc (typecheck) puis vite build → dist/
+      - name: Build
+        run: npm run build
+
+      # On n'zippe PAS à la main : upload-artifact compresse déjà, et uploader un .zip
+      # donnerait un zip dans un zip. Avec `name: dist` + `path: dist`, le bouton
+      # "Download" de l'onglet Actions renvoie un dist.zip dont la RACINE contient
+      # directement index.html et assets/ — décompressable tel quel dans le web root.
+      - name: Publier dist.zip
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist
+          # public/.htaccess est un fichier CACHÉ, et upload-artifact les exclut par
+          # défaut (include-hidden-files: false). Sans cette ligne, le zip téléchargé
+          # arrive sans .htaccess et les deep links tombent en 404 après déploiement.
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30

@@ -22,7 +22,7 @@
 
 Site vitrine du **Cabinet physio du Moléson** (physio-moleson.ch).
 
-L'application est un frontend React + TypeScript découplé : WordPress sert uniquement de source de contenu (API REST, ACF et WPGraphQL), et le site est déployé sous forme de fichiers statiques sur Netlify. Le projet est dérivé du blueprint interne [`wp-react-headless-blueprint`](https://github.com/Cobalt-Creative-IT-Engineering/wp-react-headless-blueprint) qui fournit une couche de données typée, un cache mémoire + `sessionStorage`, un système de schémas ACF, un routeur basé sur l'History API et un système de thèmes.
+L'application est un frontend React + TypeScript découplé : WordPress sert uniquement de source de contenu (API REST, ACF et WPGraphQL), et le site est déployé sous forme de fichiers statiques sur un hébergement Apache classique (Infomaniak). Le projet est dérivé du blueprint interne [`wp-react-headless-blueprint`](https://github.com/Cobalt-Creative-IT-Engineering/wp-react-headless-blueprint) qui fournit une couche de données typée, un cache mémoire + `sessionStorage`, un système de schémas ACF, un routeur basé sur l'History API et un système de thèmes.
 
 > **Backend WordPress** : la procédure pour déployer/configurer l'instance WP côté backend est documentée en interne — voir [Cobalt Knowledge #150](https://cobalt-it.odoo.com/odoo/knowledge/150). À suivre **avant** de configurer ce frontend.
 
@@ -33,7 +33,7 @@ L'application est un frontend React + TypeScript découplé : WordPress sert uni
 - [Vite](https://vitejs.dev/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [WordPress](https://wordpress.org/) (API REST + [ACF](https://www.advancedcustomfields.com/) + [WPGraphQL](https://www.wpgraphql.com/))
-- Hébergement frontend : [Netlify](https://www.netlify.com/)
+- Hébergement frontend : hébergement statique Apache (Infomaniak), build publié par GitHub Actions
 
 ## Structure du projet
 
@@ -45,12 +45,13 @@ L'application est un frontend React + TypeScript découplé : WordPress sert uni
 ├── tsconfig.json               <- Options du compilateur TypeScript
 ├── tailwind.config.js          <- Configuration Tailwind
 ├── postcss.config.js
-├── netlify.toml                <- Configuration de build/deploy Netlify
 ├── .env.example                <- Template d'environnement (à copier en .env.local)
+├── .github/workflows/ci.yml    <- Typecheck + build + publication de dist.zip
 ├── README.md                   <- Ce fichier
 ├── CLAUDE.md                   <- Guide pour l'assistant Claude Code
 ├── doc/                        <- Notes de projet (résumés, décisions)
-├── public/                     <- Assets statiques (favicon, OG images, _redirects, robots.txt)
+├── public/                     <- Assets statiques livrés tels quels (favicon, robots.txt,
+│                               sitemap.xml, .htaccess, page de maintenance)
 └── src/
     ├── main.tsx                <- Point d'entrée Vite
     ├── App.tsx                 <- Shell de l'app + table de routage
@@ -177,11 +178,181 @@ Aucun linter ni formateur n'est préconfiguré.
 
 ## Déploiement
 
-Le frontend est déployé sur **Netlify** (configuration dans [netlify.toml](netlify.toml)).
+### En résumé
 
-- Build command : `npm run build`
-- Publish directory : `dist`
-- Variable d'environnement requise sur Netlify : `VITE_WP_URL`
+1. `VITE_WP_URL` est définie **une seule fois**, dans les variables du dépôt GitHub.
+2. La CI builde à chaque push sur `main` et publie un `dist.zip`.
+3. On télécharge ce zip et on le décompresse dans le web root du serveur.
+
+Il n'y a rien à configurer sur le serveur de destination, et rien à modifier après
+déploiement.
+
+### Pourquoi la variable se définit dans GitHub, et non sur le serveur
+
+Vite **inline** la valeur de chaque `VITE_*` dans le bundle au moment du `npm run build`.
+Ce n'est pas une lecture de variable différée : c'est une substitution de texte, faite une
+fois pour toutes. Il ne reste **aucune variable** dans le code livré, seulement une chaîne
+en dur. La distinction qui compte n'est donc pas « dev vs prod » mais **machine qui builde
+vs machine qui sert** :
+
+| | Rôle vis-à-vis de `VITE_WP_URL` |
+|---|---|
+| **Machine qui builde** — le runner GitHub Actions | La lit pendant `npm run build` et la grave dans le `.js`. **C'est le seul endroit où elle compte.** |
+| **Machine qui sert** — Apache chez Infomaniak | N'envoie que des octets. Aucun process Node n'y tourne, rien n'y lit d'environnement. |
+
+> **ATTENTION** : définir `VITE_WP_URL` sur le serveur de destination — variable système,
+> `SetEnv` Apache, fichier `.env` déposé à côté des fichiers — n'a **aucun effet**. Pas
+> d'erreur, pas d'avertissement : l'application continue simplement d'appeler l'URL gravée
+> au build.
+>
+> **Corollaire** : changer d'URL WordPress impose toujours un rebuild.
+
+### 1. Configurer la variable dans GitHub
+
+`Settings` → `Secrets and variables` → `Actions` → onglet **Variables** → encadré
+**Repository variables** → `New repository variable`
+
+| Nom | Valeur |
+|---|---|
+| `VITE_WP_URL` | l'URL du WordPress du projet, sans slash final |
+
+Deux précisions, la page prêtant à confusion :
+
+- Onglet **Variables** et non *Secrets* : l'URL finit en clair dans le bundle, la masquer
+  n'apporterait rien et empêcherait de la relire.
+- Encadré **Repository variables**, pas *Environment variables* : ces dernières ne sont
+  visibles que d'un job déclarant une clé `environment:`, ce que
+  [.github/workflows/ci.yml](.github/workflows/ci.yml) ne fait pas — la variable serait
+  ignorée et le build échouerait sur la garde.
+
+Si la variable est absente, la CI **échoue volontairement**. Sans cette garde,
+[src/lib/wordpress.ts](src/lib/wordpress.ts) retomberait sur son placeholder
+`https://votre-wordpress.com` et produirait un zip qui se déploie sans erreur visible mais
+ne charge aucun contenu.
+
+### 2. Récupérer le zip
+
+[.github/workflows/ci.yml](.github/workflows/ci.yml) typecheck, builde et publie `dist/`
+à chaque push et chaque PR sur `main`.
+
+Onglet **Actions** du dépôt → dernier run → section *Artifacts* → **dist**.
+
+Le téléchargement produit un `dist.zip` dont la **racine** contient directement
+`index.html`, `assets/` et `.htaccess` : il se décompresse tel quel dans le web root, sans
+sous-dossier à aplatir.
+
+Le déclencheur manuel (`Run workflow`) accepte une URL WordPress ponctuelle en paramètre,
+pratique pour produire un build de recette sans toucher à la variable du dépôt.
+
+### Build manuel (alternative)
+
+Pour produire un `dist/` sans passer par la CI :
+
+```bash
+VITE_WP_URL=https://mon-wordpress.com npm run build
+```
+
+Le préfixe sur la ligne de commande est nécessaire : `.env.local` n'est pas destiné à la
+production.
+
+### Mode maintenance
+
+[public/.infomaniak-maintenance.html](public/.infomaniak-maintenance.html) est livrée dans le
+zip comme tous les fichiers de `public/`. Elle est autonome (styles en ligne) et n'a besoin
+d'aucun asset du bundle.
+
+Le **point initial du nom est imposé par Infomaniak**, qui attend ce fichier exact dans le web
+root : ne pas le renommer. Deux conséquences traitées dans [public/.htaccess](public/.htaccess) —
+c'est un fichier caché, donc `include-hidden-files: true` est indispensable côté CI, et un bloc
+`<Files>` rouvre explicitement son accès, beaucoup d'hébergements refusant les fichiers en point
+par défaut.
+
+La bascule se fait par un **fichier drapeau** à la racine du site, à côté d'`index.html` :
+
+```bash
+touch .maintenance    # active : tout le site renvoie la page de maintenance
+```
+
+Par FTP ou via le gestionnaire de fichiers d'Infomaniak, il suffit de créer ou supprimer un
+fichier vide portant ce nom. Aucun rebuild, aucun redéploiement.
+
+Trois points de conception à connaître :
+
+- **Le drapeau est un fichier séparé, pas une ligne à décommenter dans le `.htaccess`.** Ce
+  dernier est écrasé à chaque déploiement du zip : une bascule inscrite dedans serait perdue
+  à la mise en ligne suivante. `.maintenance` ne fait pas partie du zip, donc il survit.
+- **La page est renvoyée en HTTP 503, pas en 200.** Un 200 dirait aux moteurs de recherche
+  que la page de maintenance *est* le contenu du site, avec un risque de désindexation. Le 503,
+  accompagné d'un en-tête `Retry-After`, signale une indisponibilité temporaire.
+- **Un contournement par IP est prévu**, commenté en tête du bloc dans
+  [public/.htaccess](public/.htaccess) : renseignez votre IP publique pour continuer à
+  consulter le site pendant que les visiteurs voient la page.
+
+### Réécriture SPA
+
+Le routing utilise l'History API : toute URL profonde (`/services`) doit renvoyer
+`index.html`, sinon le serveur répond 404.
+
+**Apache — rien à faire.** [public/.htaccess](public/.htaccess) est copié tel quel dans `dist/`
+au build : décompressez le zip dans le web root et tout est actif. Deux prérequis côté serveur :
+`mod_rewrite` actif et `AllowOverride All` sur le vhost — sans ce dernier, Apache ignore le
+fichier sans le moindre message.
+
+Au-delà de la réécriture, le fichier prend en charge cinq choses, chacune commentée sur place :
+
+| Bloc | Rôle |
+|---|---|
+| `X-Robots-Tag` hors domaine canonique | Seul `physio-moleson.ch` est indexable ; les adresses de recette Infomaniak servent la même racine et resteraient sinon indexées en double. |
+| `DirectoryIndex` | Tranche entre `index.html` et `index.php` quand WordPress partage la racine. Sans effet sinon. |
+| Mode maintenance | Voir la section précédente. |
+| `/index.html` → `/` | Évite que l'accueil soit accessible, et indexé, sous deux URL. |
+| Cache et compression | Assets hashés immuables, `index.html` jamais caché, fichiers de `public/` à une heure. |
+
+Un bloc de redirection 301 des alias vers `physio-moleson.ch` est présent mais **commenté** :
+à activer après la bascule DNS et l'émission du certificat, pas avant.
+
+> Le cas du favicon mérite un mot : **Infomaniak pose ses propres en-têtes de cache au niveau
+> serveur, par extension**. Un favicon s'y retrouve figé un an alors qu'il ne porte aucun hash —
+> le remplacer n'atteindrait jamais les visiteurs déjà venus. Constaté en production ; la règle
+> du `.htaccess` reprend la main.
+
+**nginx** ne lit pas les `.htaccess`, les règles doivent être posées dans la configuration du site :
+
+```nginx
+location / {
+  try_files $uri $uri/ /index.html;
+}
+
+# Accueil canonique : une seule URL pour la home.
+location = /index.html {
+  return 301 /;
+}
+
+# Les fichiers de /assets/ portent un hash de contenu : immuables.
+location /assets/ {
+  add_header Cache-Control "public, max-age=31536000, immutable";
+}
+
+# Pas de hash : cache court, pour pouvoir les remplacer.
+location ~ ^/(favicon\.png|apple-touch-icon\.png|robots\.txt|sitemap\.xml)$ {
+  add_header Cache-Control "public, max-age=3600";
+}
+```
+
+### Référencement
+
+L'hébergement statique répond **200 à toute URL inconnue** : le serveur sert `index.html` et c'est
+le routeur client qui tranche. Sans précaution, un lien périmé ou une faute de frappe s'indexe donc
+comme une page valide — un « soft 404 ». Trois pièces répondent à ça :
+
+- **Le `noindex` automatique.** `resolvePage()` dans [src/App.tsx](src/App.tsx) est la table de
+  routes unique ; lorsqu'elle ne reconnaît pas la route, la page reçoit
+  `<meta name="robots" content="noindex, follow">`. Une route ajoutée à cette table est donc
+  automatiquement considérée comme valide, sans second endroit à tenir à jour.
+- **[public/sitemap.xml](public/sitemap.xml)** — à maintenir **à la main**, rien ne le régénère.
+  Il décrit les routes du front React, pas les permaliens WordPress : le front WP est fermé et ses
+  URL ne correspondent à aucune route ici, donc `/wp-sitemap.xml` n'a rien à y faire.
+- **[public/robots.txt](public/robots.txt)** — pointe vers le sitemap en URL absolue.
 
 ## Contribuer
 
