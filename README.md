@@ -47,6 +47,24 @@ Corps de texte jamais sous 16 px, interligne 1,55, aligné à gauche, sans itali
 Deux couples sont **proscrits** pour du texte : crème sur ocre (2,6:1) et sauge sur terracotta
 (1,5:1). Les règles détaillées sont commentées sur place dans `src/index.css`.
 
+### Animations
+
+Trois scènes SVG animées, dans [src/components/animation/](src/components/animation/) :
+
+| Composant | Emplacement | Pilotage |
+|---|---|---|
+| `WalkingFigures` | Bandeau de l'accueil | Boucle autonome (cycle de 24 s : marche, course, saut) |
+| `RopeClimber` | Bord droit de l'accueil, ≥ 1536 px | Progression et **vitesse** du défilement (corde sur ressort amorti) |
+| `MountainFooter` | Au-dessus du pied de page, toutes pages | Boucle autonome |
+
+Elles sont portées depuis les exports `doc/animation/*.dc.html`, dont le runtime propriétaire
+n'est pas embarqué. Toutes sont `aria-hidden`, s'arrêtent hors écran et respectent
+`prefers-reduced-motion`. Leurs couleurs passent par les rampes `--anim-*`, dérivées des
+couleurs de la charte.
+
+> `MountainFooter` déroge volontairement au principe « le Moléson n'est jamais redessiné » de
+> la charte. L'écart a été validé ; voir le commentaire en tête du composant.
+
 ## Stack technique
 
 - [React 18](https://react.dev/)

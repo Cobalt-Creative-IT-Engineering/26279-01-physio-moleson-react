@@ -94,6 +94,40 @@
   --radius-btn:  999px;
   --radius-card: 4px;
 
+  /* ── Rampes des animations ─────────────────────────────────────────────
+     Les animations de doc/animation/ viennent d'un design system tiers dont
+     la palette (accent #c67139 orangé, accent-2 #7a8a5e vert) est proche mais
+     PAS identique à la charte. Plutôt que de recopier ses valeurs, on redérive
+     ici les mêmes rampes à partir des couleurs de marque : teintes vers le
+     blanc cassé, nuances vers l'encre. Les animations ne référencent que ces
+     variables, jamais une couleur littérale.
+
+     Le 700 du terracotta n'est pas calculé mais forcé à #8F4C35, la valeur que
+     la charte impose pour le terracotta foncé. */
+  --anim-terracotta-100: #F8EEE8;
+  --anim-terracotta-200: #EDD8D0;
+  --anim-terracotta-300: #DBB4A6;
+  --anim-terracotta-400: #C88C78;
+  --anim-terracotta-500: #B4644A;
+  --anim-terracotta-600: #975641;
+  --anim-terracotta-700: #8F4C35;
+  --anim-terracotta-800: #633E31;
+
+  --anim-sauge-100: #F4F4EE;
+  --anim-sauge-200: #E3E6DE;
+  --anim-sauge-300: #C8CFC2;
+  --anim-sauge-400: #AAB7A3;
+  --anim-sauge-500: #8C9E85;
+  --anim-sauge-600: #778570;
+  --anim-sauge-700: #646E5E;
+  --anim-sauge-800: #51574B;
+
+  --anim-neutre-100: #F7F0E7;
+  --anim-neutre-200: #E2DBD3;
+  --anim-neutre-300: #C8C2BB;
+  --anim-neutre-400: #A6A19B;
+  --anim-neutre-500: #89847E;
+
   /* Ombres — teintées encre (et non plus bleutées) */
   --shadow-sm: 0 1px 2px  rgb(35 32 30 / 0.04),
                0 2px 8px  rgb(35 32 30 / 0.04);

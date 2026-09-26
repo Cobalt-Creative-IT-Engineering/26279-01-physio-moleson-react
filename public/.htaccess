@@ -120,6 +120,25 @@ ErrorDocument 503 /.infomaniak-maintenance.html
 </IfModule>
 
 # ---------------------------------------------------------------------------
+# Connexion WordPress sur /login
+#
+# /login n'est ni un fichier ni un dossier : sans cette règle, la réécriture SPA
+# ci-dessous l'enverrait vers index.html et React afficherait sa page 404. On le
+# confie donc à wp-login.php, en réécriture INTERNE : l'URL affichée reste /login.
+# Le formulaire WP poste toutefois vers wp-login.php, qui apparaît après envoi.
+#
+# La condition rend la règle inerte tant que WordPress ne partage pas cette
+# racine : /login retombe alors sur le routeur React au lieu d'un 404 Apache.
+#
+# Doit rester APRÈS le bloc maintenance (sinon /login contourne le 503) et AVANT
+# la réécriture SPA. /login est de ce fait réservé : aucune route React à ce nom.
+# ---------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteCond %{DOCUMENT_ROOT}/wp-login.php -f
+  RewriteRule ^login/?$ /wp-login.php [L,QSA]
+</IfModule>
+
+# ---------------------------------------------------------------------------
 # Réécriture SPA
 # Le routing passe par l'History API : toute URL profonde doit renvoyer index.html,
 # sinon Apache répond 404 sur /articles/mon-article et consorts.

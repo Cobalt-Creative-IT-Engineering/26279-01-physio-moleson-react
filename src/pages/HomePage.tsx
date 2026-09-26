@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useAccueilOptions } from "../hooks/useWordPress";
 import { Skeleton } from "../components/ui";
 import { ContactSection } from "../components/ContactSection";
+import { WalkingFigures, RopeClimber } from "../components/animation";
 import { setPageMeta } from "../lib/meta";
 
 export function HomePage() {
@@ -20,13 +21,24 @@ export function HomePage() {
 
   return (
     <>
+      {/* Grimpeur : bande fixe sur le bord droit, pilotée par le défilement.
+          Réservée aux très grands écrans, où la marge à droite du conteneur
+          (1280 px centré) est assez large pour ne rien recouvrir. */}
+      <div
+        aria-hidden
+        className="hidden 2xl:block fixed right-0 top-[88px] w-[120px] h-[calc(100vh-88px)] pointer-events-none z-[1]"
+      >
+        <RopeClimber />
+      </div>
+
       {/* Hero */}
-      <section className="relative pt-[140px] pb-20 overflow-hidden">
-        <div
-          aria-hidden
-          className="absolute -top-[20%] -right-[10%] w-[55vw] h-[55vw] rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgb(140 158 133 / 0.16) 0%, transparent 70%)" }}
-        />
+      <section className="relative pt-[140px] pb-[220px] md:pb-20 overflow-hidden">
+        {/* Décor animé du bandeau. Il remplace l'ancien halo radial : la scène
+            porte déjà ses propres formes, en superposer un second irait contre
+            le « peu d'éléments, beaucoup d'air » de la charte. */}
+        <div aria-hidden className="absolute inset-x-0 bottom-0 h-[210px] md:h-[62%] pointer-events-none opacity-80">
+          <WalkingFigures />
+        </div>
         <div className="container-x relative grid lg:grid-cols-[1.1fr_1fr] gap-20 items-center">
           <div>
             <div className="eyebrow mb-7">

@@ -2,6 +2,7 @@ import { SITE_CONFIG, SOCIAL_LINKS, CONTACT, NAV_ITEMS } from "../../config/site
 import { useGlobalOptions } from "../../hooks/useWordPress";
 import { Logo, Icon } from "../ui";
 import type { IconName } from "../ui";
+import { MountainFooter } from "../animation";
 
 export function Footer() {
   const { data: g } = useGlobalOptions();
@@ -16,10 +17,12 @@ export function Footer() {
   }).filter(([, url]) => !!url) as [string, string][];
 
   return (
-    <footer
-      className="mt-auto py-20 pb-8"
-      style={{ background: "var(--color-dark)", color: "var(--color-on-dark-soft)" }}
-    >
+    <div className="mt-auto">
+      <MountainFooter />
+      <footer
+        className="py-20 pb-8"
+        style={{ background: "var(--color-dark)", color: "var(--color-on-dark-soft)" }}
+      >
       <div className="container-x">
         <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr] gap-12 pb-12 border-b" style={{ borderColor: "var(--color-dark-line)" }}>
           {/* Brand */}
@@ -107,6 +110,7 @@ export function Footer() {
           </div>
         </div>
       </div>
-    </footer>
+      </footer>
+    </div>
   );
 }
