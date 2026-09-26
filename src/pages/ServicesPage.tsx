@@ -128,7 +128,7 @@ export function ServicesPage() {
                     {active.tags.map((t) => (
                       <span
                         key={t}
-                        className="px-3.5 py-1.5 text-[13px] rounded-btn bg-primary-bg text-primary border border-primary-soft"
+                        className="px-3.5 py-1.5 text-[13px] rounded-btn bg-primary-bg text-primary-text border border-primary-soft"
                       >
                         {t}
                       </span>

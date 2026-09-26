@@ -93,7 +93,7 @@ export function SensoproPage() {
                   <div className="flex flex-col border-t border-line">
                     {data.steps.map((s, i) => (
                       <div key={i} className="grid grid-cols-[48px_1fr] gap-[18px] items-baseline py-5 border-b border-line">
-                        <span className="w-9 h-9 rounded-full border border-primary text-primary inline-flex items-center justify-center font-display text-base">
+                        <span className="w-9 h-9 rounded-full border border-primary text-primary-text inline-flex items-center justify-center font-display text-base">
                           {s.number || i + 1}
                         </span>
                         <div>

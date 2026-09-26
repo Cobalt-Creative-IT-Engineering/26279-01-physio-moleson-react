@@ -189,7 +189,7 @@ function SchedulePanel({ schedule, n }: { schedule: ScheduleDay[]; n: number }) 
                 {row.names.map((name) => (
                   <span
                     key={name}
-                    className="px-3 py-1 text-[12.5px] rounded-btn bg-primary-bg text-primary border border-primary-soft"
+                    className="px-3 py-1 text-[13px] rounded-btn bg-primary-bg text-primary-text border border-primary-soft"
                   >
                     {name}
                   </span>
@@ -287,7 +287,7 @@ export function CabinetPage() {
                         <div>
                           <div
                             className="font-display text-base leading-none"
-                            style={{ color: isActive ? "var(--color-primary)" : "var(--color-ink)" }}
+                            style={{ color: isActive ? "var(--color-primary-text)" : "var(--color-ink)" }}
                           >
                             {a.label}
                           </div>

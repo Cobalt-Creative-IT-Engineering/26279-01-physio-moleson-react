@@ -33,12 +33,14 @@
   --color-surface:       #FFFFFF;   /* cartes */
 
   /* ── Textes ────────────────────────────────────────────────────────────
-     Contrastes sur #FFFDFA : ink 15.9:1, ink-soft 7.4:1, ink-mute 4.8:1.
+     Contrastes : ink 15.9:1, ink-soft 7.4:1, ink-mute 5.3:1 sur le blanc cassé.
+     ink-mute est calé sur la CRÈME (4.7:1), fond le plus sombre du site : réglé
+     sur le blanc cassé seul, il y retombait sous le seuil AA.
      Tous au-dessus de AA, la charte insistant sur une patientèle qui « lit de
      loin ou de près avec difficulté ». */
   --color-ink:           #23201E;
   --color-ink-soft:      #5C534C;
-  --color-ink-mute:      #7A6F66;
+  --color-ink-mute:      #736961;
 
   /* ── Terracotta ────────────────────────────────────────────────────────
      primary        : aplats, boutons, en-têtes — texte en crème par-dessus.
