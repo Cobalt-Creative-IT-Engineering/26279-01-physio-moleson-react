@@ -25,7 +25,7 @@ export function HomePage() {
         <div
           aria-hidden
           className="absolute -top-[20%] -right-[10%] w-[55vw] h-[55vw] rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, oklch(0.93 0.022 155 / 0.6) 0%, transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, rgb(140 158 133 / 0.16) 0%, transparent 70%)" }}
         />
         <div className="container-x relative grid lg:grid-cols-[1.1fr_1fr] gap-20 items-center">
           <div>

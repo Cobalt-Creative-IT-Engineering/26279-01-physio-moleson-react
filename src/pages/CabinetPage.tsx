@@ -41,12 +41,12 @@ function Lightbox({
       role="dialog"
       aria-modal="true"
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10"
-      style={{ background: "oklch(0.22 0.02 200 / 0.78)", backdropFilter: "blur(6px)", animation: "fadeIn 200ms ease-out" }}
+      style={{ background: "var(--scrim)", backdropFilter: "blur(6px)", animation: "fadeIn 200ms ease-out" }}
     >
       <button
         onClick={onClose}
         aria-label="Fermer"
-        className="absolute top-5 right-5 w-10 h-10 rounded-full inline-flex items-center justify-center text-white/80 hover:text-white border border-white/30 hover:border-white/60 transition-colors"
+        className="absolute top-5 right-5 w-10 h-10 rounded-full inline-flex items-center justify-center text-on-dark-soft hover:text-on-dark border border-[rgb(247_240_231_/_0.3)] hover:border-[rgb(247_240_231_/_0.6)] transition-colors"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 6L6 18M6 6l12 12" /></svg>
       </button>
@@ -56,14 +56,14 @@ function Lightbox({
           <button
             onClick={(e) => { e.stopPropagation(); onNav((index - 1 + images.length) % images.length); }}
             aria-label="Image précédente"
-            className="absolute left-4 md:left-8 w-11 h-11 rounded-full inline-flex items-center justify-center text-white/80 hover:text-white border border-white/30 hover:border-white/60 transition-colors"
+            className="absolute left-4 md:left-8 w-11 h-11 rounded-full inline-flex items-center justify-center text-on-dark-soft hover:text-on-dark border border-[rgb(247_240_231_/_0.3)] hover:border-[rgb(247_240_231_/_0.6)] transition-colors"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onNav((index + 1) % images.length); }}
             aria-label="Image suivante"
-            className="absolute right-4 md:right-8 w-11 h-11 rounded-full inline-flex items-center justify-center text-white/80 hover:text-white border border-white/30 hover:border-white/60 transition-colors"
+            className="absolute right-4 md:right-8 w-11 h-11 rounded-full inline-flex items-center justify-center text-on-dark-soft hover:text-on-dark border border-[rgb(247_240_231_/_0.3)] hover:border-[rgb(247_240_231_/_0.6)] transition-colors"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
           </button>
@@ -77,7 +77,7 @@ function Lightbox({
           className="max-h-[82vh] max-w-[90vw] object-contain rounded-card shadow-lg"
         />
         {many && (
-          <figcaption className="font-mono text-[11px] tracking-[0.14em] uppercase text-white/70">
+          <figcaption className="label text-[11px] text-on-dark-soft">
             {index + 1} / {images.length}
           </figcaption>
         )}
@@ -131,8 +131,8 @@ function CabinetGallery({ images, tag, n }: { images: WPImage[]; tag: string; n:
           <Cell i={0} label={labels[0]} />
           {tag && (
             <div
-              className="absolute top-3.5 left-3.5 px-3 py-1.5 rounded-btn text-[10px] tracking-[0.18em] uppercase font-mono pointer-events-none z-[2]"
-              style={{ background: "oklch(0.22 0.02 200 / 0.85)", color: "oklch(0.96 0.01 155)", backdropFilter: "blur(8px)" }}
+              className="absolute top-3.5 left-3.5 px-3 py-1.5 rounded-btn label text-[10px] pointer-events-none z-[2]"
+              style={{ background: "var(--scrim-strong)", color: "var(--color-on-dark)", backdropFilter: "blur(8px)" }}
             >
               {tag}
             </div>
@@ -144,7 +144,7 @@ function CabinetGallery({ images, tag, n }: { images: WPImage[]; tag: string; n:
           </div>
         ))}
       </div>
-      <div className="mt-2.5 font-mono text-[11px] tracking-[0.14em] uppercase text-ink-mute">
+      <div className="mt-2.5 label text-[11px] text-ink-mute">
         Galerie · cabinet n°{n}
       </div>
 
@@ -167,7 +167,7 @@ function SchedulePanel({ schedule, n }: { schedule: ScheduleDay[]; n: number }) 
     <div>
       <div className="flex items-baseline justify-between mb-5">
         <h2 className="text-[26px]">Qui consulte au n°{n} ?</h2>
-        <span className="font-mono text-[10px] tracking-[0.18em] uppercase text-ink-mute">
+        <span className="label text-[10px] text-ink-mute">
           Planning hebdo
         </span>
       </div>
@@ -276,10 +276,10 @@ export function CabinetPage() {
                     >
                       <div className="flex items-center gap-2.5">
                         <span
-                          className="w-6 h-6 rounded-full inline-flex items-center justify-center text-[11px] font-mono"
+                          className="w-6 h-6 rounded-full inline-flex items-center justify-center text-[11px] label"
                           style={{
                             background: isActive ? "var(--color-primary)" : "var(--color-primary-bg)",
-                            color: isActive ? "oklch(0.98 0.005 100)" : "var(--color-primary)",
+                            color: isActive ? "var(--color-on-primary)" : "var(--color-primary-text)",
                           }}
                         >
                           {a.id === 66 ? "A" : "B"}

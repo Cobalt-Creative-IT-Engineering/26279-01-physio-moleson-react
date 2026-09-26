@@ -40,7 +40,7 @@ export function ACFField({ value }: { value: unknown }) {
       return (
         <ul className="flex flex-wrap gap-2">
           {value.map((item, i) => (
-            <li key={i} className="px-2 py-0.5 bg-surface-2 rounded text-sm">
+            <li key={i} className="px-2 py-0.5 bg-bg-alt rounded text-sm">
               {String(item)}
             </li>
           ))}
@@ -78,7 +78,7 @@ export function ACFField({ value }: { value: unknown }) {
     return (
       <span
         className={`px-2 py-0.5 rounded text-xs font-medium ${
-          value ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"
+          value ? "bg-sauge/25 text-ink" : "bg-primary-soft/50 text-primary-text"
         }`}
       >
         {value ? "Oui" : "Non"}

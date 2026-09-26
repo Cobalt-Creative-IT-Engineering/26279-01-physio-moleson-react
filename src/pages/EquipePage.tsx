@@ -29,7 +29,7 @@ function TherapeuteCard({ t, onOpen }: { t: Therapeute; onOpen: () => void }) {
         )}
 
         {/* Pill "Voir le portrait" */}
-        <div className="absolute top-3 right-3 z-[2] inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-btn bg-surface/95 text-primary font-mono text-[10.5px] uppercase tracking-[0.08em] opacity-0 -translate-y-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0">
+        <div className="absolute top-3 right-3 z-[2] inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-btn bg-surface text-primary-text label text-[10.5px] opacity-0 -translate-y-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M15 3h6v6M14 10l7-7M9 21H3v-6M10 14l-7 7" /></svg>
           Voir le portrait
         </div>
@@ -39,8 +39,8 @@ function TherapeuteCard({ t, onOpen }: { t: Therapeute; onOpen: () => void }) {
           className="absolute inset-0 p-5 flex flex-col justify-end opacity-0 transition-opacity duration-300 group-hover:opacity-100"
           style={{
             background:
-              "linear-gradient(to top, oklch(0.22 0.02 200 / 0.95) 0%, oklch(0.22 0.02 200 / 0.6) 60%, transparent 100%)",
-            color: "oklch(0.96 0.01 155)",
+              "linear-gradient(to top, rgb(35 32 30 / 0.95) 0%, rgb(35 32 30 / 0.6) 60%, transparent 100%)",
+            color: "var(--color-on-dark)",
           }}
         >
           {t.bioShort && (
@@ -49,7 +49,7 @@ function TherapeuteCard({ t, onOpen }: { t: Therapeute; onOpen: () => void }) {
           {t.extras && (
             <div className="text-[10.5px] opacity-70 tracking-[0.06em] mb-3.5">{t.extras}</div>
           )}
-          <span className="self-start inline-flex items-center gap-1.5 px-3.5 py-2 rounded-btn bg-surface text-primary text-xs">
+          <span className="self-start inline-flex items-center gap-1.5 px-3.5 py-2 rounded-btn bg-surface text-primary-text text-[15px]">
             Voir le portrait
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
           </span>
@@ -57,7 +57,7 @@ function TherapeuteCard({ t, onOpen }: { t: Therapeute; onOpen: () => void }) {
       </div>
 
       <div>
-        <div className="font-display text-xl italic text-ink">{t.name}</div>
+        <div className="font-display text-xl text-ink">{t.name}</div>
         <div className="text-[12.5px] text-ink-mute mt-1 tracking-[0.02em]">
           {t.role}
           {t.since ? ` · depuis ${t.since}` : ""}
@@ -67,7 +67,7 @@ function TherapeuteCard({ t, onOpen }: { t: Therapeute; onOpen: () => void }) {
             {t.certifs.slice(0, 4).map((c) => (
               <span
                 key={c}
-                className="text-[10.5px] px-2.5 py-1 rounded-[3px] bg-primary-bg text-primary tracking-[0.03em] border border-primary-soft"
+                className="text-[11px] px-2.5 py-1 rounded-[3px] bg-primary-bg text-primary-text tracking-[0.03em] border border-primary-soft"
               >
                 {c}
               </span>
@@ -100,7 +100,7 @@ function TherapeuteModal({ t, onClose }: { t: Therapeute; onClose: () => void })
       role="dialog"
       aria-modal="true"
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10"
-      style={{ background: "oklch(0.22 0.02 200 / 0.6)", backdropFilter: "blur(6px)", animation: "fadeIn 250ms ease-out" }}
+      style={{ background: "var(--scrim)", backdropFilter: "blur(6px)", animation: "fadeIn 250ms ease-out" }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
@@ -127,18 +127,18 @@ function TherapeuteModal({ t, onClose }: { t: Therapeute; onClose: () => void })
             <button
               onClick={onClose}
               aria-label="Fermer"
-              className="w-9 h-9 rounded-full border border-line inline-flex items-center justify-center text-ink-soft hover:border-primary hover:text-primary transition-colors shrink-0"
+              className="w-9 h-9 rounded-full border border-line inline-flex items-center justify-center text-ink-soft hover:border-primary hover:text-primary-text transition-colors shrink-0"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 6L6 18M6 6l12 12" /></svg>
             </button>
           </div>
 
-          <h2 className="font-display text-4xl italic leading-none mt-1 mb-2 text-ink">{t.name}</h2>
+          <h2 className="font-display text-4xl leading-none mt-1 mb-2 text-ink">{t.name}</h2>
           <div className="text-sm text-ink-mute mb-7">{t.role}</div>
 
           {t.bio && (
             <div className="mb-7">
-              <div className="text-[10px] tracking-[0.18em] uppercase text-ink-mute mb-3">
+              <div className="label text-[11px] text-ink-mute mb-3">
                 Approche & expérience
               </div>
               <WPContent html={t.bio} className="text-[15px] leading-relaxed" />
@@ -147,14 +147,14 @@ function TherapeuteModal({ t, onClose }: { t: Therapeute; onClose: () => void })
 
           {extrasTags.length > 0 && (
             <div className="mb-8">
-              <div className="text-[10px] tracking-[0.18em] uppercase text-ink-mute mb-3">
+              <div className="label text-[11px] text-ink-mute mb-3">
                 Formations & spécialités
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {extrasTags.map((x) => (
                   <span
                     key={x}
-                    className="px-3 py-1.5 text-[12.5px] rounded-btn bg-primary-bg text-primary border border-primary-soft"
+                    className="px-3 py-1.5 text-[13px] rounded-btn bg-primary-bg text-primary-text border border-primary-soft"
                   >
                     {x}
                   </span>

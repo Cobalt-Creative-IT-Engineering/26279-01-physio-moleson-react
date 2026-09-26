@@ -24,7 +24,7 @@ export function Nav() {
     <header
       className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
       style={{
-        background: scrolled ? "oklch(0.985 0.006 90 / 0.88)" : "transparent",
+        background: scrolled ? "rgb(255 253 250 / 0.9)" : "transparent",
         backdropFilter: scrolled ? "saturate(1.4) blur(14px)" : "none",
         WebkitBackdropFilter: scrolled ? "saturate(1.4) blur(14px)" : "none",
         borderBottom: scrolled ? "1px solid var(--color-line-soft)" : "1px solid transparent",
@@ -38,11 +38,11 @@ export function Nav() {
           <Logo size={36} />
           <div className="leading-tight">
             <div className="font-display text-[18px] tracking-[0.02em] text-ink">{SITE_CONFIG.name}</div>
-            <div className="text-[10px] tracking-[0.22em] uppercase text-ink-mute">Bulle · depuis 2021</div>
+            <div className="label text-[10px] text-ink-mute">Bulle · depuis 2021</div>
           </div>
         </a>
 
-        <nav className="hidden lg:flex gap-9 text-[13px] tracking-[0.04em]">
+        <nav className="hidden lg:flex gap-9 text-[15px] tracking-[0.01em]">
           {leftItems.map((item) => {
             const active = isActive(item.url);
             return (
@@ -50,7 +50,7 @@ export function Nav() {
                 key={item.id}
                 href={item.url}
                 className="relative py-1.5 transition-colors duration-200"
-                style={{ color: active ? "var(--color-primary)" : "var(--color-ink)" }}
+                style={{ color: active ? "var(--color-primary-text)" : "var(--color-ink)" }}
               >
                 {item.title}
                 {active && (
@@ -62,7 +62,7 @@ export function Nav() {
         </nav>
 
         <div className="hidden lg:flex gap-3 items-center">
-          <a href={`tel:${CONTACT.phoneTel}`} className="text-[13px] text-ink-soft hover:text-ink">
+          <a href={`tel:${CONTACT.phoneTel}`} className="text-[15px] text-ink-soft hover:text-ink">
             {CONTACT.phone}
           </a>
           {rightItems.map((item) => (
@@ -70,7 +70,7 @@ export function Nav() {
               key={item.id}
               href={item.url}
               className="btn btn-primary"
-              style={{ padding: "10px 20px", fontSize: 13 }}
+              style={{ padding: "10px 20px" }}
             >
               {item.title}
             </a>

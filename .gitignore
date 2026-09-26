@@ -43,3 +43,6 @@ Thumbs.db
 
 # Coverage / test artefacts
 coverage/
+
+# Config locale de l'outillage Claude Code (non versionnée)
+.claude/

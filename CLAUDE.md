@@ -33,7 +33,12 @@ Aucun lint/test runner configuré. Si on en ajoute un : Vitest pour les tests, E
 - **Champs ACF** : ne jamais référencer un slug ACF brut (`"hero_title"`) dans un composant. Déclarer le mapping dans [src/config/acf-schemas.ts](src/config/acf-schemas.ts) puis lire via `acfReader(data, MonSchema).text("title")`. Quand un champ est renommé côté WP, on ne touche qu'au schéma.
 - **Meta tags** : utiliser `setPageMeta({ title, description, image })` depuis [src/lib/meta.ts](src/lib/meta.ts) dans chaque page de détail. Le shell `App.tsx` pose déjà des valeurs par défaut.
 - **Liens internes** : un simple `<a href="/about">` suffit — l'intercepteur global de `App.tsx` convertit le clic en `navigate()` History API. Pas besoin d'un composant `<Link>`.
-- **Tailwind** : utiliser les classes utilitaires + les design tokens définis dans [src/index.css](src/index.css) (variables CSS sous `html.theme-base`). Éviter le CSS inline ad-hoc.
+- **Tailwind** : utiliser les classes utilitaires + les design tokens définis dans [src/index.css](src/index.css). Éviter le CSS inline ad-hoc, et **ne jamais écrire une couleur en dur** : tout passe par les variables.
+- **Charte graphique** : la référence est [doc/new_design_v4/](doc/new_design_v4/) (« Piste A »). Les six couleurs de marque sont figées en hexadécimal dans `:root` sous les noms `--brand-*`, aux valeurs exactes du document. Trois règles s'appliquent à chaque nouvel écran :
+  - **Terracotta = liens et boutons.** La charte réserve les aplats terracotta à la vitrine et à la signalétique ; à l'écran, le texte courant est en encre sur blanc cassé. Un grand panneau terracotta avec du texte clair ne passe pas les contrastes.
+  - **Petit corps sur fond clair → `primary-text` (#8F4C35), pas `primary` (#B4644A).** Le terracotta plein ne donne que 4.25:1, la charte demande elle-même de foncer. Vaut aussi pour les survols.
+  - **Couples interdits** : crème sur ocre (2.6:1, « à éviter ») et sauge sur terracotta (1.5:1, « interdit »). Ne jamais les employer en texte/fond.
+- **Typographie** : Rubik pour les titres (400/500), Mulish pour les textes (300/400/700), chargées dans [index.html](index.html). Pas de monospace — les surtitres et étiquettes utilisent la classe `.label` (Mulish Bold, capitales, 0,1 em). Corps de texte jamais sous 16 px, interligne 1,55, aligné à gauche, **sans italique** ni soulignement hors liens.
 
 ## Pièges connus
 
@@ -48,6 +53,7 @@ Aucun lint/test runner configuré. Si on en ajoute un : Vitest pour les tests, E
 - **Mode maintenance = fichier drapeau** : `.htaccess` sert la page de maintenance en 503 tant qu'un fichier `.maintenance` existe à la racine du site. Le drapeau est un fichier **séparé** et non une ligne à décommenter, parce que le `.htaccess` est écrasé à chaque déploiement du zip. Le bloc maintenance doit rester **au-dessus** de la réécriture SPA, dont le `[L]` capterait sinon toutes les requêtes. Le point initial de `.infomaniak-maintenance.html` est imposé par Infomaniak : ne pas le renommer.
 - **Un seul domaine indexable** : le `.htaccess` pose `X-Robots-Tag: noindex, nofollow` sur tout hôte autre que `physio-moleson.ch`, les adresses de recette servant la même racine. La redirection 301 des alias vers le domaine canonique est présente mais commentée — à activer après la bascule DNS et le certificat, pas avant.
 - **`sitemap.xml` tenu à la main** : rien ne le régénère. Il décrit les routes du front React, pas les permaliens WordPress. Une route ajoutée ou retirée dans `resolvePage` doit y être reportée.
+- **Contraste des boutons** : `.btn-primary` est en crème sur terracotta, soit 3.82:1 — conforme à la charte (« Crème sur terracotta · boutons · Recommandé ») mais sous le seuil AA de 4.5:1 pour du texte non large. C'est le seul écart connu ; assombrir le fond à `#A25A43` le porterait à 4.55:1 si le sujet est rouvert avec la graphiste.
 - **Thème actif** : `ACTIVE_THEME` est typé comme littéral pour permettre le tree-shaking. Pour ajouter un thème il faut étendre `ThemeName`, créer le bloc CSS `html.theme-<nom>` et ajouter une entrée dans `THEMES` (voir commentaire dans [src/themes/index.ts](src/themes/index.ts)).
 
 ## Points d'extension fréquents

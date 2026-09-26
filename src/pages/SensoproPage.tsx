@@ -56,7 +56,7 @@ export function SensoproPage() {
                     <span className="ph-label">PHOTO · SENSOPRO LUNA</span>
                   </div>
                 )}
-                <div className="absolute top-6 right-6 inline-flex items-center gap-2 px-3.5 py-2 rounded-btn bg-surface border border-line font-mono text-[11px] tracking-[0.18em] uppercase text-primary">
+                <div className="absolute top-6 right-6 inline-flex items-center gap-2 px-3.5 py-2 rounded-btn bg-surface border border-line label text-[11px] text-primary-text">
                   <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                   Swiss made
                 </div>
@@ -73,7 +73,7 @@ export function SensoproPage() {
                     {data.benefits.map((b, i) => (
                       <div key={i} className="bg-surface p-6">
                         {b.number && (
-                          <div className="font-mono text-[11px] text-primary tracking-[0.1em] mb-2.5">
+                          <div className="label text-[11px] text-primary-text mb-2.5">
                             {b.number}
                           </div>
                         )}
@@ -109,7 +109,7 @@ export function SensoproPage() {
               {/* Bloc première séance + CTA */}
               {(data.firstSessionTitle || data.firstSessionText) && (
                 <div className="bg-surface border border-line rounded-card p-7" style={{ borderLeft: "3px solid var(--color-primary)" }}>
-                  <div className="font-mono text-[10px] tracking-[0.2em] uppercase text-primary mb-3.5">
+                  <div className="label text-[10px] text-primary-text mb-3.5">
                     Important · première séance
                   </div>
                   {data.firstSessionTitle && (

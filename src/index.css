@@ -3,49 +3,103 @@
 @tailwind utilities;
 
 /* ─── Design tokens ───────────────────────────────────────────────────────
-   Palette OKLCH — espace de couleur perceptuellement uniforme.
+   Charte « Piste A » — doc/new_design_v4/Charte Piste A - Physio du Moleson.pdf
    Toute couleur du site passe par ces variables, jamais en dur.
+
+   Les valeurs de marque sont en hexadécimal, exactement celles de la charte :
+   elles doivent rester comparables au document à l'œil nu et identiques à
+   l'impression. Les dérivés (atténuations, voiles) sont exprimés en rgb() avec
+   alpha à partir de ces mêmes valeurs.
    ──────────────────────────────────────────────────────────────────────── */
 
 :root {
-  /* Surfaces & fonds */
-  --color-bg:            oklch(0.985 0.006 90);   /* Crème chaud très clair */
-  --color-bg-alt:        oklch(0.96  0.01  100);  /* Crème légèrement soutenu */
-  --color-surface:       oklch(1     0     0);    /* Blanc pur (cartes) */
+  /* ── Couleurs de marque (valeurs exactes de la charte) ─────────────────
+     Répartition visée sur un support : 55 % crème · 25 % terracotta ·
+     12 % sauge · 8 % ocre. Trois couleurs maximum par écran.
+     Le terracotta s'emploie en aplat franc, jamais en dégradé ni en
+     transparence. */
+  --brand-terracotta:      #B4644A;  /* identité : boutons, liens, en-têtes  */
+  --brand-terracotta-deep: #8F4C35;  /* survol, et petits corps sur fond clair */
+  --brand-ocre:            #C9884F;  /* cours collectifs, encadrés d'info    */
+  --brand-sauge:           #8C9E85;  /* filets, pictogrammes, chiffres       */
+  --brand-creme:           #F7F0E7;  /* fond des pages                       */
+  --brand-encre:           #23201E;  /* tous les textes                      */
 
-  /* Textes */
-  --color-ink:           oklch(0.22  0.015 200);  /* Anthracite */
-  --color-ink-soft:      oklch(0.45  0.015 200);  /* Gris medium */
-  --color-ink-mute:      oklch(0.62  0.012 200);  /* Gris doux */
+  /* ── Surfaces ──────────────────────────────────────────────────────────
+     La charte fixe le fond d'écran au blanc cassé #FFFDFA (et non à la crème,
+     réservée aux bandeaux et aux cartes). */
+  --color-bg:            #FFFDFA;
+  --color-bg-alt:        #F7F0E7;   /* crème — bandeaux de section */
+  --color-surface:       #FFFFFF;   /* cartes */
 
-  /* Primary — vert sapin */
-  --color-primary:       oklch(0.42  0.05  165);
-  --color-primary-hover: oklch(0.36  0.055 165);
-  --color-primary-soft:  oklch(0.88  0.025 160);  /* Vert sauge clair */
-  --color-primary-bg:    oklch(0.96  0.012 155);  /* Wash très léger */
+  /* ── Textes ────────────────────────────────────────────────────────────
+     Contrastes sur #FFFDFA : ink 15.9:1, ink-soft 7.4:1, ink-mute 4.8:1.
+     Tous au-dessus de AA, la charte insistant sur une patientèle qui « lit de
+     loin ou de près avec difficulté ». */
+  --color-ink:           #23201E;
+  --color-ink-soft:      #5C534C;
+  --color-ink-mute:      #7A6F66;
 
-  /* Accent (titres, highlights) */
-  --color-accent:        oklch(0.62  0.06  195);  /* Bleu-gris sourd */
+  /* ── Terracotta ────────────────────────────────────────────────────────
+     primary        : aplats, boutons, en-têtes — texte en crème par-dessus.
+     primary-hover  : survol (règle écran de la charte).
+     primary-text   : liens et intertitres en PETIT corps sur fond clair. Le
+                      terracotta plein n'y atteint que 4.25:1 ; la charte
+                      demande explicitement de « foncer à #8F4C35 » (6.4:1). */
+  --color-primary:       #B4644A;
+  --color-primary-hover: #8F4C35;
+  --color-primary-text:  #8F4C35;
+  --color-primary-soft:  #E6C7BB;   /* bordures, filets terracotta */
+  --color-primary-bg:    #FAF0EA;   /* voile très léger */
 
-  /* Lignes */
-  --color-line:          oklch(0.9   0.008 120);
-  --color-line-soft:     oklch(0.94  0.006 120);
+  /* ── Rôles secondaires ─────────────────────────────────────────────────
+     Attention : la crème sur ocre (2.6:1) est « à éviter » et la sauge sur
+     terracotta (1.5:1) « interdite » par la charte. Ni l'une ni l'autre ne
+     doit servir de couple texte/fond. */
+  --color-sauge:         #8C9E85;
+  --color-ocre:          #C9884F;
+  --color-accent:        #8C9E85;   /* alias historique → sauge */
 
-  /* Typographie */
-  --font-display: "Bricolage Grotesque", Georgia, serif;
-  --font-body:    "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+  /* ── Lignes — sauge désaturé, la charte donnant les filets à la sauge ── */
+  --color-line:          #DCE0D6;
+  --color-line-soft:     #EAEDE5;
+
+  /* ── Textes posés sur un aplat ─────────────────────────────────────────
+     Sur terracotta, la crème plafonne à 3.82:1 : elle passe pour des titres
+     et des boutons, jamais pour du petit texte, et surtout JAMAIS atténuée —
+     une crème à 78 % d'opacité retombe à 2.9:1. D'où l'absence volontaire de
+     variante « soft » sur terracotta.
+     Sur encre, la crème atteint 14.3:1 et tolère des atténuations. */
+  --color-on-primary:    #F7F0E7;
+  --color-on-dark:       #F7F0E7;
+  --color-on-dark-soft:  rgb(247 240 231 / 0.72);  /* 8.1:1  */
+  --color-on-dark-mute:  rgb(247 240 231 / 0.55);  /* 5.3:1  */
+  --color-dark:          #23201E;
+  --color-dark-line:     rgb(247 240 231 / 0.18);
+
+  /* Voile posé sur une photo pour y rendre un texte lisible. */
+  --scrim:               rgb(35 32 30 / 0.78);
+  --scrim-strong:        rgb(35 32 30 / 0.92);
+
+  /* ── Typographie ───────────────────────────────────────────────────────
+     Rubik pour les titres (Regular 400, Medium 500), Mulish pour les textes
+     (Light 300, Regular 400, Bold 700). Replis imposés par la charte lorsque
+     les Google Fonts ne sont pas disponibles : Verdana et Trebuchet MS.
+     Pas de monospace : la charte n'en prévoit aucune, les surtitres sont en
+     Mulish Bold. */
+  --font-display: "Rubik", Verdana, Geneva, sans-serif;
+  --font-body:    "Mulish", "Trebuchet MS", Tahoma, sans-serif;
 
   /* Rayons */
   --radius-btn:  999px;
   --radius-card: 4px;
 
-  /* Ombres */
-  --shadow-sm: 0 1px 2px  oklch(0.2 0.02 200 / 0.04),
-               0 2px 8px  oklch(0.2 0.02 200 / 0.04);
-  --shadow-md: 0 4px 12px oklch(0.2 0.02 200 / 0.06),
-               0 12px 32px oklch(0.2 0.02 200 / 0.06);
-  --shadow-lg: 0 12px 40px oklch(0.2 0.02 200 / 0.12);
+  /* Ombres — teintées encre (et non plus bleutées) */
+  --shadow-sm: 0 1px 2px  rgb(35 32 30 / 0.04),
+               0 2px 8px  rgb(35 32 30 / 0.04);
+  --shadow-md: 0 4px 12px rgb(35 32 30 / 0.07),
+               0 12px 32px rgb(35 32 30 / 0.06);
+  --shadow-lg: 0 12px 40px rgb(35 32 30 / 0.14);
 }
 
 /* ─── Base ─────────────────────────────────────────────────────────────── */
@@ -54,20 +108,28 @@ html, body {
   background: var(--color-bg);
   color: var(--color-ink);
   font-family: var(--font-body);
+  /* La charte fixe un plancher de 16 px pour le corps de texte à l'écran, et
+     une interligne de 1,55. Mulish Light 300 est la graisse du texte courant. */
   font-size: 16px;
-  line-height: 1.6;
+  font-weight: 300;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
+/* Rubik Medium 500 pour les deux niveaux de titre. Pas d'interlettrage
+   négatif : la charte retient Rubik pour ses « formes larges », les resserrer
+   irait contre ce choix. */
 h1, h2, h3, h4 {
   font-family: var(--font-display);
-  font-weight: 400;
-  letter-spacing: -0.01em;
+  font-weight: 500;
   color: var(--color-ink);
   margin: 0;
   text-wrap: balance;
 }
+
+/* « Les textes sont alignés à gauche, jamais justifiés. » */
+p, li { text-align: left; }
 
 p { text-wrap: pretty; margin: 0; }
 
@@ -95,14 +157,24 @@ a { color: inherit; text-decoration: none; }
     @apply py-[120px];
   }
 
-  /* Eyebrow — petit label au-dessus des titres de section */
+  /* Surtitre — Mulish Bold, capitales, interlettrage 0,1 em (charte).
+     Réservé à trois mots au plus. En terracotta foncé et non en terracotta
+     plein : à cette taille le terracotta ne donne que 4.25:1. */
   .eyebrow {
     font-family: var(--font-body);
-    font-size: 11px;
+    font-size: 12px;
     text-transform: uppercase;
-    letter-spacing: 0.24em;
-    color: var(--color-primary);
-    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: var(--color-primary-text);
+    font-weight: 700;
+  }
+
+  /* Même traitement pour les petites étiquettes qui étaient en monospace. */
+  .label {
+    font-family: var(--font-body);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
   }
 
   .section-header {
@@ -116,6 +188,7 @@ a { color: inherit; text-decoration: none; }
   }
   .section-header p {
     font-size: 18px;
+    line-height: 1.55;
     color: var(--color-ink-soft);
     max-width: 560px;
   }
@@ -128,9 +201,12 @@ a { color: inherit; text-decoration: none; }
     justify-content: center;
     gap: 8px;
     padding: 14px 28px;
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: 0.02em;
+    /* 16 px : plancher de lisibilité de la charte. La crème sur terracotta
+       plafonne à 3.82:1, ce qui tient pour un libellé court et gras, pas pour
+       du texte fin — d'où la graisse 700 et l'absence d'atténuation. */
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
     border: 1px solid transparent;
     border-radius: var(--radius-btn);
     transition: all 200ms cubic-bezier(0.2, 0, 0, 1);
@@ -139,7 +215,7 @@ a { color: inherit; text-decoration: none; }
 
   .btn-primary {
     background: var(--color-primary);
-    color: oklch(0.98 0.005 100);
+    color: var(--color-on-primary);
   }
   .btn-primary:hover {
     background: var(--color-primary-hover);
@@ -154,7 +230,7 @@ a { color: inherit; text-decoration: none; }
   }
   .btn-ghost:hover {
     border-color: var(--color-primary);
-    color: var(--color-primary);
+    color: var(--color-primary-text);
   }
 
   /* ─── Placeholder imagery (avant intégration ACF) ─────────────────── */
@@ -163,8 +239,8 @@ a { color: inherit; text-decoration: none; }
     position: relative;
     background: repeating-linear-gradient(
       135deg,
-      oklch(0.92 0.012 155) 0 12px,
-      oklch(0.94 0.012 155) 12px 24px
+      #EFE7DB 0 12px,
+      #F7F0E7 12px 24px
     );
     color: var(--color-ink-soft);
     overflow: hidden;
@@ -173,10 +249,11 @@ a { color: inherit; text-decoration: none; }
     justify-content: center;
   }
   .ph-label {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
+    font-weight: 700;
     font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.1em;
     color: var(--color-ink-mute);
     background: var(--color-bg);
     padding: 6px 10px;
@@ -186,14 +263,14 @@ a { color: inherit; text-decoration: none; }
   .ph-dark {
     background: repeating-linear-gradient(
       135deg,
-      oklch(0.38 0.045 165) 0 12px,
-      oklch(0.4  0.045 165) 12px 24px
+      #2C2825 0 12px,
+      #332E2A 12px 24px
     );
   }
   .ph-dark .ph-label {
-    background: oklch(0.32 0.04 165);
-    color: oklch(0.88 0.02 155);
-    border-color: oklch(0.5 0.05 165);
+    background: var(--color-dark);
+    color: var(--color-on-dark);
+    border-color: var(--color-dark-line);
   }
 
   /* ─── Reveal au scroll ────────────────────────────────────────────── */
@@ -258,7 +335,7 @@ a { color: inherit; text-decoration: none; }
 /* ─── Prose (rendu HTML WordPress via WPContent) ─────────────────────── */
 
 .prose-custom {
-  line-height: 1.7;
+  line-height: 1.55;
   color: var(--color-ink);
 }
 .prose-custom h2,
@@ -267,13 +344,14 @@ a { color: inherit; text-decoration: none; }
   font-family: var(--font-display);
   font-weight: 500;
   margin: 1.5em 0 0.5em;
-  letter-spacing: -0.01em;
 }
 .prose-custom h2 { font-size: 1.5rem; }
 .prose-custom h3 { font-size: 1.2rem; }
 .prose-custom p { margin: 0 0 1em; }
 .prose-custom a {
-  color: var(--color-primary);
+  /* Lien dans du texte courant = petit corps : la charte impose le terracotta
+     foncé, le terracotta plein n'atteignant que 4.25:1. */
+  color: var(--color-primary-text);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -287,10 +365,12 @@ a { color: inherit; text-decoration: none; }
 .prose-custom ul,
 .prose-custom ol { padding-left: 1.4em; margin: 0 0 1em; }
 .prose-custom li { margin: 0.25em 0; }
+/* Pas d'italique : « pas d'italique pour insister » (charte, Typographie).
+   La citation se signale par le filet terracotta et le fond crème. */
 .prose-custom blockquote {
   border-left: 3px solid var(--color-primary);
-  padding-left: 1rem;
+  background: var(--color-bg-alt);
+  padding: 0.75rem 1rem;
   color: var(--color-ink-soft);
-  font-style: italic;
   margin: 1.5em 0;
 }

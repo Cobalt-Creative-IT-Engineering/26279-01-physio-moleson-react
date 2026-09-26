@@ -66,7 +66,7 @@ export function ServicesPage() {
                     className="grid grid-cols-[auto_1fr_auto] gap-5 items-center py-7 border-b border-line text-left transition-colors"
                   >
                     <span
-                      className="font-mono text-[11px] tracking-[0.1em]"
+                      className="label text-[11px]"
                       style={{ color: isActive ? "var(--color-primary)" : "var(--color-ink-mute)" }}
                     >
                       {s.num || "—"}
@@ -121,7 +121,7 @@ export function ServicesPage() {
 
               {active.tags.length > 0 && (
                 <div>
-                  <div className="text-[11px] tracking-[0.18em] uppercase text-ink-mute mb-3.5">
+                  <div className="label text-[11px] text-ink-mute mb-3.5">
                     Pathologies prises en charge
                   </div>
                   <div className="flex flex-wrap gap-2">

@@ -30,7 +30,7 @@ export function ComingSoonPage() {
           <ul className="flex gap-6 mt-2">
             {socials.map(([name, url]) => (
               <li key={name}>
-                <a href={url} target="_blank" rel="noreferrer" className="text-ink-soft hover:text-primary capitalize">
+                <a href={url} target="_blank" rel="noreferrer" className="text-ink-soft hover:text-primary-text capitalize">
                   {name}
                 </a>
               </li>

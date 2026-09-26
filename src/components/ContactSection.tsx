@@ -10,38 +10,34 @@ function BookingBlock({ therapeutes }: { therapeutes: Therapeute[] }) {
   const [hover, setHover] = useState<number | null>(null);
 
   return (
-    <div
-      className="relative overflow-hidden rounded-[6px] p-10 grid lg:grid-cols-[1fr_1.2fr] gap-12 items-center shadow-md"
-      style={{ background: "var(--color-primary)", color: "oklch(0.96 0.01 155)" }}
-    >
-      <div
-        aria-hidden
-        className="absolute -right-20 -top-20 w-80 h-80 rounded-full pointer-events-none"
-        style={{ background: "radial-gradient(circle, oklch(0.5 0.05 165 / 0.5) 0%, transparent 70%)" }}
-      />
+    /* Panneau clair et non aplat terracotta : la charte réserve le terracotta
+       aux « liens et boutons » à l'écran, et la crème sur terracotta plafonne
+       à 3.82:1 — insuffisant pour le texte courant de ce bloc. Le terracotta
+       reste présent en accents (étiquette, survol, flèches). */
+    <div className="relative overflow-hidden rounded-[6px] p-10 grid lg:grid-cols-[1fr_1.2fr] gap-12 items-center shadow-md bg-surface border border-line">
       <div className="relative">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-btn font-mono text-[10px] tracking-[0.18em] uppercase mb-5" style={{ background: "oklch(0.5 0.05 165)" }}>
-          <span className="w-1.5 h-1.5 rounded-full" style={{ background: "oklch(0.85 0.1 130)" }} />
+        <div className="label inline-flex items-center gap-2 px-3 py-1.5 rounded-btn text-[11px] mb-5 bg-primary-bg text-primary-text">
+          <span className="w-1.5 h-1.5 rounded-full bg-sauge" />
           tbooking · réservation 24/7
         </div>
-        <h3 className="font-display text-4xl leading-tight mb-3.5" style={{ color: "oklch(0.98 0.008 100)" }}>
+        <h3 className="font-display text-4xl leading-tight mb-3.5 text-ink">
           Choisissez votre<br />thérapeute.
         </h3>
-        <p className="text-[15px] leading-relaxed max-w-[360px]" style={{ color: "oklch(0.88 0.025 155)" }}>
+        <p className="text-[16px] max-w-[360px] text-ink-soft">
           Cliquez sur un nom pour accéder directement à son agenda en ligne.
         </p>
-        <div className="mt-6 pt-6" style={{ borderTop: "1px solid oklch(0.5 0.05 165 / 0.6)" }}>
-          <p className="text-[12px] mb-2.5 leading-relaxed" style={{ color: "oklch(0.88 0.025 155)" }}>
-            <strong style={{ color: "oklch(0.98 0.008 100)" }}>Sensopro Luna :</strong> la première séance se fait avec un·e thérapeute.
+        <div className="mt-6 pt-6 border-t border-line">
+          <p className="text-[15px] mb-2.5 text-ink-soft">
+            <strong className="font-bold text-ink">Sensopro Luna :</strong> la première séance se fait avec un·e thérapeute.
           </p>
-          <a href="/sensopro" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-btn text-[13px] border" style={{ borderColor: "oklch(0.96 0.01 155 / 0.5)", color: "oklch(0.96 0.01 155)" }}>
+          <a href="/sensopro" className="inline-flex items-center gap-2 px-4 py-2.5 rounded-btn text-[15px] border border-primary-soft text-primary-text hover:bg-primary-bg transition-colors">
             En savoir plus sur Sensopro
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
           </a>
         </div>
       </div>
 
-      <div className="relative flex flex-col gap-px rounded-card overflow-hidden" style={{ background: "oklch(0.5 0.05 165)" }}>
+      <div className="relative flex flex-col rounded-card overflow-hidden border border-line divide-y divide-line">
         {therapeutes.map((t) => {
           const active = hover === t.id;
           return (
@@ -54,17 +50,18 @@ function BookingBlock({ therapeutes }: { therapeutes: Therapeute[] }) {
               onMouseLeave={() => setHover(null)}
               className="px-6 py-[18px] grid grid-cols-[1fr_auto] items-center gap-4 transition-colors"
               style={{
-                background: active ? "oklch(0.98 0.008 100)" : "oklch(0.46 0.052 165)",
-                color: active ? "var(--color-primary)" : "oklch(0.96 0.01 155)",
+                background: active ? "var(--color-primary-bg)" : "var(--color-bg)",
+                color: active ? "var(--color-primary-text)" : "var(--color-ink)",
                 pointerEvents: t.tbookingUrl ? "auto" : "none",
                 opacity: t.tbookingUrl ? 1 : 0.6,
               }}
             >
               <div>
-                <div className="font-display text-xl italic">{t.name}</div>
-                <div className="text-[12px] opacity-70 mt-0.5">{t.role || t.extras}</div>
+                {/* Pas d'italique : « pas d'italique pour insister » (charte). */}
+                <div className="font-display text-xl">{t.name}</div>
+                <div className="text-[13px] text-ink-mute mt-0.5">{t.role || t.extras}</div>
               </div>
-              <span className="inline-flex items-center gap-1.5 font-mono text-[11px] tracking-[0.16em] uppercase">
+              <span className="label inline-flex items-center gap-1.5 text-[11px] text-primary-text">
                 Réserver
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
               </span>
@@ -96,7 +93,7 @@ function ContactForm() {
   return (
     <form onSubmit={submit} className="bg-surface rounded-card p-10 border border-line-soft shadow-sm flex flex-col gap-1.5">
       <div className="font-display text-[28px] mb-1">Écrivez-nous.</div>
-      <p className="text-[13px] text-ink-soft mb-5">
+      <p className="text-[15px] text-ink-soft mb-5">
         Pour une question administrative ou une demande non urgente. Réponse sous 24h ouvrables.
       </p>
 
@@ -110,7 +107,7 @@ function ContactForm() {
       </div>
 
       <div className="mt-4">
-        <div className="text-[10px] tracking-[0.16em] uppercase text-ink-mute mb-2.5 mt-3.5">Sujet</div>
+        <div className="label text-[11px] text-ink-mute mb-2.5 mt-3.5">Sujet</div>
         <div className="flex flex-wrap gap-1.5">
           {SUBJECTS.map((s) => {
             const on = form.subject === s;
@@ -123,7 +120,7 @@ function ContactForm() {
                 style={{
                   borderColor: on ? "var(--color-primary)" : "var(--color-line)",
                   background: on ? "var(--color-primary-bg)" : "transparent",
-                  color: on ? "var(--color-primary)" : "var(--color-ink-soft)",
+                  color: on ? "var(--color-primary-text)" : "var(--color-ink-soft)",
                 }}
               >
                 {s}
@@ -211,11 +208,11 @@ export function ContactSection() {
             </div>
 
             <div className="bg-surface border border-line-soft rounded-card p-6">
-              <div className="flex items-center gap-2 text-[10px] tracking-[0.18em] uppercase text-ink-mute mb-4">
+              <div className="label flex items-center gap-2 text-[11px] text-ink-mute mb-4">
                 <Icon name="phone" size={13} className="text-primary" />
                 <span>
                   Secrétariat téléphonique ·{" "}
-                  <a href={`tel:${CONTACT.phoneTel}`} className="text-ink hover:text-primary transition-colors normal-case tracking-normal">
+                  <a href={`tel:${CONTACT.phoneTel}`} className="text-ink hover:text-primary-text transition-colors normal-case tracking-normal">
                     {phone}
                   </a>
                 </span>
@@ -242,7 +239,7 @@ export function ContactSection() {
               </div>
 
               <div className="mt-5 pt-4 border-t border-line-soft flex justify-between items-center flex-wrap gap-3">
-                <a href={`mailto:${email}`} className="inline-flex items-center gap-2 text-[14px] text-ink-soft hover:text-primary transition-colors">
+                <a href={`mailto:${email}`} className="inline-flex items-center gap-2 text-[14px] text-ink-soft hover:text-primary-text transition-colors">
                   <Icon name="email" size={15} />
                   {email}
                 </a>
@@ -250,13 +247,13 @@ export function ContactSection() {
                   <div className="flex gap-2">
                     {g.social.instagram && (
                       <a href={g.social.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"
-                         className="w-8 h-8 rounded-full border border-line inline-flex items-center justify-center text-ink-soft hover:text-primary hover:border-primary transition-colors">
+                         className="w-8 h-8 rounded-full border border-line inline-flex items-center justify-center text-ink-soft hover:text-primary-text hover:border-primary transition-colors">
                         <Icon name="instagram" size={14} />
                       </a>
                     )}
                     {g.social.facebook && (
                       <a href={g.social.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"
-                         className="w-8 h-8 rounded-full border border-line inline-flex items-center justify-center text-ink-soft hover:text-primary hover:border-primary transition-colors">
+                         className="w-8 h-8 rounded-full border border-line inline-flex items-center justify-center text-ink-soft hover:text-primary-text hover:border-primary transition-colors">
                         <Icon name="facebook" size={14} />
                       </a>
                     )}

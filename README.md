@@ -26,6 +26,27 @@ L'application est un frontend React + TypeScript découplé : WordPress sert uni
 
 > **Backend WordPress** : la procédure pour déployer/configurer l'instance WP côté backend est documentée en interne — voir [Cobalt Knowledge #150](https://cobalt-it.odoo.com/odoo/knowledge/150). À suivre **avant** de configurer ce frontend.
 
+## Charte graphique
+
+La référence est [doc/new_design_v4/](doc/new_design_v4/) (« Piste A »). Elle est implémentée
+dans les variables CSS de [src/index.css](src/index.css) :
+
+| Rôle | Couleur | Emploi |
+|---|---|---|
+| Terracotta | `#B4644A` | Identité : boutons, liens, en-têtes. Aplat franc, jamais en dégradé. |
+| Terracotta foncé | `#8F4C35` | Survol, et **tout texte en petit corps** sur fond clair. |
+| Ocre | `#C9884F` | Cours collectifs, encadrés d'information. |
+| Sauge | `#8C9E85` | Filets, pictogrammes, chiffres. |
+| Crème | `#F7F0E7` | Bandeaux et cartes. |
+| Encre | `#23201E` | Tous les textes. |
+
+Typographie : **Rubik** pour les titres (Regular 400, Medium 500), **Mulish** pour les textes
+(Light 300, Regular 400, Bold 700), avec Verdana et Trebuchet MS en replis imposés par la charte.
+Corps de texte jamais sous 16 px, interligne 1,55, aligné à gauche, sans italique.
+
+Deux couples sont **proscrits** pour du texte : crème sur ocre (2,6:1) et sauge sur terracotta
+(1,5:1). Les règles détaillées sont commentées sur place dans `src/index.css`.
+
 ## Stack technique
 
 - [React 18](https://react.dev/)
@@ -55,7 +76,7 @@ L'application est un frontend React + TypeScript découplé : WordPress sert uni
 └── src/
     ├── main.tsx                <- Point d'entrée Vite
     ├── App.tsx                 <- Shell de l'app + table de routage
-    ├── index.css               <- Couches Tailwind, design tokens, blocs de thème
+    ├── index.css               <- Couches Tailwind, design tokens (charte « Piste A »)
     ├── types/
     │   └── wordpress.ts        <- Toutes les interfaces TypeScript WP / ACF
     ├── lib/
