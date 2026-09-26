@@ -32,18 +32,21 @@ export function HomePage() {
       </div>
 
       {/* Hero */}
-      <section className="relative pt-[140px] pb-[220px] md:pb-20 overflow-hidden">
-        {/* Décor animé du bandeau. Il remplace l'ancien halo radial : la scène
-            porte déjà ses propres formes, en superposer un second irait contre
-            le « peu d'éléments, beaucoup d'air » de la charte. */}
-        <div aria-hidden className="absolute inset-x-0 bottom-0 h-[210px] md:h-[62%] pointer-events-none opacity-80">
-          <WalkingFigures />
+      <section className="relative pt-[140px] pb-[240px] overflow-hidden">
+        {/* Décor animé du bandeau, PLEINE HAUTEUR : borner le conteneur à une
+            bande basse laissait une couture horizontale et coupait les halos.
+            Ce sont les silhouettes qu'on fait descendre, via `horizon`, pour
+            qu'elles ne passent pas sur les appels à l'action.
+            Il remplace l'ancien halo radial : la scène porte déjà ses propres
+            formes, en superposer un second irait contre le « peu d'éléments,
+            beaucoup d'air » de la charte. */}
+        <div aria-hidden className="absolute inset-0 pointer-events-none opacity-80">
+          <WalkingFigures groundPx={240} />
         </div>
         <div className="container-x relative grid lg:grid-cols-[1.1fr_1fr] gap-20 items-center">
           <div>
             <div className="eyebrow mb-7">
-              <span className="inline-block w-6 h-px bg-primary mr-3 align-middle" />
-              {data?.eyebrow || "Cabinet de physiothérapie · Bulle"}
+              {data?.eyebrow || "Cabinet de physiothérapie à Bulle"}
             </div>
 
             {status === "loading" && !data ? (

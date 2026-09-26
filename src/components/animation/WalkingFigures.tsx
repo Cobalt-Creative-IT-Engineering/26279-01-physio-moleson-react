@@ -24,10 +24,27 @@ interface Props {
   figures?: number;
   /** Multiplicateur de vitesse. */
   speed?: number;
+  /**
+   * Hauteur du « sol » en PIXELS depuis le bas de la scène.
+   *
+   * Tout le sol — collines, bande de sol et couloirs de marche — vit entre 0,68
+   * et 1 de la hauteur dans le dessin d'origine. Ce réglage recomprime cette
+   * zone dans les `groundPx` derniers pixels, ce qui fait descendre les
+   * silhouettes sans rogner la scène : le conteneur reste PLEINE HAUTEUR, là où
+   * le borner à une bande produisait une couture horizontale et coupait les
+   * halos.
+   *
+   * En pixels et non en fraction, à dessein : la hauteur du bandeau dépend du
+   * contenu venu de WordPress (sous-titre, chiffres clés). Un repère en
+   * pourcentage se décale dès que ce contenu change et les silhouettes
+   * remontent sur le texte ; un ancrage au bas de la section ne bouge pas.
+   * Prévoir un `padding-bottom` au moins égal à cette valeur.
+   */
+  groundPx?: number;
   className?: string;
 }
 
-type Fig = { s: number; lane: number; x: number; t: number; ph: number };
+type Fig = { s: number; laneRaw: number; x: number; t: number; ph: number };
 type Part = Record<string, SVGElement | null>;
 
 const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
@@ -55,14 +72,14 @@ function pose(t: number) {
   };
 }
 
-export function WalkingFigures({ figures = 3, speed = 1, className = "" }: Props) {
+export function WalkingFigures({ figures = 3, speed = 1, groundPx = 0, className = "" }: Props) {
   const svgRef   = useRef<SVGSVGElement | null>(null);
   const parts    = useRef<Record<string, Part>>({ p0: {}, p1: {}, p2: {} });
   const els      = useRef<Part>({});
   const blobs    = useRef<(SVGCircleElement | null)[]>([]);
   const figsRef  = useRef<Fig[]>([]);
-  const propsRef = useRef({ figures, speed });
-  propsRef.current = { figures, speed };
+  const propsRef = useRef({ figures, speed, groundPx });
+  propsRef.current = { figures, speed, groundPx };
 
   useEffect(() => {
     const svg = svgRef.current;
@@ -80,9 +97,9 @@ export function WalkingFigures({ figures = 3, speed = 1, className = "" }: Props
       svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
       if (!figsRef.current.length) {
         figsRef.current = [
-          { s: 1,    lane: 0.88, x: 0.15 * W, t: 0,  ph: Math.random() * 6 },
-          { s: 0.68, lane: 0.79, x: 0.6  * W, t: 9,  ph: Math.random() * 6 },
-          { s: 0.46, lane: 0.72, x: 0.35 * W, t: 16, ph: Math.random() * 6 },
+          { s: 1,    laneRaw: 0.88, x: 0.15 * W, t: 0,  ph: Math.random() * 6 },
+          { s: 0.68, laneRaw: 0.79, x: 0.6  * W, t: 9,  ph: Math.random() * 6 },
+          { s: 0.46, laneRaw: 0.72, x: 0.35 * W, t: 16, ph: Math.random() * 6 },
         ];
       }
     };
@@ -100,10 +117,22 @@ export function WalkingFigures({ figures = 3, speed = 1, className = "" }: Props
     const step = (dt: number) => {
       if (!W) return;
       const n = Math.max(1, Math.min(3, propsRef.current.figures));
+      // 0 = proportions d'origine (zone de sol = 32 % de la hauteur).
+      const band = propsRef.current.groundPx || H * 0.32;
+      const top = H - band;
+      /** Fraction d'origine → pixel, recomprimé dans la bande de sol. */
+      const remap = (y: number) => top + ((y - 0.68) / 0.32) * band;
+      // L'amplitude des collines suit la compression, sinon les crêtes
+      // remonteraient au-dessus de l'horizon voulu.
+      const k = band / (H * 0.32);
       hillT += dt;
 
-      els.current.h1?.setAttribute("d", hill(H * 0.68, 22, 0.004, -0.05, 0));
-      els.current.h2?.setAttribute("d", hill(H * 0.76, 14, 0.006, -0.12, 2));
+      els.current.h1?.setAttribute("d", hill(remap(0.68), 22 * k, 0.004, -0.05, 0));
+      els.current.h2?.setAttribute("d", hill(remap(0.76), 14 * k, 0.006, -0.12, 2));
+
+      const groundY = remap(0.84);
+      els.current.sol?.setAttribute("y", String(groundY));
+      els.current.sol?.setAttribute("height", String(Math.max(0, H - groundY)));
 
       blobs.current.forEach((el, i) => {
         if (!el) return;
@@ -165,7 +194,7 @@ export function WalkingFigures({ figures = 3, speed = 1, className = "" }: Props
           maxY = Math.max(maxY, ft[1] + 2.5 * s, k[1]);
         });
 
-        const ground = H * f.lane;
+        const ground = remap(f.laneRaw);
         const hop = P.j * air * 60 * s + (1 - P.j) * P.r * Math.abs(Math.sin(f.ph)) * 7 * s;
         const hx = f.x, hy = ground - maxY - hop;
         const shx = hx + Math.sin(lean) * to, shy = hy - Math.cos(lean) * to;
@@ -266,7 +295,7 @@ export function WalkingFigures({ figures = 3, speed = 1, className = "" }: Props
       className={className}
       style={{ display: "block" }}
     >
-      {["var(--anim-terracotta-100)", "var(--anim-sauge-100)", "var(--anim-terracotta-200)"].map((c, i) => (
+      {["var(--anim-terracotta-100)", "var(--anim-neutre-100)", "var(--anim-terracotta-200)"].map((c, i) => (
         <circle key={`b${i}`} ref={(el) => { blobs.current[i] = el; }} style={{ fill: c, opacity: 0.8 }} />
       ))}
       <path ref={setEl("h1")} style={{ fill: "var(--anim-sauge-200)", opacity: 0.55 }} />
@@ -274,7 +303,7 @@ export function WalkingFigures({ figures = 3, speed = 1, className = "" }: Props
       {/* Ordre de profondeur : la plus lointaine d'abord, la plus proche en dernier. */}
       {figure(2)}
       {figure(1)}
-      <rect x={0} y="84%" width="100%" height="16%" style={{ fill: "var(--anim-neutre-100)", opacity: 0.6 }} />
+      <rect ref={setEl("sol")} x={0} width="100%" style={{ fill: "var(--anim-neutre-100)", opacity: 0.6 }} />
       {figure(0)}
     </svg>
   );

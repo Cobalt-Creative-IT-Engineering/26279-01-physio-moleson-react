@@ -223,8 +223,15 @@ export function MountainFooter({ snow = true, speed = 1 }: Props) {
       aria-hidden="true"
       focusable="false"
       viewBox="0 0 1440 320"
-      preserveAspectRatio="xMidYMax slice"
-      style={{ display: "block", width: "100%", height: "clamp(160px,22vw,320px)", marginBottom: -2 }}
+      /* « meet » + hauteur automatique : la scène entière est toujours visible.
+         Le fichier d'origine utilisait « slice » avec une hauteur plafonnée
+         (clamp(160px,22vw,320px)) ; ça tient à la largeur de sa maquette, mais
+         au-delà d'environ 1500 px le facteur d'échelle horizontal dépasse le
+         vertical et le recadrage mange le haut du dessin — le sommet se
+         retrouve tranché net. La bande grandit donc avec la largeur, au lieu
+         d'être rognée. */
+      preserveAspectRatio="xMidYMax meet"
+      style={{ display: "block", width: "100%", height: "auto", marginBottom: -2 }}
     >
       <defs>
         <clipPath id="massif-clip"><path d={PEAK_D} /></clipPath>

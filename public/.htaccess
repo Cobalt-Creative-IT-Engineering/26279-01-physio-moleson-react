@@ -139,6 +139,45 @@ ErrorDocument 503 /.infomaniak-maintenance.html
 </IfModule>
 
 # ---------------------------------------------------------------------------
+# API WordPress (REST + GraphQL)
+#
+# Ce .htaccess REMPLACE celui de WordPress, dont la règle "tout vers index.php"
+# disparaît au déploiement. /wp-json/... et /graphql ne sont pas des fichiers
+# réels : sans cette règle, la réécriture SPA les enverrait vers index.html, et le
+# front recevrait du HTML au lieu de JSON — plus aucune donnée ACF ne remonte.
+#
+# On cible les formes « query string » (?rest_route=, ?graphql) plutôt que les
+# jolies URL : elles fonctionnent quels que soient les réglages de permaliens WP.
+# Vérifié sur la recette : /index.php/graphql renvoie vers wp-login.php, alors
+# que /index.php?graphql répond en JSON.
+#
+# Même condition que ci-dessus : inerte tant que WordPress ne partage pas la racine.
+# ---------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteCond %{DOCUMENT_ROOT}/index.php -f
+  RewriteRule ^wp-json/?(.*)$ /index.php?rest_route=/$1 [L,QSA]
+
+  RewriteCond %{DOCUMENT_ROOT}/index.php -f
+  RewriteRule ^graphql/?$ /index.php?graphql [L,QSA]
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# Médias WordPress servis sous /documents/
+#
+# WordPress publie les URL des médias en /documents/fichier.webp alors que les
+# fichiers sont physiquement dans /wp-content/uploads/. La correspondance vivait
+# dans le .htaccess de WordPress, écrasé par celui-ci au déploiement : sans cette
+# règle, chaque image tombe dans la réécriture SPA et renvoie index.html.
+#
+# La condition ne réécrit que si le fichier existe réellement : un média absent
+# garde son comportement actuel au lieu de produire une boucle ou un 500.
+# ---------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteCond %{DOCUMENT_ROOT}/wp-content/uploads/$1 -f
+  RewriteRule ^documents/(.+)$ /wp-content/uploads/$1 [L]
+</IfModule>
+
+# ---------------------------------------------------------------------------
 # Réécriture SPA
 # Le routing passe par l'History API : toute URL profonde doit renvoyer index.html,
 # sinon Apache répond 404 sur /articles/mon-article et consorts.
