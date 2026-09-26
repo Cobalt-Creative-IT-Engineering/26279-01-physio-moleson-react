@@ -28,7 +28,7 @@ interface Props {
   speed?: number;
 }
 
-/** Sapins : sommet, puis base gauche / base droite. */
+/** Sapins : sommet, puis base gauche / base droite. Coordonnées du fichier d'origine. */
 const SPRUCES: [number, number, number][] = [
   [70, 232, 266], [92, 228, 262], [180, 226, 260], [205, 222, 256], [228, 225, 259],
   [610, 226, 260], [632, 222, 256], [1010, 224, 258], [1034, 220, 254], [1058, 223, 257],
@@ -231,6 +231,8 @@ export function MountainFooter({ snow = true, speed = 1 }: Props) {
          retrouve tranché net. La bande grandit donc avec la largeur, au lieu
          d'être rognée. */
       preserveAspectRatio="xMidYMax meet"
+      /* Ciel transparent : le fond de page (blanc cassé) traverse, sans
+         rupture de ton avec la section qui précède. */
       style={{ display: "block", width: "100%", height: "auto", marginBottom: -2 }}
     >
       <defs>

@@ -41,8 +41,8 @@ export const CONTACT = {
   ],
   // Horaires du secrétariat téléphonique. `highlight` = ligne mise en avant.
   secretariat: [
-    { days: "Mercredi · non-stop",  hours: "09:00 — 12:00 · 13:00 — 17:00", highlight: true  },
-    { days: "Lun · Mar · Jeu · Ven", hours: "Sur rappel · 07:30 — 18:00",   highlight: false },
+    { days: "Mercredi non-stop",     hours: "09:00-12:00, 13:00-17:00", highlight: true  },
+    { days: "Lun, Mar, Jeu, Ven",    hours: "Sur rappel, 07:30-18:00",      highlight: false },
   ],
 } as const;
 

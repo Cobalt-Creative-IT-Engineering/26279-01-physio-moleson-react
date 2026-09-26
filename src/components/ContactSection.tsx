@@ -18,7 +18,7 @@ function BookingBlock({ therapeutes }: { therapeutes: Therapeute[] }) {
       <div className="relative">
         <div className="label inline-flex items-center gap-2 px-3 py-1.5 rounded-btn text-[11px] mb-5 bg-primary-bg text-primary-text">
           <span className="w-1.5 h-1.5 rounded-full bg-sauge" />
-          tbooking · réservation 24/7
+          tbooking réservation 24/7
         </div>
         <h3 className="font-display text-4xl leading-tight mb-3.5 text-ink">
           Choisissez votre<br />thérapeute.
@@ -163,7 +163,7 @@ export function ContactSection() {
   );
 
   return (
-    <section id="contact" className="section-y bg-bg-alt border-t border-line-soft scroll-mt-24">
+    <section id="contact" className="section-y border-t border-line-soft scroll-mt-24">
       <div className="container-x">
         <div className="section-header">
           <span className="eyebrow">Prendre rendez-vous</span>
@@ -211,7 +211,7 @@ export function ContactSection() {
               <div className="label flex items-center gap-2 text-[11px] text-ink-mute mb-4">
                 <Icon name="phone" size={13} className="text-primary" />
                 <span>
-                  Secrétariat téléphonique ·{" "}
+                  Secrétariat téléphonique{" "}
                   <a href={`tel:${CONTACT.phoneTel}`} className="text-ink hover:text-primary-text transition-colors normal-case tracking-normal">
                     {phone}
                   </a>
@@ -247,14 +247,14 @@ export function ContactSection() {
                   <div className="flex gap-2">
                     {g.social.instagram && (
                       <a href={g.social.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"
-                         className="w-8 h-8 rounded-full border border-line inline-flex items-center justify-center text-ink-soft hover:text-primary-text hover:border-primary transition-colors">
-                        <Icon name="instagram" size={14} />
+                         className="w-9 h-9 rounded-full inline-flex items-center justify-center text-ink-soft hover:text-primary-text transition-colors">
+                        <Icon name="instagram" size={22} />
                       </a>
                     )}
                     {g.social.facebook && (
                       <a href={g.social.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"
-                         className="w-8 h-8 rounded-full border border-line inline-flex items-center justify-center text-ink-soft hover:text-primary-text hover:border-primary transition-colors">
-                        <Icon name="facebook" size={14} />
+                         className="w-9 h-9 rounded-full inline-flex items-center justify-center text-ink-soft hover:text-primary-text transition-colors">
+                        <Icon name="facebook" size={22} />
                       </a>
                     )}
                   </div>

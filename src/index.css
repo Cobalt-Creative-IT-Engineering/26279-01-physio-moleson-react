@@ -73,11 +73,18 @@
      variante « soft » sur terracotta.
      Sur encre, la crème atteint 14.3:1 et tolère des atténuations. */
   --color-on-primary:    #F7F0E7;
-  --color-on-dark:       #F7F0E7;
-  --color-on-dark-soft:  rgb(247 240 231 / 0.72);  /* 8.1:1  */
-  --color-on-dark-mute:  rgb(247 240 231 / 0.55);  /* 5.3:1  */
+  --color-on-dark:       #F7F0E7;                  /* 14.3:1 */
+  --color-on-dark-soft:  rgb(247 240 231 / 0.85);  /* 10.6:1 */
+  --color-on-dark-mute:  rgb(247 240 231 / 0.68);  /*  7.5:1 */
   --color-dark:          #23201E;
-  --color-dark-line:     rgb(247 240 231 / 0.18);
+  /* Filets décoratifs. Volontairement discrets : ils ne portent aucune
+     information, le seuil de 3:1 ne s'y applique pas. */
+  --color-dark-line:     rgb(247 240 231 / 0.22);
+  /* Contours d'éléments CLIQUABLES sur fond sombre (pastilles sociales…).
+     Doivent tenir 3:1 comme tout composant d'interface : à 0.18, l'ancienne
+     valeur commune avec les filets, on était à 1.7:1 et les pastilles
+     disparaissaient. */
+  --color-dark-line-strong: rgb(247 240 231 / 0.45);  /* 3.9:1 */
 
   /* Voile posé sur une photo pour y rendre un texte lisible. */
   --scrim:               rgb(35 32 30 / 0.78);
@@ -140,8 +147,16 @@
 
 /* ─── Base ─────────────────────────────────────────────────────────────── */
 
-html, body {
+/* Le fond n'est posé QUE sur <html>, volontairement.
+   Porté aussi par <body>, il devient un fond de bloc en flux, peint APRÈS les
+   éléments en z-index négatif — il recouvrait alors la couche de halos
+   (FloatingBlobs, en -z-10) et le décor disparaissait. Sur <html> seul, il est
+   propagé au canevas et peint sous tout le reste. */
+html {
   background: var(--color-bg);
+}
+
+html, body {
   color: var(--color-ink);
   font-family: var(--font-body);
   /* La charte fixe un plancher de 16 px pour le corps de texte à l'écran, et
@@ -203,6 +218,14 @@ a { color: inherit; text-decoration: none; }
     letter-spacing: 0.1em;
     color: var(--color-primary-text);
     font-weight: 700;
+  }
+
+  /* Texte posé sur un aplat sombre.
+     Le corps du site est en Mulish Light 300 ; sur fond sombre cette graisse
+     s'amincit visuellement (le fond « mange » les jambages fins) et le texte
+     paraît délavé même à 10:1. On repasse en Regular 400 sur ces aplats. */
+  .on-dark-text {
+    font-weight: 400;
   }
 
   /* Même traitement pour les petites étiquettes qui étaient en monospace. */

@@ -29,7 +29,7 @@ export function ServicesPage() {
           <h1>Nos domaines<br />d'expertise complémentaires.</h1>
           <p>
             De la prise en charge générale à la santé de la femme, du sport au
-            domicile — un accompagnement adapté à votre pathologie et à vos
+            domicile : un accompagnement adapté à votre pathologie et à vos
             objectifs.
           </p>
         </div>
@@ -99,17 +99,16 @@ export function ServicesPage() {
             </div>
 
             {/* Panneau détail */}
-            <div key={active.id} className="grid grid-rows-[auto_1fr_auto] gap-6">
-              {active.image ? (
+            <div
+              key={active.id}
+              className={`grid gap-6 ${active.image ? "grid-rows-[auto_1fr_auto]" : "grid-rows-[1fr_auto]"}`}
+            >
+              {active.image && (
                 <img
                   src={active.image.url}
                   alt={active.image.alt || active.title}
                   className="w-full h-80 object-cover rounded-card"
                 />
-              ) : (
-                <div className="ph h-80 rounded-card">
-                  <span className="ph-label">PLACEHOLDER · {active.title.toUpperCase()}</span>
-                </div>
               )}
 
               <div>

@@ -76,7 +76,6 @@ export function WalkingFigures({ figures = 3, speed = 1, groundPx = 0, className
   const svgRef   = useRef<SVGSVGElement | null>(null);
   const parts    = useRef<Record<string, Part>>({ p0: {}, p1: {}, p2: {} });
   const els      = useRef<Part>({});
-  const blobs    = useRef<(SVGCircleElement | null)[]>([]);
   const figsRef  = useRef<Fig[]>([]);
   const propsRef = useRef({ figures, speed, groundPx });
   propsRef.current = { figures, speed, groundPx };
@@ -133,16 +132,6 @@ export function WalkingFigures({ figures = 3, speed = 1, groundPx = 0, className
       const groundY = remap(0.84);
       els.current.sol?.setAttribute("y", String(groundY));
       els.current.sol?.setAttribute("height", String(Math.max(0, H - groundY)));
-
-      blobs.current.forEach((el, i) => {
-        if (!el) return;
-        const cx = W * [0.78, 0.12, 0.55][i] + Math.sin(hillT * 0.13 + i * 2) * 40;
-        const cy = H * [0.22, 0.3, 0.08][i] + Math.cos(hillT * 0.11 + i) * 30;
-        const rr = Math.min(W, H) * [0.32, 0.2, 0.14][i] * (1 + Math.sin(hillT * 0.2 + i) * 0.05);
-        el.setAttribute("cx", String(cx));
-        el.setAttribute("cy", String(cy));
-        el.setAttribute("r",  String(rr));
-      });
 
       figsRef.current.forEach((f, i) => {
         const g = els.current[`f${i}`] as SVGGElement | null;
@@ -295,9 +284,9 @@ export function WalkingFigures({ figures = 3, speed = 1, groundPx = 0, className
       className={className}
       style={{ display: "block" }}
     >
-      {["var(--anim-terracotta-100)", "var(--anim-neutre-100)", "var(--anim-terracotta-200)"].map((c, i) => (
-        <circle key={`b${i}`} ref={(el) => { blobs.current[i] = el; }} style={{ fill: c, opacity: 0.8 }} />
-      ))}
+      {/* Les halos ne sont plus dessinés ici : ils vivent dans FloatingBlobs,
+          posé une fois pour tout le site. En garder une copie ici les
+          doublerait sur l'accueil. */}
       <path ref={setEl("h1")} style={{ fill: "var(--anim-sauge-200)", opacity: 0.55 }} />
       <path ref={setEl("h2")} style={{ fill: "var(--anim-neutre-200)" }} />
       {/* Ordre de profondeur : la plus lointaine d'abord, la plus proche en dernier. */}

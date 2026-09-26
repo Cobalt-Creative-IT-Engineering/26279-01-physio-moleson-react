@@ -13,7 +13,7 @@ export function ComingSoonPage() {
   const socials = Object.entries(SOCIAL_LINKS).filter(([, url]) => !!url);
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-12 bg-bg-alt">
+    <main className="min-h-screen flex items-center justify-center px-12">
       <div className="max-w-xl text-center flex flex-col items-center gap-6">
         <Logo size={64} />
         <span className="eyebrow">{SITE_CONFIG.tagline}</span>

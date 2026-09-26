@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useAccueilOptions } from "../hooks/useWordPress";
 import { Skeleton } from "../components/ui";
 import { ContactSection } from "../components/ContactSection";
-import { WalkingFigures, RopeClimber } from "../components/animation";
+import { WalkingFigures } from "../components/animation";
 import { setPageMeta } from "../lib/meta";
 
 export function HomePage() {
@@ -21,16 +21,6 @@ export function HomePage() {
 
   return (
     <>
-      {/* Grimpeur : bande fixe sur le bord droit, pilotée par le défilement.
-          Réservée aux très grands écrans, où la marge à droite du conteneur
-          (1280 px centré) est assez large pour ne rien recouvrir. */}
-      <div
-        aria-hidden
-        className="hidden 2xl:block fixed right-0 top-[88px] w-[120px] h-[calc(100vh-88px)] pointer-events-none z-[1]"
-      >
-        <RopeClimber />
-      </div>
-
       {/* Hero */}
       <section className="relative pt-[140px] pb-[240px] overflow-hidden">
         {/* Décor animé du bandeau, PLEINE HAUTEUR : borner le conteneur à une
@@ -88,26 +78,24 @@ export function HomePage() {
             )}
           </div>
 
-          <div className="relative h-[640px] hidden lg:block">
-            {data?.imageMain ? (
-              <img
-                src={data.imageMain.url}
-                alt={data.imageMain.alt || "Cabinet physio du Moléson"}
-                className="absolute top-0 right-0 w-[78%] h-[70%] object-cover rounded-card"
-              />
-            ) : (
-              <div className="ph absolute top-0 right-0 w-[78%] h-[70%] rounded-card">
-                <span className="ph-label">PLACEHOLDER · séance de physiothérapie</span>
-              </div>
-            )}
-            {data?.imageSecondary && (
-              <img
-                src={data.imageSecondary.url}
-                alt={data.imageSecondary.alt || "Le cabinet"}
-                className="absolute bottom-0 left-0 w-[58%] h-[48%] object-cover rounded-card"
-              />
-            )}
-          </div>
+          {(data?.imageMain || data?.imageSecondary) && (
+            <div className="relative h-[640px] hidden lg:block">
+              {data.imageMain && (
+                <img
+                  src={data.imageMain.url}
+                  alt={data.imageMain.alt || "Cabinet physio du Moléson"}
+                  className="absolute top-0 right-0 w-[78%] h-[70%] object-cover rounded-card"
+                />
+              )}
+              {data.imageSecondary && (
+                <img
+                  src={data.imageSecondary.url}
+                  alt={data.imageSecondary.alt || "Le cabinet"}
+                  className="absolute bottom-0 left-0 w-[58%] h-[48%] object-cover rounded-card"
+                />
+              )}
+            </div>
+          )}
         </div>
       </section>
 

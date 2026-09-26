@@ -20,7 +20,7 @@ export function Footer() {
     <div className="mt-auto">
       <MountainFooter />
       <footer
-        className="py-20 pb-8"
+        className="py-20 pb-8 on-dark-text"
         style={{ background: "var(--color-dark)", color: "var(--color-on-dark-soft)" }}
       >
       <div className="container-x">
@@ -79,10 +79,10 @@ export function Footer() {
                       target="_blank"
                       rel="noreferrer"
                       aria-label={name}
-                      className="w-8 h-8 rounded-full border inline-flex items-center justify-center transition-colors hover:text-on-dark"
-                      style={{ borderColor: "var(--color-dark-line)", color: "var(--color-sauge)" }}
+                      className="w-9 h-9 inline-flex items-center justify-center rounded-full transition-colors hover:bg-[rgb(247_240_231_/_0.12)]"
+                      style={{ color: "var(--color-on-dark)" }}
                     >
-                      <Icon name={name as IconName} size={14} />
+                      <Icon name={name as IconName} size={22} />
                     </a>
                   </li>
                 ))}
