@@ -202,10 +202,26 @@ export function MountainFooter({ snow = true, speed = 1 }: Props) {
       if (visible) draw();
       raf = requestAnimationFrame(loop);
     };
+    // Recadrage mobile. Réduite en entier à 390 px de large, la scène ne
+    // faisait plus que ~87 px de haut. Sous ~810 px, on ne montre donc qu'une
+    // fenêtre centrée sur le Moléson et l'haltérophile (x ≈ 700), assez étroite
+    // pour que la bande garde au moins MIN_H px de haut. Au-delà, scène entière.
+    const MIN_H = 180;
+    const frame = () => {
+      const w = svg.clientWidth;
+      if (!w) return;
+      const vw = Math.min(1440, Math.max(560, (w * 320) / MIN_H));
+      const x0 = Math.max(0, Math.min(1440 - vw, 700 - vw / 2));
+      svg.setAttribute("viewBox", `${x0.toFixed(1)} 0 ${vw.toFixed(1)} 320`);
+    };
+    const ro = new ResizeObserver(frame);
+    ro.observe(svg);
+    frame();
+
     draw();
     raf = requestAnimationFrame(loop);
 
-    return () => { cancelAnimationFrame(raf); io.disconnect(); };
+    return () => { cancelAnimationFrame(raf); io.disconnect(); ro.disconnect(); };
   }, []);
 
   const rl = (n: string) => (el: SVGElement | null) => { L.current[n] = el; };
@@ -225,8 +241,9 @@ export function MountainFooter({ snow = true, speed = 1 }: Props) {
       ref={svgRef}
       aria-hidden="true"
       focusable="false"
+      /* Valeur par défaut ; recadrée sur petit écran par l'effet ci-dessus. */
       viewBox="0 0 1440 320"
-      /* « meet » + hauteur automatique : la scène entière est toujours visible.
+      /* « meet » + hauteur automatique : la fenêtre choisie est toujours visible.
          Le fichier d'origine utilisait « slice » avec une hauteur plafonnée
          (clamp(160px,22vw,320px)) ; ça tient à la largeur de sa maquette, mais
          au-delà d'environ 1500 px le facteur d'échelle horizontal dépasse le

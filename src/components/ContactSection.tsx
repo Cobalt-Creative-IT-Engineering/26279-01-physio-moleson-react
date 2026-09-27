@@ -14,13 +14,13 @@ function BookingBlock({ therapeutes }: { therapeutes: Therapeute[] }) {
        aux « liens et boutons » à l'écran, et la crème sur terracotta plafonne
        à 3.82:1 — insuffisant pour le texte courant de ce bloc. Le terracotta
        reste présent en accents (étiquette, survol, flèches). */
-    <div className="relative overflow-hidden rounded-[6px] p-10 grid lg:grid-cols-[1fr_1.2fr] gap-12 items-center shadow-md bg-surface border border-line">
+    <div className="relative overflow-hidden rounded-[6px] p-6 md:p-10 grid lg:grid-cols-[1fr_1.2fr] gap-8 lg:gap-12 items-center shadow-md bg-surface border border-line">
       <div className="relative">
         <div className="label inline-flex items-center gap-2 px-3 py-1.5 rounded-btn text-[11px] mb-5 bg-primary-bg text-primary-text">
           <span className="w-1.5 h-1.5 rounded-full bg-sauge" />
           tbooking réservation 24/7
         </div>
-        <h3 className="font-display text-4xl leading-tight mb-3.5 text-ink">
+        <h3 className="font-display text-3xl md:text-4xl leading-tight mb-3.5 text-ink">
           Choisissez votre<br />thérapeute.
         </h3>
         <p className="text-[16px] max-w-[360px] text-ink-soft">
@@ -91,7 +91,7 @@ function ContactForm() {
   const field = "w-full bg-transparent border-b border-line py-3.5 text-[15px] text-ink outline-none focus:border-primary transition-colors";
 
   return (
-    <form onSubmit={submit} className="bg-surface rounded-card p-10 border border-line-soft shadow-sm flex flex-col gap-1.5">
+    <form onSubmit={submit} className="bg-surface rounded-card p-6 md:p-10 border border-line-soft shadow-sm flex flex-col gap-1.5">
       <div className="font-display text-[28px] mb-1">Écrivez-nous.</div>
       <p className="text-[15px] text-ink-soft mb-5">
         Pour une question administrative ou une demande non urgente. Réponse sous 24h ouvrables.
@@ -218,7 +218,7 @@ export function ContactSection() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-[1fr_auto] gap-x-5 gap-y-3 text-[13.5px]">
+              <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-x-5 gap-y-1 sm:gap-y-3 text-[13.5px]">
                 {CONTACT.secretariat.map((s) => (
                   <Fragment key={s.days}>
                     <span className="inline-flex items-center gap-2.5">
@@ -233,7 +233,7 @@ export function ContactSection() {
                         {s.days}
                       </span>
                     </span>
-                    <span className="text-right text-ink-soft">{s.hours}</span>
+                    <span className="pl-[18px] sm:pl-0 mb-2 sm:mb-0 sm:text-right text-ink-soft">{s.hours}</span>
                   </Fragment>
                 ))}
               </div>

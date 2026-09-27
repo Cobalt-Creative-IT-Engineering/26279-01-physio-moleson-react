@@ -200,12 +200,20 @@ a { color: inherit; text-decoration: none; }
 
 @layer components {
   .container-x {
-    @apply w-full mx-auto px-12;
+    /* Gouttière de 16 px sur téléphone : à 48 px, la colonne de texte ne
+       faisait plus que 294 px sur un écran de 390. */
+    @apply w-full mx-auto px-4 sm:px-6 lg:px-12;
     max-width: 1280px;
   }
 
   .section-y {
-    @apply py-[120px];
+    @apply py-16 md:py-24 lg:py-[120px];
+  }
+  /* Première section d'une page : elle passe sous l'en-tête FIXE (~80 px),
+     sa marge haute doit donc le dégager, quel que soit l'espacement réduit
+     des sections sur mobile. */
+  main > .section-y:first-child {
+    @apply pt-28 md:pt-32 lg:pt-[120px];
   }
 
   /* Surtitre — Mulish Bold, capitales, interlettrage 0,1 em (charte).
@@ -237,13 +245,17 @@ a { color: inherit; text-decoration: none; }
   }
 
   .section-header {
-    @apply flex flex-col gap-4 mb-[72px];
+    @apply flex flex-col gap-4 mb-10 md:mb-[72px];
     max-width: 720px;
   }
   .section-header h1,
   .section-header h2 {
-    font-size: clamp(40px, 4vw, 56px);
+    /* 32 px sur téléphone (40 px donnait 4 lignes et un mot coupé net au
+       bord), 56 px dès ~1200 px. */
+    font-size: clamp(32px, 3vw + 20px, 56px);
     line-height: 1.05;
+    overflow-wrap: break-word;
+    hyphens: auto;
   }
   .section-header p {
     font-size: 18px;

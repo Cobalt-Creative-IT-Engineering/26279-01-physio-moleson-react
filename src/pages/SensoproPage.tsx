@@ -27,7 +27,7 @@ export function SensoproPage() {
         </div>
 
         {status === "loading" && !data && (
-          <div className="grid lg:grid-cols-2 gap-16">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
             <Skeleton className="aspect-[4/5]" />
             <div className="flex flex-col gap-6">
               <Skeleton className="h-40" />
@@ -41,7 +41,7 @@ export function SensoproPage() {
         )}
 
         {data && (
-          <div className="grid lg:grid-cols-2 gap-16 items-start">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
             {/* Visuel */}
             <div className="lg:sticky lg:top-28">
               <div className="relative aspect-[4/5] rounded-card shadow-lg overflow-hidden">

@@ -22,7 +22,7 @@ export function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative pt-[140px] pb-[240px] overflow-hidden">
+      <section className="relative pt-[112px] lg:pt-[140px] pb-[240px] overflow-hidden">
         {/* Décor animé du bandeau, PLEINE HAUTEUR : borner le conteneur à une
             bande basse laissait une couture horizontale et coupait les halos.
             Ce sont les silhouettes qu'on fait descendre, via `horizon`, pour
@@ -33,7 +33,7 @@ export function HomePage() {
         <div aria-hidden className="absolute inset-0 pointer-events-none opacity-80">
           <WalkingFigures groundPx={240} />
         </div>
-        <div className="container-x relative grid lg:grid-cols-[1.1fr_1fr] gap-20 items-center">
+        <div className="container-x relative grid lg:grid-cols-[1.1fr_1fr] gap-12 lg:gap-20 items-center">
           <div>
             <div className="eyebrow mb-7">
               {data?.eyebrow || "Cabinet de physiothérapie à Bulle"}
@@ -44,14 +44,14 @@ export function HomePage() {
             ) : (
               <h1
                 className="font-display mb-8"
-                style={{ fontSize: "clamp(40px, 4vw, 56px)", lineHeight: 1.05 }}
+                style={{ fontSize: "clamp(32px, 3vw + 20px, 56px)", lineHeight: 1.05, overflowWrap: "break-word", hyphens: "auto" }}
               >
                 {data?.title || "Une équipe à votre écoute, votre santé en mouvement."}
               </h1>
             )}
 
             {data?.subtitle && (
-              <p className="text-[19px] text-ink-soft max-w-[480px] mb-11 leading-relaxed">
+              <p className="text-[17px] md:text-[19px] text-ink-soft max-w-[480px] mb-8 md:mb-11 leading-relaxed">
                 {data.subtitle}
               </p>
             )}
@@ -67,7 +67,7 @@ export function HomePage() {
             </div>
 
             {data && data.stats.length > 0 && (
-              <div className="flex gap-10 mt-[72px] pt-8 border-t border-line-soft">
+              <div className="flex flex-wrap gap-x-10 gap-y-6 mt-12 md:mt-[72px] pt-8 border-t border-line-soft">
                 {data.stats.map((s, i) => (
                   <div key={i}>
                     <div className="font-display text-[40px] text-primary leading-none">{s.number}</div>

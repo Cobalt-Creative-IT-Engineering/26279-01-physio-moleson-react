@@ -35,7 +35,7 @@ export function ServicesPage() {
         </div>
 
         {status === "loading" && services.length === 0 && (
-          <div className="grid lg:grid-cols-[1fr_1.4fr] gap-16">
+          <div className="grid lg:grid-cols-[1fr_1.4fr] gap-10 lg:gap-16">
             <div className="flex flex-col gap-6">
               {Array.from({ length: 4 }).map((_, i) => (
                 <Skeleton key={i} className="h-20" />
@@ -54,7 +54,7 @@ export function ServicesPage() {
         )}
 
         {active && (
-          <div className="grid lg:grid-cols-[1fr_1.4fr] gap-16">
+          <div className="grid lg:grid-cols-[1fr_1.4fr] gap-10 lg:gap-16">
             {/* Liste d'onglets */}
             <div className="flex flex-col border-t border-line">
               {services.map((s) => {

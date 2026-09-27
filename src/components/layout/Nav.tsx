@@ -31,8 +31,9 @@ export function Nav() {
       }}
     >
       <div
-        className="flex items-center justify-between px-12 transition-all duration-300"
-        style={{ padding: scrolled ? "14px 48px" : "20px 48px" }}
+        className={`flex items-center justify-between px-4 sm:px-6 lg:px-12 transition-all duration-300 ${
+          scrolled ? "py-3.5" : "py-5"
+        }`}
       >
         <a href="/" className="flex items-center gap-3 cursor-pointer" onClick={() => setOpen(false)}>
           <Logo size={36} />
@@ -97,7 +98,7 @@ export function Nav() {
       </div>
 
       {open && (
-        <div className="lg:hidden flex flex-col bg-surface border-t border-line-soft px-12 py-4">
+        <div className="lg:hidden flex flex-col bg-surface border-t border-line-soft px-4 sm:px-6 py-4">
           {NAV_ITEMS.map((item) => (
             <a
               key={item.id}

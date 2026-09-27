@@ -126,7 +126,7 @@ function CabinetGallery({ images, tag, n }: { images: WPImage[]; tag: string; n:
 
   return (
     <div>
-      <div className="grid grid-cols-3 grid-rows-[300px_140px] gap-2">
+      <div className="grid grid-cols-3 grid-rows-[220px_100px] sm:grid-rows-[300px_140px] gap-2">
         <div className="col-span-3 row-start-1 relative overflow-hidden rounded-card shadow-lg">
           <Cell i={0} label={labels[0]} />
           {tag && (
@@ -245,7 +245,7 @@ export function CabinetPage() {
         </div>
 
         {status === "loading" && !data && (
-          <div className="grid lg:grid-cols-[1.1fr_1fr] gap-16">
+          <div className="grid lg:grid-cols-[1.1fr_1fr] gap-10 lg:gap-16">
             <Skeleton className="h-[460px]" />
             <Skeleton className="h-[200px]" />
           </div>
@@ -256,7 +256,7 @@ export function CabinetPage() {
         )}
 
         {data && (
-          <div className="grid lg:grid-cols-[1.1fr_1fr] gap-16 items-start">
+          <div className="grid lg:grid-cols-[1.1fr_1fr] gap-10 lg:gap-16 items-start">
             {/* Colonne gauche : galerie + sélecteur cabinet */}
             <div className="flex flex-col gap-4">
               <CabinetGallery images={images} tag={tag} n={activeId} />
