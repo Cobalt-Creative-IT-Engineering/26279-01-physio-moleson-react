@@ -65,6 +65,7 @@ export const NAV_ITEMS = [
   { id: 3, title: "Sensopro",    url: "/sensopro",  cta: false },
   { id: 4, title: "Thérapeutes", url: "/equipe",    cta: false },
   { id: 5, title: "Cabinet",     url: "/cabinet",   cta: false },
+  { id: 7, title: "FAQ",         url: "/faq",       cta: false },
   { id: 6, title: "Prendre rendez-vous",     url: "/#contact", cta: true  },
 ] as const;
 

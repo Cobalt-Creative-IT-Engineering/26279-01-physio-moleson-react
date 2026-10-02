@@ -1,8 +1,8 @@
 import { SITE_CONFIG, SOCIAL_LINKS, CONTACT, NAV_ITEMS } from "../../config/site";
 import { useGlobalOptions } from "../../hooks/useWordPress";
 import { Logo, Icon } from "../ui";
+import foretSrc from "../../assets/decor/footer-foret.svg";
 import type { IconName } from "../ui";
-import { MountainFooter } from "../animation";
 
 export function Footer() {
   const { data: g } = useGlobalOptions();
@@ -18,35 +18,48 @@ export function Footer() {
 
   return (
     <div className="mt-auto">
-      <MountainFooter />
-      <footer
-        className="py-20 pb-8 on-dark-text"
-        style={{ background: "var(--color-dark)", color: "var(--color-on-dark-soft)" }}
-      >
+      {/* Lisière de forêt (doc/footer/footer-foret.svg), statique. Le dessin
+          sert de masque et la couleur vient du token --color-dark : la base
+          se fond dans le pied de page sans couleur codée en dur. Boîte au
+          ratio du viewBox (1440 × 264), donc aucune déformation ; -1 px pour
+          éviter un liseré d'anticrénelage entre le dessin et l'aplat. */}
+      <div
+        aria-hidden
+        className="w-full aspect-[1440/264] -mb-px"
+        style={{
+          background: "var(--color-dark)",
+          WebkitMaskImage: `url(${foretSrc})`,
+          maskImage: `url(${foretSrc})`,
+          WebkitMaskSize: "100% 100%",
+          maskSize: "100% 100%",
+          WebkitMaskRepeat: "no-repeat",
+          maskRepeat: "no-repeat",
+        }}
+      />
+      {/* Aplat vert Moléson, texte sable (8.2:1), logo en réserve claire. */}
+      <footer className="on-dark py-20 pb-8">
       <div className="container-x">
-        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr] gap-12 pb-12 border-b" style={{ borderColor: "var(--color-dark-line)" }}>
+        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr] gap-12 pb-12 border-b border-on-dark">
           {/* Brand */}
           <div>
-            <div className="flex items-center gap-3 mb-5">
-              <Logo size={36} className="invert opacity-80" />
-              <div className="font-display text-xl" style={{ color: "var(--color-on-dark)" }}>
-                {SITE_CONFIG.name}
-              </div>
-            </div>
-            <p className="text-[15px] max-w-[340px]" style={{ color: "var(--color-on-dark-soft)" }}>
+            {/* Logo complet en réserve claire. 160 px : à cette largeur le nom
+                du bloc reste lisible ; zone de protection d'un quart de la
+                largeur assurée par la marge basse. */}
+            <Logo full variant="light" size={160} className="mb-10" />
+            <p className="text-[16px] max-w-[340px]">
               {SITE_CONFIG.description}
             </p>
           </div>
 
           {/* Navigation */}
           <div>
-            <div className="label text-[11px] mb-4" style={{ color: "var(--color-sauge)" }}>
+            <div className="label text-[13px] mb-4">
               Navigation
             </div>
-            <ul className="flex flex-col gap-2.5 text-[15px]" style={{ color: "var(--color-on-dark-soft)" }}>
+            <ul className="flex flex-col gap-2.5 text-[16px]">
               {NAV_ITEMS.map((item) => (
                 <li key={item.id}>
-                  <a href={item.url} className="hover:text-on-dark transition-colors">{item.title}</a>
+                  <a href={item.url} className="underline-offset-4 decoration-2 decoration-on-dark hover:underline">{item.title}</a>
                 </li>
               ))}
             </ul>
@@ -54,19 +67,19 @@ export function Footer() {
 
           {/* Cabinet */}
           <div>
-            <div className="label text-[11px] mb-4" style={{ color: "var(--color-sauge)" }}>
+            <div className="label text-[13px] mb-4">
               Cabinet
             </div>
-            <ul className="flex flex-col gap-2.5 text-[15px]" style={{ color: "var(--color-on-dark-soft)" }}>
+            <ul className="flex flex-col gap-2.5 text-[16px]">
               {addresses.map((a) => (
                 <li key={a.id}>{a.street}</li>
               ))}
               <li>{addresses[0]?.postcode} {addresses[0]?.city}, Suisse</li>
               <li>
-                <a href={`tel:${CONTACT.phoneTel}`} className="hover:text-on-dark transition-colors">{phone}</a>
+                <a href={`tel:${CONTACT.phoneTel}`} className="underline-offset-4 decoration-2 decoration-on-dark hover:underline">{phone}</a>
               </li>
               <li>
-                <a href={`mailto:${email}`} className="hover:text-on-dark transition-colors">{email}</a>
+                <a href={`mailto:${email}`} className="underline-offset-4 decoration-2 decoration-on-dark hover:underline">{email}</a>
               </li>
             </ul>
 
@@ -79,8 +92,7 @@ export function Footer() {
                       target="_blank"
                       rel="noreferrer"
                       aria-label={name}
-                      className="w-9 h-9 inline-flex items-center justify-center rounded-full transition-colors hover:bg-[rgb(247_240_231_/_0.12)]"
-                      style={{ color: "var(--color-on-dark)" }}
+                      className="w-11 h-11 inline-flex items-center justify-center rounded-full transition-colors hover:bg-sable hover:text-vert"
                     >
                       <Icon name={name as IconName} size={22} />
                     </a>
@@ -91,7 +103,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="flex justify-between items-center pt-7 text-[14px] tracking-[0.02em] flex-wrap gap-4" style={{ color: "var(--color-on-dark-mute)" }}>
+        <div className="flex justify-between items-center pt-7 text-[14px] flex-wrap gap-4">
           <span>© {new Date().getFullYear()} {SITE_CONFIG.name}</span>
           <span>
             Développé par{" "}
@@ -99,8 +111,7 @@ export function Footer() {
               href="https://cobalt-it.ch/"
               target="_blank"
               rel="noreferrer"
-              className="border-b pb-px"
-              style={{ color: "var(--color-sauge)", borderColor: "var(--color-dark-line)" }}
+              className="underline underline-offset-4 decoration-2 decoration-on-dark"
             >
               Cobalt
             </a>

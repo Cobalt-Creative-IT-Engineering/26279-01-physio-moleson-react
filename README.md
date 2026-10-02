@@ -28,42 +28,33 @@ L'application est un frontend React + TypeScript découplé : WordPress sert uni
 
 ## Charte graphique
 
-La référence est [doc/new_design_v4/](doc/new_design_v4/) (« Piste A »). Elle est implémentée
+La référence est [doc/charte/](doc/charte/) (charte « Alpage », version finale d'octobre 2026 ;
+ouvrir le `.dc.html` dans un navigateur, ou lire le `README.md` du dossier). Elle est implémentée
 dans les variables CSS de [src/index.css](src/index.css) :
 
-| Rôle | Couleur | Emploi |
-|---|---|---|
-| Terracotta | `#B4644A` | Identité : boutons, liens, en-têtes. Aplat franc, jamais en dégradé. |
-| Terracotta foncé | `#8F4C35` | Survol, et **tout texte en petit corps** sur fond clair. |
-| Ocre | `#C9884F` | Cours collectifs, encadrés d'information. |
-| Sauge | `#8C9E85` | Filets, pictogrammes, chiffres. |
-| Crème | `#F7F0E7` | Bandeaux et cartes. |
-| Encre | `#23201E` | Tous les textes. |
+Palette **resserrée à la demande du client** : trois couleurs de base, le jaune pour les boutons
+et les points, l'olive pour le seul bandeau des cards.
 
-Typographie : **Rubik** pour les titres (Regular 400, Medium 500), **Mulish** pour les textes
-(Light 300, Regular 400, Bold 700), avec Verdana et Trebuchet MS en replis imposés par la charte.
-Corps de texte jamais sous 16 px, interligne 1,55, aligné à gauche, sans italique.
+| Rôle | Couleur | Classe | Emploi |
+|---|---|---|---|
+| Vert Moléson | `#364035` | `vert`, `.on-dark` | Aplats forts (héros, pied de page) ; surtitres, pictos, liens au survol. |
+| Sable | `#EADECE` | `sable`, `surface` | Encadrés et cards ; texte sur aplat vert. |
+| Sable éclairci | `#F4EEE6` | `bg` | Fond de page (dérivé : sable + blanc à parts égales). |
+| Anthracite | `#393939` | `ink` | Tous les textes. |
+| Jaune pointage | `#F5E993` | `jaune` | **Uniquement** boutons, points, état actif. |
+| Olive | `#8F8F6D` | `olive` | **Uniquement** le bandeau de tête des cards (jamais sous du texte). |
+| Filet | `#D5CABB` | `line` | Bordures décoratives (dérivé). |
 
-Deux couples sont **proscrits** pour du texte : crème sur ocre (2,6:1) et sauge sur terracotta
-(1,5:1). Les règles détaillées sont commentées sur place dans `src/index.css`.
+Typographie : **Rubik** pour les titres (Medium 500, -0,02 em sur les grands titres), **Mulish**
+pour les textes (Light 300 courant, Regular 400 légendes, Bold 700 surtitres), avec Verdana et
+Trebuchet MS en replis. Corps de texte jamais sous 16 px, interligne 1,6, aligné à gauche, sans
+italique.
 
-### Animations
+Formes : cards et images aux coins arrondis, boutons et pastilles en pilule ; ni ombre ni
+transparence sur les aplats.
 
-Trois scènes SVG animées, dans [src/components/animation/](src/components/animation/) :
-
-| Composant | Emplacement | Pilotage |
-|---|---|---|
-| `WalkingFigures` | Bandeau de l'accueil | Boucle autonome (cycle de 24 s : marche, course, saut) |
-| `RopeClimber` | Bord droit de l'accueil, ≥ 1536 px | Progression et **vitesse** du défilement (corde sur ressort amorti) |
-| `MountainFooter` | Au-dessus du pied de page, toutes pages | Boucle autonome |
-
-Elles sont portées depuis les exports `doc/animation/*.dc.html`, dont le runtime propriétaire
-n'est pas embarqué. Toutes sont `aria-hidden`, s'arrêtent hors écran et respectent
-`prefers-reduced-motion`. Leurs couleurs passent par les rampes `--anim-*`, dérivées des
-couleurs de la charte.
-
-> `MountainFooter` déroge volontairement au principe « le Moléson n'est jamais redessiné » de
-> la charte. L'écart a été validé ; voir le commentaire en tête du composant.
+Couples **proscrits** pour du texte : jaune sur fond clair, et tout texte sur olive.
+Les règles détaillées sont commentées sur place dans `src/index.css`.
 
 ## Stack technique
 
@@ -94,7 +85,7 @@ couleurs de la charte.
 └── src/
     ├── main.tsx                <- Point d'entrée Vite
     ├── App.tsx                 <- Shell de l'app + table de routage
-    ├── index.css               <- Couches Tailwind, design tokens (charte « Piste A »)
+    ├── index.css               <- Couches Tailwind, design tokens (charte « Alpage »)
     ├── types/
     │   └── wordpress.ts        <- Toutes les interfaces TypeScript WP / ACF
     ├── lib/
@@ -174,6 +165,23 @@ add_action('init', function () {
 ```
 
 > **REMARQUE** : en développement, Vite proxifie `/wp-json` et `/graphql` vers `VITE_WP_URL`, donc le CORS n'est strictement requis que pour les builds de production.
+
+#### Page d'options « FAQ » (à créer)
+
+La page [/faq](src/pages/FaqPage.tsx) lit une page d'options ACF qui **n'existe pas encore** côté
+WordPress. En attendant, elle affiche les questions d'exemple de
+[src/config/faq-exemple.ts](src/config/faq-exemple.ts) ; elles disparaissent d'elles-mêmes dès
+que WordPress renvoie au moins une question.
+
+| Élément | Valeur |
+|---|---|
+| Page d'options — nom GraphQL | `faqs` |
+| Groupe de champs — nom GraphQL | `faq` (différent de la page : règle anti-collision) |
+| Champ texte | `titre_faq` → `titreFaq` (facultatif, titre de la page) |
+| Champ WYSIWYG | `intro_faq` → `introFaq` (facultatif) |
+| Répéteur | `questions_faq` → `questionsFaq`, sous-champs `question` (texte) et `reponse` (WYSIWYG) |
+
+Activer « Show in GraphQL » sur la page d'options et sur le groupe.
 
 ### Configuration
 

@@ -50,7 +50,7 @@ export function ServicesPage() {
         )}
 
         {status === "success" && services.length === 0 && (
-          <p className="text-ink-soft">Aucun service publié pour le moment.</p>
+          <p className="text-ink">Aucun service publié pour le moment.</p>
         )}
 
         {active && (
@@ -63,30 +63,33 @@ export function ServicesPage() {
                   <button
                     key={s.id}
                     onClick={() => setActiveId(s.id)}
+                    aria-pressed={isActive}
                     className="grid grid-cols-[auto_1fr_auto] gap-5 items-center py-7 border-b border-line text-left transition-colors"
                   >
                     <span
-                      className="label text-[11px]"
-                      style={{ color: isActive ? "var(--color-primary)" : "var(--color-ink-mute)" }}
+                      className="label text-[13px]"
+                      style={{ color: isActive ? "var(--color-vert)" : "var(--color-ink)" }}
                     >
                       {s.num || "—"}
                     </span>
                     <span>
                       <span
                         className="block font-display text-2xl mb-1 transition-colors"
-                        style={{ color: isActive ? "var(--color-primary)" : "var(--color-ink)" }}
+                        style={{ color: isActive ? "var(--color-vert)" : "var(--color-ink)" }}
                       >
                         {s.title}
                       </span>
                       {s.short && (
-                        <span className="block text-[13px] text-ink-mute">{s.short}</span>
+                        <span className="block caption">{s.short}</span>
                       )}
                     </span>
+                    {/* Onglet actif : pastille jaune, l'« état actif » de la charte. */}
                     <span
-                      className="flex items-center justify-center w-8 h-8 rounded-full border transition-colors"
+                      className="flex items-center justify-center w-8 h-8 rounded-full border-[1.5px] transition-colors"
                       style={{
-                        borderColor: isActive ? "var(--color-primary)" : "var(--color-line)",
-                        color: isActive ? "var(--color-primary)" : "var(--color-ink-mute)",
+                        borderColor: isActive ? "var(--color-ink)" : "var(--color-ink)",
+                        background: isActive ? "var(--color-jaune)" : "transparent",
+                        color: isActive ? "var(--color-ink)" : "var(--color-ink)",
                       }}
                     >
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -114,21 +117,18 @@ export function ServicesPage() {
               <div>
                 {active.short && <h2 className="text-[28px] mb-4">{active.short}</h2>}
                 {active.description && (
-                  <WPContent html={active.description} className="text-base leading-relaxed text-ink-soft" />
+                  <WPContent html={active.description} className="text-base" />
                 )}
               </div>
 
               {active.tags.length > 0 && (
                 <div>
-                  <div className="label text-[11px] text-ink-mute mb-3.5">
+                  <div className="label text-[13px] text-ink mb-3.5">
                     Pathologies prises en charge
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {active.tags.map((t) => (
-                      <span
-                        key={t}
-                        className="px-3.5 py-1.5 text-[13px] rounded-btn bg-primary-bg text-primary-text border border-primary-soft"
-                      >
+                      <span key={t} className="chip">
                         {t}
                       </span>
                     ))}

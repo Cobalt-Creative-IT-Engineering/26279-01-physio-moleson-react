@@ -22,13 +22,12 @@ export function Nav() {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
-      style={{
-        background: scrolled ? "rgb(255 253 250 / 0.9)" : "transparent",
-        backdropFilter: scrolled ? "saturate(1.4) blur(14px)" : "none",
-        WebkitBackdropFilter: scrolled ? "saturate(1.4) blur(14px)" : "none",
-        borderBottom: scrolled ? "1px solid var(--color-line-soft)" : "1px solid transparent",
-      }}
+      /* Fond blanc plein, en permanence : la charte proscrit les transparences
+         et, sur l'accueil, l'en-tête surplombe le héros vert Moléson — un
+         en-tête transparent y poserait de l'anthracite sur du vert. */
+      className={`fixed top-0 left-0 right-0 z-50 bg-bg border-b transition-colors duration-300 ${
+        scrolled ? "border-line" : "border-transparent"
+      }`}
     >
       <div
         className={`flex items-center justify-between px-4 sm:px-6 lg:px-12 transition-all duration-300 ${
@@ -39,11 +38,11 @@ export function Nav() {
           <Logo size={36} />
           <div className="leading-tight">
             <div className="font-display font-medium text-[18px] tracking-[0.02em] text-ink">{SITE_CONFIG.name}</div>
-            <div className="label text-[12px] text-ink-mute">Bulle depuis 2021</div>
+            <div className="label text-[13px] text-ink">Bulle depuis 2021</div>
           </div>
         </a>
 
-        <nav className="hidden lg:flex gap-9 text-[15px] tracking-[0.01em]">
+        <nav className="hidden lg:flex gap-7 text-[16px]">
           {leftItems.map((item) => {
             const active = isActive(item.url);
             return (
@@ -51,26 +50,20 @@ export function Nav() {
                 key={item.id}
                 href={item.url}
                 aria-current={active ? "page" : undefined}
-                className={`group relative py-1.5 transition-colors duration-200 hover:text-primary-text ${
-                  active ? "text-primary-text" : "text-ink"
+                /* Page active : pilule jaune (« état actif » de la charte).
+                   Autres pages : pilule sable au survol. */
+                className={`py-1.5 px-3 rounded-full text-ink transition-colors duration-150 ${
+                  active ? "bg-jaune" : "hover:bg-sable"
                 }`}
               >
                 {item.title}
-                {/* Filet terracotta : plein sur la page active, déployé depuis
-                    la gauche au survol pour les autres. */}
-                <span
-                  aria-hidden
-                  className={`absolute bottom-0 left-0 right-0 h-px bg-primary origin-left transition-transform duration-300 ease-out motion-reduce:transition-none ${
-                    active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100 group-focus-visible:scale-x-100"
-                  }`}
-                />
               </a>
             );
           })}
         </nav>
 
         <div className="hidden lg:flex gap-3 items-center">
-          <a href={`tel:${CONTACT.phoneTel}`} className="text-[15px] text-ink-soft hover:text-primary-text transition-colors">
+          <a href={`tel:${CONTACT.phoneTel}`} className="text-[16px] text-ink hover:text-vert transition-colors">
             {CONTACT.phone}
           </a>
           {rightItems.map((item) => (
@@ -78,7 +71,6 @@ export function Nav() {
               key={item.id}
               href={item.url}
               className="btn btn-primary"
-              style={{ padding: "10px 20px" }}
             >
               {item.title}
             </a>
@@ -98,18 +90,18 @@ export function Nav() {
       </div>
 
       {open && (
-        <div className="lg:hidden flex flex-col bg-surface border-t border-line-soft px-4 sm:px-6 py-4">
+        <div className="lg:hidden flex flex-col bg-bg border-t border-line px-4 sm:px-6 py-4">
           {NAV_ITEMS.map((item) => (
             <a
               key={item.id}
               href={item.url}
-              className="py-3 text-ink hover:text-primary-text transition-colors border-b border-line-soft last:border-0"
+              className={`py-3 text-ink hover:text-vert transition-colors border-b border-line last:border-0 ${isActive(item.url) ? "font-bold" : ""}`}
               onClick={() => setOpen(false)}
             >
               {item.title}
             </a>
           ))}
-          <a href={`tel:${CONTACT.phoneTel}`} className="py-3 text-ink-soft">
+          <a href={`tel:${CONTACT.phoneTel}`} className="py-3 text-ink">
             {CONTACT.phone}
           </a>
         </div>

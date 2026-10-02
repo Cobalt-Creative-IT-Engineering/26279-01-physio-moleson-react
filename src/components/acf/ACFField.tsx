@@ -28,7 +28,7 @@ export function ACFField({ value }: { value: unknown }) {
 
   if (isACFPost(value)) {
     return (
-      <a href={value.permalink} className="text-accent underline underline-offset-2">
+      <a href={value.permalink} className="link">
         {value.post_title}
       </a>
     );
@@ -40,7 +40,7 @@ export function ACFField({ value }: { value: unknown }) {
       return (
         <ul className="flex flex-wrap gap-2">
           {value.map((item, i) => (
-            <li key={i} className="px-2 py-0.5 bg-bg-alt rounded text-sm">
+            <li key={i} className="chip">
               {String(item)}
             </li>
           ))}
@@ -68,7 +68,7 @@ export function ACFField({ value }: { value: unknown }) {
 
   if (typeof value === "string" && value.startsWith("http")) {
     return (
-      <a href={value} target="_blank" rel="noreferrer" className="text-accent break-all">
+      <a href={value} target="_blank" rel="noreferrer" className="link break-all">
         {value}
       </a>
     );
@@ -77,9 +77,7 @@ export function ACFField({ value }: { value: unknown }) {
   if (typeof value === "boolean") {
     return (
       <span
-        className={`px-2 py-0.5 rounded text-xs font-medium ${
-          value ? "bg-sauge/25 text-ink" : "bg-primary-soft/50 text-primary-text"
-        }`}
+        className={`chip ${value ? "bg-jaune" : ""}`}
       >
         {value ? "Oui" : "Non"}
       </span>
@@ -91,7 +89,7 @@ export function ACFField({ value }: { value: unknown }) {
     return <ACFGroup fields={value as Record<string, unknown>} showLabels />;
   }
 
-  return <span className="text-text-secondary">{String(value)}</span>;
+  return <span className="text-ink">{String(value)}</span>;
 }
 
 /**
@@ -115,7 +113,7 @@ export function ACFGroup({
       {entries.map(([key, value]) => (
         <div key={key} className="acf-field">
           {showLabels && (
-            <p className="text-xs font-semibold uppercase tracking-widest text-text-muted mb-1">
+            <p className="label text-[13px] text-ink mb-1">
               {key.replace(/_/g, " ")}
             </p>
           )}

@@ -15,14 +15,14 @@ export function ComingSoonPage() {
   return (
     <main className="min-h-screen flex items-center justify-center px-4 sm:px-12">
       <div className="max-w-xl text-center flex flex-col items-center gap-6">
-        <Logo size={64} />
+        <Logo full size={160} />
         <span className="eyebrow">{SITE_CONFIG.tagline}</span>
-        <h1 className="font-display text-5xl md:text-6xl leading-none">
-          {SITE_CONFIG.name}
-        </h1>
-        <p className="text-lg text-ink-soft">Site en préparation.</p>
+        {/* Le nom figure déjà dans le logo complet : pas de réécriture en
+            Rubik (interdit par la charte), titre réservé aux lecteurs d'écran. */}
+        <h1 className="sr-only">{SITE_CONFIG.name}</h1>
+        <p className="text-lg text-ink">Site en préparation.</p>
         {dateLabel && (
-          <p className="text-ink-mute">
+          <p className="text-ink">
             Ouverture prévue le <strong className="text-ink">{dateLabel}</strong>.
           </p>
         )}
@@ -30,7 +30,7 @@ export function ComingSoonPage() {
           <ul className="flex gap-6 mt-2">
             {socials.map(([name, url]) => (
               <li key={name}>
-                <a href={url} target="_blank" rel="noreferrer" className="text-ink-soft hover:text-primary-text capitalize">
+                <a href={url} target="_blank" rel="noreferrer" className="link capitalize">
                   {name}
                 </a>
               </li>

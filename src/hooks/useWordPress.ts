@@ -25,6 +25,7 @@ import type {
   AccueilOptions,
   CTA,
   SensoproOptions,
+  FaqOptions,
   CabinetOptions,
   Service,
   Therapeute,
@@ -35,7 +36,7 @@ import type {
 
 // Re-export des types utiles
 export type { WPPost, WPPage, ACFOptions, QueryParams, WPTaxonomyTerm, FetchState, UsePostsOptions };
-export type { GlobalOptions, AccueilOptions, SensoproOptions, CabinetOptions, Service, Therapeute };
+export type { GlobalOptions, AccueilOptions, SensoproOptions, FaqOptions, CabinetOptions, Service, Therapeute };
 
 // ─── Cache en mémoire ─────────────────────────────────────────────────────
 
@@ -482,6 +483,44 @@ function fromGQLSensopro(d: GQLSensoproResponse | null): SensoproOptions | null 
   };
 }
 
+// ─── FAQ via WPGraphQL (ACF Options Page `faqs`) ──────────────────────────
+
+// Champs suffixés `*Faq` côté WP (anti-collision entre Options pages).
+const GQL_FAQ = `
+  query Faq {
+    faqs {
+      faq {
+        titreFaq
+        introFaq
+        questionsFaq { question reponse }
+      }
+    }
+  }
+`;
+
+type GQLFaqResponse = {
+  faqs: {
+    faq: {
+      titreFaq: string | null;
+      introFaq: string | null;
+      questionsFaq: { question: string | null; reponse: string | null }[] | null;
+    } | null;
+  } | null;
+};
+
+function fromGQLFaq(d: GQLFaqResponse | null): FaqOptions | null {
+  const f = d?.faqs?.faq;
+  if (!f) return null;
+  return {
+    title: f.titreFaq ?? "",
+    intro: f.introFaq ?? "",
+    // Une ligne de répéteur sans question n'a rien à afficher.
+    items: (f.questionsFaq ?? [])
+      .filter((q) => q.question)
+      .map((q) => ({ question: q.question ?? "", answer: q.reponse ?? "" })),
+  };
+}
+
 // ─── Cabinet via WPGraphQL (ACF Options Page `cabinets`) ──────────────────
 // Champs `titreCabinet`/`descriptionCabinet` suffixés (anti-collision).
 // Asymétrie conservée : cabinet66 → `gallerie`, cabinet68 → `images`.
@@ -571,6 +610,15 @@ export function useSensoproOptions() {
     { cacheKey: "gql-sensopro", staleMs: 120_000, persist: true }
   );
   const data = useMemo(() => fromGQLSensopro(state.data), [state.data]);
+  return { ...state, data };
+}
+
+export function useFaqOptions() {
+  const state = useFetch<GQLFaqResponse>(
+    () => graphqlFetch<GQLFaqResponse>(GQL_FAQ),
+    { cacheKey: "gql-faq", staleMs: 120_000, persist: true }
+  );
+  const data = useMemo(() => fromGQLFaq(state.data), [state.data]);
   return { ...state, data };
 }
 

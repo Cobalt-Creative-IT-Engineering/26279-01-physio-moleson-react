@@ -17,7 +17,7 @@ export type IconName = keyof typeof SRC;
 /**
  * Icône monochrome basée sur les SVG de src/assets/icon.
  * Rendue via masque CSS → hérite de la couleur du texte (`currentColor`),
- * donc colorable avec les classes texte Tailwind (text-ink-soft, etc.).
+ * donc colorable avec les classes texte Tailwind (text-ink, etc.).
  */
 export function Icon({
   name,

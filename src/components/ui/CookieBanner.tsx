@@ -56,13 +56,13 @@ export function CookieBanner() {
       style={{ animation: "slideUp 350ms cubic-bezier(0.2,0,0,1)" }}
     >
       <div
-        className="mx-auto max-w-3xl pointer-events-auto bg-surface border border-line rounded-card shadow-lg p-6 md:p-7 flex flex-col md:flex-row md:items-center gap-5"
+        className="mx-auto max-w-3xl pointer-events-auto card p-6 md:p-7 flex flex-col md:flex-row md:items-center gap-5"
       >
         <div className="flex-1">
           <div className="font-display text-lg text-ink mb-1">
             Cookies & confidentialité
           </div>
-          <p className="text-sm text-ink-soft leading-relaxed">
+          <p className="text-[16px] text-ink">
             Nous utilisons des cookies pour mesurer l'audience du site et
             améliorer votre expérience. Aucun cookie publicitaire n'est déposé.
           </p>
@@ -72,7 +72,7 @@ export function CookieBanner() {
           <button
             type="button"
             className="btn btn-ghost"
-            style={{ padding: "10px 18px", fontSize: 13 }}
+            style={{ padding: "10px 18px" }}
             onClick={() => choose("declined")}
           >
             Refuser
@@ -80,7 +80,7 @@ export function CookieBanner() {
           <button
             type="button"
             className="btn btn-primary"
-            style={{ padding: "10px 20px", fontSize: 13 }}
+            style={{ padding: "10px 20px" }}
             onClick={() => choose("accepted")}
           >
             Accepter

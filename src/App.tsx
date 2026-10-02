@@ -7,13 +7,14 @@ import { ServicesPage }  from "./pages/ServicesPage";
 import { SensoproPage }  from "./pages/SensoproPage";
 import { EquipePage }    from "./pages/EquipePage";
 import { CabinetPage }   from "./pages/CabinetPage";
+import { FaqPage }       from "./pages/FaqPage";
 import { ComingSoonPage } from "./pages/ComingSoonPage";
 import { NotFoundPage }  from "./pages/NotFoundPage";
 import { ACTIVE_THEME, FORCE_COMING_SOON, COMING_SOON_UNTIL } from "./config/site";
 import { THEMES }      from "./themes/index";
 import { Decorations } from "./themes/Decorations";
-import { FloatingBlobs, RopeClimber } from "./components/animation";
 import { initMeta, setPageMeta } from "./lib/meta";
+import { initRebond } from "./lib/rebond";
 
 // ─── Application du thème ─────────────────────────────────────────────────────
 const _theme = THEMES[ACTIVE_THEME];
@@ -24,6 +25,9 @@ if (_theme.fontsUrl) {
   link.href = _theme.fontsUrl;
   document.head.appendChild(link);
 }
+
+// ─── Rebond des boutons (.btn) au survol et au clic ───────────────────────────
+initRebond();
 
 // ─── Intercepteur de liens SPA (History API) ──────────────────────────────────
 // Intercepte les clics sur <a href="/..."> internes pour éviter le rechargement.
@@ -45,6 +49,7 @@ const PAGE_LABELS: Record<string, string> = {
   "/sensopro": "Sensopro",
   "/equipe":   "Thérapeutes",
   "/cabinet":  "Cabinet",
+  "/faq":      "Questions fréquentes",
 };
 
 function getPageLabel(route: string): string | undefined {
@@ -102,23 +107,6 @@ export default function App() {
 
   return (
     <div className="app">
-      {/* Décor de fond commun à toutes les pages.
-          `-z-10` : au-dessus du fond de page, mais derrière le fond des blocs
-          opaques — le pied de page en encre les masque donc de lui-même. */}
-      <div aria-hidden className="fixed inset-0 -z-10 pointer-events-none">
-        <FloatingBlobs />
-      </div>
-
-      {/* Grimpeur : bande fixe sur le bord droit, pilotée par le défilement.
-          Réservée aux très grands écrans, où la marge à droite du conteneur
-          (1280 px centré) est assez large pour ne rien recouvrir. */}
-      <div
-        aria-hidden
-        className="hidden 2xl:block fixed right-0 top-[88px] w-[120px] h-[calc(100vh-88px)] pointer-events-none z-[1]"
-      >
-        <RopeClimber />
-      </div>
-
       <Decorations />
       <Nav />
       <main>
@@ -144,6 +132,7 @@ function resolvePage(route: string) {
   if (route === "/sensopro")          return <SensoproPage />;
   if (route === "/equipe")            return <EquipePage />;
   if (route === "/cabinet")           return <CabinetPage />;
+  if (route === "/faq")               return <FaqPage />;
   if (route === "/contact")           return <HomePage />; // redirigé vers /#contact
   return null;
 }

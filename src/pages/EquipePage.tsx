@@ -29,27 +29,14 @@ function TherapeuteCard({ t, onOpen }: { t: Therapeute; onOpen: () => void }) {
         )}
 
         {/* Pill "Voir le portrait" */}
-        <div className="absolute top-3 right-3 z-[2] inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-btn bg-surface text-primary-text label text-[10.5px] opacity-0 -translate-y-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M15 3h6v6M14 10l7-7M9 21H3v-6M10 14l-7 7" /></svg>
-          Voir le portrait
-        </div>
-
-        {/* Overlay au survol */}
-        <div
-          className="absolute inset-0 p-5 flex flex-col justify-end opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-          style={{
-            background:
-              "linear-gradient(to top, rgb(35 32 30 / 0.95) 0%, rgb(35 32 30 / 0.6) 60%, transparent 100%)",
-            color: "var(--color-on-dark)",
-          }}
-        >
+        {/* Au survol : bandeau plein vert Moléson en pied de photo. La charte
+            n'admet de texte sur une photo que dans ce bandeau — pas de voile
+            en dégradé. */}
+        <div className="on-dark absolute inset-x-0 bottom-0 p-4 flex flex-col translate-y-full transition-transform duration-300 ease-out group-hover:translate-y-0 motion-reduce:transition-none">
           {t.bioShort && (
-            <p className="text-[12.5px] leading-snug mb-3 line-clamp-5">{t.bioShort}</p>
+            <p className="text-[14px] leading-snug mb-3 line-clamp-4">{t.bioShort}</p>
           )}
-          {t.extras && (
-            <div className="text-[10.5px] opacity-70 tracking-[0.06em] mb-3.5">{t.extras}</div>
-          )}
-          <span className="self-start inline-flex items-center gap-1.5 px-3.5 py-2 rounded-btn bg-surface text-primary-text text-[15px]">
+          <span className="self-start btn btn-primary" style={{ padding: "8px 14px", fontSize: 14 }}>
             Voir le portrait
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
           </span>
@@ -58,17 +45,14 @@ function TherapeuteCard({ t, onOpen }: { t: Therapeute; onOpen: () => void }) {
 
       <div>
         <div className="font-display text-xl text-ink">{t.name}</div>
-        <div className="text-[12.5px] text-ink-mute mt-1 tracking-[0.02em]">
+        <div className="caption mt-1">
           {t.role}
           {t.since ? ` · depuis ${t.since}` : ""}
         </div>
         {t.certifs.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-3">
             {t.certifs.slice(0, 4).map((c) => (
-              <span
-                key={c}
-                className="text-[11px] px-2.5 py-1 rounded-[3px] bg-primary-bg text-primary-text tracking-[0.03em] border border-primary-soft"
-              >
+              <span key={c} className="chip" style={{ fontSize: 13, padding: "2px 8px" }}>
                 {c}
               </span>
             ))}
@@ -100,11 +84,11 @@ function TherapeuteModal({ t, onClose }: { t: Therapeute; onClose: () => void })
       role="dialog"
       aria-modal="true"
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10"
-      style={{ background: "var(--scrim)", backdropFilter: "blur(6px)", animation: "fadeIn 250ms ease-out" }}
+      style={{ background: "var(--scrim)", animation: "fadeIn 250ms ease-out" }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative bg-surface rounded-[6px] w-full max-w-[980px] max-h-[90vh] grid grid-cols-1 md:grid-cols-[1fr_1.2fr] overflow-hidden shadow-lg"
+        className="relative bg-bg rounded-card w-full max-w-[980px] max-h-[90vh] grid grid-cols-1 md:grid-cols-[1fr_1.2fr] overflow-hidden"
         style={{ animation: "slideUp 350ms cubic-bezier(0.2,0,0,1)" }}
       >
         {/* Portrait */}
@@ -127,35 +111,32 @@ function TherapeuteModal({ t, onClose }: { t: Therapeute; onClose: () => void })
             <button
               onClick={onClose}
               aria-label="Fermer"
-              className="w-9 h-9 rounded-full border border-line inline-flex items-center justify-center text-ink-soft hover:border-primary hover:text-primary-text transition-colors shrink-0"
+              className="w-11 h-11 rounded-full border-[1.5px] border-ink inline-flex items-center justify-center text-ink hover:bg-sable transition-colors shrink-0"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 6L6 18M6 6l12 12" /></svg>
             </button>
           </div>
 
-          <h2 className="font-display text-4xl leading-none mt-1 mb-2 text-ink">{t.name}</h2>
-          <div className="text-sm text-ink-mute mb-7">{t.role}</div>
+          <h2 className="font-display text-4xl leading-[1.05] tracking-[-0.02em] mt-1 mb-2 text-ink">{t.name}</h2>
+          <div className="caption mb-7">{t.role}</div>
 
           {t.bio && (
             <div className="mb-7">
-              <div className="label text-[11px] text-ink-mute mb-3">
+              <div className="label text-[13px] text-ink mb-3">
                 Approche & expérience
               </div>
-              <WPContent html={t.bio} className="text-[15px] leading-relaxed" />
+              <WPContent html={t.bio} className="text-[16px]" />
             </div>
           )}
 
           {extrasTags.length > 0 && (
             <div className="mb-8">
-              <div className="label text-[11px] text-ink-mute mb-3">
+              <div className="label text-[13px] text-ink mb-3">
                 Formations & spécialités
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {extrasTags.map((x) => (
-                  <span
-                    key={x}
-                    className="px-3 py-1.5 text-[13px] rounded-btn bg-primary-bg text-primary-text border border-primary-soft"
-                  >
+                  <span key={x} className="chip">
                     {x}
                   </span>
                 ))}
@@ -228,7 +209,7 @@ export function EquipePage() {
         )}
 
         {status === "success" && therapeutes.length === 0 && (
-          <p className="text-ink-soft">Aucun thérapeute publié pour le moment.</p>
+          <p className="text-ink">Aucun thérapeute publié pour le moment.</p>
         )}
 
         {therapeutes.length > 0 && (

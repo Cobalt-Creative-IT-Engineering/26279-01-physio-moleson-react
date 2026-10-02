@@ -164,6 +164,15 @@ export interface SensoproOptions {
   firstSessionText:  string; // HTML wysiwyg
 }
 
+/** Options Page "FAQ". */
+export type FaqItem = { question: string; answer: string /* HTML wysiwyg */ };
+
+export interface FaqOptions {
+  title: string;
+  intro: string; // HTML wysiwyg
+  items: FaqItem[];
+}
+
 /** Options Page "Cabinet" — galeries des deux cabinets. */
 /** Une journée du planning hebdomadaire d'un cabinet. */
 export type ScheduleDay = { day: string; names: string[] };
