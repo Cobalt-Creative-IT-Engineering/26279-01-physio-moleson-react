@@ -41,32 +41,45 @@ export const CONTACT = {
   ],
   // Horaires du secrétariat téléphonique. `highlight` = ligne mise en avant.
   secretariat: [
-    { days: "Mercredi non-stop",     hours: "09:00-12:00, 13:00-17:00", highlight: true  },
-    { days: "Lun, Mar, Jeu, Ven",    hours: "Sur rappel, 07:30-18:00",      highlight: false },
+    { days: "Mercredi non-stop",  hours: "09:00–12:00, 13:00–17:00", highlight: true  },
+    { days: "Lun, Mar, Jeu, Ven", hours: "Sur rappel, 07:30–18:00",  highlight: false },
   ],
 } as const;
 
+// ─── Prise de rendez-vous ─────────────────────────────────────────────────
+// Agenda Tbooking du cabinet, ouvert dans un nouvel onglet. Une fiche
+// thérapeute peut fournir son propre lien (champ ACF `urlTbooking`).
+
+export const TBOOKING_URL = "https://www.tbooking.ch/fr/physio-du-moleson/2854-3711";
+
+// ─── Vidéo du héros ───────────────────────────────────────────────────────
+// PROVISOIRE : paysage alpin Mixkit repris de la maquette, à remplacer par la
+// vidéo du cabinet (fichier dans public/ ou URL). Sources essayées dans l'ordre.
+
+export const HERO_VIDEO_SOURCES = [
+  "https://assets.mixkit.co/videos/19434/19434-720.mp4",
+  "https://assets.mixkit.co/videos/preview/mixkit-time-lapse-of-a-meadow-with-mountains-19434-large.mp4",
+] as const;
+
 // ─── Réseaux sociaux ──────────────────────────────────────────────────────
-// Vide = lien ignoré par Footer / ContactPage.
+// Vide = lien ignoré. Instagram / Facebook : liens à renseigner.
 
 export const SOCIAL_LINKS = {
   instagram: "",
   facebook:  "",
-  linkedin:  "",
-  youtube:   "",
+  whatsapp:  "https://wa.me/41263039343",
 } as const;
 
 // ─── Navigation principale ────────────────────────────────────────────────
-// `cta: true` → s'affiche à droite en style bouton.
+// Le bouton « Prendre rendez-vous » (TBOOKING_URL) s'ajoute à droite.
 
 export const NAV_ITEMS = [
-  { id: 1, title: "Accueil",     url: "/",          cta: false },
-  { id: 2, title: "Nos services", url: "/services", cta: false },
-  { id: 3, title: "Sensopro",    url: "/sensopro",  cta: false },
-  { id: 4, title: "Thérapeutes", url: "/equipe",    cta: false },
-  { id: 5, title: "Cabinet",     url: "/cabinet",   cta: false },
-  { id: 7, title: "FAQ",         url: "/faq",       cta: false },
-  { id: 6, title: "Prendre rendez-vous",     url: "/#contact", cta: true  },
+  { id: 1, title: "Accueil",     url: "/" },
+  { id: 2, title: "Le cabinet",  url: "/cabinet" },
+  { id: 3, title: "Prestations", url: "/prestations" },
+  { id: 4, title: "Équipe",      url: "/equipe" },
+  { id: 5, title: "FAQ",         url: "/faq" },
+  { id: 6, title: "Contact",     url: "/contact" },
 ] as const;
 
 export type NavItem = (typeof NAV_ITEMS)[number];

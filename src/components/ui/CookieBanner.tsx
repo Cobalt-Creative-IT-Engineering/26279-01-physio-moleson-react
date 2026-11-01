@@ -71,7 +71,7 @@ export function CookieBanner() {
         <div className="flex gap-2.5 shrink-0">
           <button
             type="button"
-            className="btn btn-ghost"
+            className="btn btn-contour"
             style={{ padding: "10px 18px" }}
             onClick={() => choose("declined")}
           >
@@ -79,7 +79,7 @@ export function CookieBanner() {
           </button>
           <button
             type="button"
-            className="btn btn-primary"
+            className="btn btn-jaune"
             style={{ padding: "10px 20px" }}
             onClick={() => choose("accepted")}
           >

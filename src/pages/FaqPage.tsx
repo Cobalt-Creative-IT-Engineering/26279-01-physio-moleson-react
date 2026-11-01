@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useFaqOptions } from "../hooks/useWordPress";
+import { PageBanner } from "../components/layout";
 import { Skeleton, WPContent } from "../components/ui";
-import { CONTACT } from "../config/site";
-import { FAQ_EXEMPLE } from "../config/faq-exemple";
+import { FAQ_THEMES, type FaqTheme } from "../config/contenu";
 import { setPageMeta } from "../lib/meta";
 
 export function FaqPage() {
@@ -12,81 +12,77 @@ export function FaqPage() {
     setPageMeta({
       title: "Questions fréquentes",
       description:
-        "Les réponses aux questions fréquentes sur le Cabinet physio du Moléson à Bulle : rendez-vous, prise en charge, déroulement des séances.",
+        "Les réponses aux questions fréquentes sur Physio du Moléson à Bulle : ordonnance, remboursement, rendez-vous, Sensopro, séances à domicile.",
     });
   }, []);
 
   // Tant que la page d'options n'existe pas côté WordPress, la requête échoue
-  // (champ `faqs` inconnu) : on affiche alors les questions d'exemple plutôt
-  // qu'une erreur. Idem si la page existe mais ne contient aucune question.
+  // (champ `faqs` inconnu) : on affiche alors les thèmes de la maquette. Les
+  // questions WordPress, sans thème, forment un seul groupe.
   const loading = status === "loading" && !data;
-  const items = data?.items.length ? data.items : loading ? [] : FAQ_EXEMPLE;
+  const themes: FaqTheme[] = data?.items.length
+    ? [{ title: data.title || "Questions générales", items: data.items }]
+    : loading ? [] : FAQ_THEMES;
 
   return (
-    <section className="section-y">
-      <div className="container-x">
-        <div className="section-header">
-          <span className="eyebrow">Questions fréquentes</span>
-          <h1>{data?.title || "Vos questions, nos réponses."}</h1>
-          {data?.intro && (
-            <WPContent html={data.intro} className="text-lg max-w-[560px]" />
+    <>
+      <PageBanner title="Questions fréquentes">
+        {themes.length > 1 && (
+          <div className="flex flex-wrap justify-center gap-2.5 mt-2">
+            {themes.map((t, i) => (
+              <a key={t.title} href={`/faq#faq-${i}`} className="btn btn-contour">
+                {t.title}
+              </a>
+            ))}
+          </div>
+        )}
+      </PageBanner>
+
+      <div className="container-x pt-[clamp(40px,5vw,72px)]">
+        <div className="max-w-[960px] mx-auto flex flex-col gap-[clamp(48px,6vw,80px)]">
+          {loading && (
+            <div className="flex flex-col gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-16" />
+              ))}
+            </div>
           )}
-        </div>
 
-        <div className="grid lg:grid-cols-[1.6fr_1fr] gap-10 lg:gap-16 items-start">
-          <div>
-            {loading && (
-              <div className="flex flex-col gap-4">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-16" />
-                ))}
-              </div>
-            )}
-
-            {/* Accordéon natif <details>/<summary> : ouverture au clavier et
-                annonce de l'état par les lecteurs d'écran sans JavaScript. */}
-            {items.length > 0 && (
-              <div className="flex flex-col border-t border-line">
-                {items.map((q, i) => (
-                  <details key={i} className="group border-b border-line">
-                    <summary className="flex items-center justify-between gap-6 py-6 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-                      <h2 className="font-display text-[20px] md:text-[22px]">{q.question}</h2>
-                      {/* Pastille jaune quand la réponse est ouverte : l'« état
-                          actif » de la charte. */}
+          {themes.map((t, ti) => (
+            <section
+              key={t.title}
+              id={`faq-${ti}`}
+              className="scroll-mt-4 grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] gap-x-[clamp(24px,4vw,56px)] gap-y-4 items-start"
+            >
+              <h2 className="text-[clamp(24px,2.4vw,30px)] leading-[1.15]">{t.title}</h2>
+              {/* Accordéon natif <details>/<summary> : ouverture au clavier et
+                  annonce de l'état par les lecteurs d'écran sans JavaScript. */}
+              <div className="sm:col-span-2 min-w-0 flex flex-col border-t border-line">
+                {t.items.map((q) => (
+                  <details key={q.question} className="group border-b border-line">
+                    <summary className="flex justify-between items-center gap-5 py-5 cursor-pointer list-none [&::-webkit-details-marker]:hidden text-[17px] font-semibold">
+                      <span>{q.question}</span>
                       <span
                         aria-hidden
-                        className="flex items-center justify-center w-8 h-8 shrink-0 rounded-full border-[1.5px] border-ink text-ink transition-colors group-open:bg-jaune group-open:border-ink group-open:text-ink"
+                        className="flex-none w-8 h-8 rounded-full bg-sable flex items-center justify-center font-display text-[18px]"
                       >
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M5 12h14" />
-                          <path d="M12 5v14" className="group-open:hidden" />
-                        </svg>
+                        <span className="group-open:hidden">+</span>
+                        <span className="hidden group-open:inline">–</span>
                       </span>
                     </summary>
-                    <WPContent html={q.answer} className="text-[16px] pb-7 pr-14 max-w-[680px]" />
+                    <WPContent html={q.answer} className="pr-[52px] pb-[22px] text-[16px]" />
                   </details>
                 ))}
               </div>
-            )}
-          </div>
+            </section>
+          ))}
 
-          {/* Encadré sable : pour toute question restée sans réponse. */}
-          <aside className="card p-7 lg:sticky lg:top-28">
-            <div className="eyebrow mb-3">Une autre question ?</div>
-            <p className="text-[16px] mb-5">
-              Notre secrétariat vous répond par téléphone ou par écrit.
-            </p>
-            <div className="flex flex-col items-start gap-2.5">
-              <a href={`tel:${CONTACT.phoneTel}`} className="btn btn-primary">
-                {CONTACT.phone}
-              </a>
-              <a href="/#contact" className="btn btn-ghost hover:bg-bg">
-                Écrivez-nous
-              </a>
-            </div>
-          </aside>
+          <div className="bg-sable rounded-[20px] p-[clamp(24px,3.4vw,40px)] flex flex-wrap items-center justify-between gap-5">
+            <h2 className="text-[clamp(22px,2.2vw,28px)]">Vous ne trouvez pas votre réponse ?</h2>
+            <a href="/contact" className="btn btn-vert">Nous contacter →</a>
+          </div>
         </div>
       </div>
-    </section>
+    </>
   );
 }

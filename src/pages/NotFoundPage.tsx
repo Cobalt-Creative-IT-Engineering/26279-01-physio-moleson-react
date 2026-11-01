@@ -1,18 +1,17 @@
+import { PageBanner, BannerText } from "../components/layout";
+
 export function NotFoundPage() {
   return (
-    <section className="section-y">
-      <div className="container-x">
-        <div className="section-header items-center text-center mx-auto">
-          <span className="eyebrow">Erreur 404</span>
-          <h1>Cette page n'existe<br />pas — ou plus.</h1>
-          <p>
-            Le lien que vous avez suivi semble incorrect. Retour à
-            l'<a href="/" className="link">accueil</a>{" "}
-            ou consultez nos{" "}
-            <a href="/services" className="link">services</a>.
-          </p>
+    <>
+      <PageBanner title="Page introuvable">
+        <BannerText>Le lien que vous avez suivi semble incorrect, ou la page n'existe plus.</BannerText>
+      </PageBanner>
+      <section className="section-y">
+        <div className="container-x flex flex-wrap justify-center gap-3">
+          <a href="/" className="btn btn-vert">Retour à l'accueil</a>
+          <a href="/prestations" className="btn btn-contour">Nos prestations</a>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }

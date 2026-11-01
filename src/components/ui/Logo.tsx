@@ -1,38 +1,26 @@
-import logoDark from "../../assets/logo/logo-dark.png";
-import logoLight from "../../assets/logo/logo-white.png";
-import logoFull from "../../assets/logo/logo-moleson-complet.avif";
+import logoSrc from "../../assets/logo/logo-moleson-complet.avif";
 
 type Props = {
   size?: number;
   className?: string;
-  /** « light » : version en réserve claire, pour les aplats vert Moléson. */
+  /** « light » : version blanche, pour les aplats vert Moléson. */
   variant?: "dark" | "light";
-  /**
-   * Logo complet (symbole + nom, bloc indissociable) plutôt que le symbole
-   * seul. La charte impose 60 px de large au minimum ; en dessous, symbole
-   * seul. Fichier raster fourni avec la charte — le SVG reste à obtenir du
-   * client.
-   */
-  full?: boolean;
 };
 
-export function Logo({ size = 36, className, variant = "dark", full = false }: Props) {
-  const light = variant === "light";
-  const src = full ? logoFull : light ? logoLight : logoDark;
+/**
+ * Logo complet (symbole + nom, bloc indissociable). Fichier raster fourni
+ * avec la charte, en noir uniquement : la version blanche est obtenue par
+ * inversion, fondue dans l'aplat (classe .logo-inverse). Le SVG reste à
+ * obtenir du client.
+ */
+export function Logo({ size = 140, className = "", variant = "dark" }: Props) {
   return (
     <img
-      src={src}
+      src={logoSrc}
       alt="Physio du Moléson"
       width={size}
       height={size}
-      className={className}
-      style={{
-        display: "block",
-        objectFit: "contain",
-        // Le logo complet n'existe qu'en noir : la réserve claire est obtenue
-        // par inversion, le tracé restant d'une seule couleur.
-        filter: full && light ? "invert(1)" : undefined,
-      }}
+      className={`block object-contain ${variant === "light" ? "logo-inverse" : ""} ${className}`}
     />
   );
 }

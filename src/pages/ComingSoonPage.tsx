@@ -15,7 +15,7 @@ export function ComingSoonPage() {
   return (
     <main className="min-h-screen flex items-center justify-center px-4 sm:px-12">
       <div className="max-w-xl text-center flex flex-col items-center gap-6">
-        <Logo full size={160} />
+        <Logo size={160} />
         <span className="eyebrow">{SITE_CONFIG.tagline}</span>
         {/* Le nom figure déjà dans le logo complet : pas de réécriture en
             Rubik (interdit par la charte), titre réservé aux lecteurs d'écran. */}

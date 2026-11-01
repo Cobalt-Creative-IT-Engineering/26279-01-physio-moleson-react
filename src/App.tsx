@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { useRoute, navigate } from "./hooks/useRoute";
-import { Nav, Footer } from "./components/layout";
+import { Footer } from "./components/layout";
 import { CookieBanner } from "./components/ui";
 import { HomePage }      from "./pages/HomePage";
-import { ServicesPage }  from "./pages/ServicesPage";
-import { SensoproPage }  from "./pages/SensoproPage";
+import { PrestationsPage } from "./pages/PrestationsPage";
 import { EquipePage }    from "./pages/EquipePage";
 import { CabinetPage }   from "./pages/CabinetPage";
 import { FaqPage }       from "./pages/FaqPage";
+import { ContactPage }   from "./pages/ContactPage";
 import { ComingSoonPage } from "./pages/ComingSoonPage";
 import { NotFoundPage }  from "./pages/NotFoundPage";
 import { ACTIVE_THEME, FORCE_COMING_SOON, COMING_SOON_UNTIL } from "./config/site";
@@ -45,11 +45,21 @@ document.addEventListener("click", (e) => {
 });
 
 const PAGE_LABELS: Record<string, string> = {
-  "/services": "Nos services",
-  "/sensopro": "Sensopro",
-  "/equipe":   "Thérapeutes",
-  "/cabinet":  "Cabinet",
-  "/faq":      "Questions fréquentes",
+  "/cabinet":     "Le cabinet",
+  "/prestations": "Prestations",
+  "/equipe":      "Équipe",
+  "/faq":         "Questions fréquentes",
+  "/contact":     "Contact",
+};
+
+/**
+ * Anciennes URL, fusionnées dans la page Prestations par la maquette.
+ * Redirigées côté client (remplacement dans l'historique) ; elles ne
+ * figurent plus dans le sitemap.
+ */
+const REDIRECTS: Record<string, string> = {
+  "/services": "/prestations",
+  "/sensopro": "/prestations#sensopro",
 };
 
 function getPageLabel(route: string): string | undefined {
@@ -87,9 +97,9 @@ export default function App() {
     });
   }, [route]);
 
-  // L'ancienne page /contact est désormais une section de l'accueil.
   useEffect(() => {
-    if (route === "/contact") navigate("/#contact");
+    const to = REDIRECTS[route];
+    if (to) navigate(to, { replace: true });
   }, [route]);
 
   // Scroll : ancre si présente, sinon remonte en haut.
@@ -108,8 +118,7 @@ export default function App() {
   return (
     <div className="app">
       <Decorations />
-      <Nav />
-      <main>
+      <main className="flex-1">
         <PageView route={route} />
       </main>
       <Footer />
@@ -128,12 +137,12 @@ export default function App() {
  */
 function resolvePage(route: string) {
   if (route === "/" || route === "") return <HomePage />;
-  if (route === "/services")          return <ServicesPage />;
-  if (route === "/sensopro")          return <SensoproPage />;
-  if (route === "/equipe")            return <EquipePage />;
   if (route === "/cabinet")           return <CabinetPage />;
+  if (route === "/prestations")       return <PrestationsPage />;
+  if (route === "/equipe")            return <EquipePage />;
   if (route === "/faq")               return <FaqPage />;
-  if (route === "/contact")           return <HomePage />; // redirigé vers /#contact
+  if (route === "/contact")           return <ContactPage />;
+  if (REDIRECTS[route])               return <PrestationsPage />; // redirigé
   return null;
 }
 

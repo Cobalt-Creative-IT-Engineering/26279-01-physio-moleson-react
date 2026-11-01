@@ -3,41 +3,35 @@ export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
-      // Charte « Alpage » (doc/charte/), resserrée à trois couleurs de base
-      // (vert, sable, anthracite) + jaune pour les boutons et les points.
-      // Les valeurs vivent dans src/index.css.
+      // Palette de la maquette (doc/maquette/). Les valeurs vivent dans
+      // src/index.css.
       colors: {
-        bg:        "var(--color-bg)",
-        "bg-alt":  "var(--color-bg-alt)",
-        surface:   "var(--color-surface)",
-        ink:       "var(--color-ink)",
-        // Petit texte d'accent sur fond clair, aplats forts.
-        vert:      "var(--color-vert)",
-        // Bandeau de tête des cards uniquement (décoratif).
-        olive:     "var(--color-olive)",
-        sable:     "var(--color-sable)",
-        // Boutons, surlignage, état actif — jamais en couleur de texte sur clair.
-        jaune:     "var(--color-jaune)",
-        line:      "var(--color-line)",
-        dark:      "var(--color-dark)",
-        "on-dark": "var(--color-on-dark)",
+        bg:            "var(--color-bg)",
+        surface:       "var(--color-surface)",
+        ink:           "var(--color-ink)",
+        muted:         "var(--color-muted)",
+        vert:          "var(--color-vert)",
+        olive:         "var(--color-olive)",
+        sable:         "var(--color-sable)",
+        jaune:         "var(--color-jaune)",
+        line:          "var(--color-line)",
+        field:         "var(--color-field)",
+        dark:          "var(--color-dark)",
+        "on-dark":     "var(--color-on-dark)",
+        "on-dark-soft": "var(--color-on-dark-soft)",
       },
-      // Pas d'entrée "mono" : la charte ne prévoit aucune monospace, les
-      // surtitres et étiquettes sont en Mulish Bold (classe .label).
       fontFamily: {
         display: ["var(--font-display)", "Verdana", "sans-serif"],
         body:    ["var(--font-body)", "Trebuchet MS", "sans-serif"],
       },
-      // Interlettrage des surtitres : 0,1 em (charte, Typographie).
-      letterSpacing: {
-        eyebrow: "0.1em",
-      },
       borderRadius: {
-        btn:  "var(--radius-btn)",  // pilule
-        card: "var(--radius-card)", // 0 — aplats francs
+        btn:   "var(--radius-btn)",
+        card:  "var(--radius-card)",
+        tile:  "var(--radius-tile)",
+        field: "var(--radius-field)",
       },
       maxWidth: {
-        container: "1280px",
+        container: "1240px",
       },
       transitionTimingFunction: {
         out: "cubic-bezier(0.2, 0, 0, 1)",

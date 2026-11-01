@@ -3,87 +3,65 @@
 @tailwind utilities;
 
 /* ─── Design tokens ───────────────────────────────────────────────────────
-   Charte « Alpage » — doc/charte/ (version finale, octobre 2026).
-   Toute couleur du site passe par ces variables, jamais en dur.
-
-   Les valeurs de marque sont en hexadécimal, exactement celles de la charte :
-   elles doivent rester comparables au document à l'œil nu et identiques à
-   l'impression. La charte interdit dégradés et transparences sur ces couleurs :
-   les aplats sont francs.
+   Maquette haute fidélité — doc/maquette/ (handoff « Site Physio du
+   Moléson »). Toute couleur du site passe par ces variables, jamais en dur.
+   Les transparences (voiles sur photo, dégradés de la vidéo) sont dérivées
+   des mêmes variables via color-mix().
    ──────────────────────────────────────────────────────────────────────── */
 
 :root {
-  /* ── Couleurs de marque ────────────────────────────────────────────────
-     Palette resserrée à la demande du client : TROIS couleurs de base,
-     plus le jaune réservé aux boutons et aux points, et l'olive réservé au
-     bandeau de tête des cards. Le blanc de la charte n'est plus employé.
-     Valeurs exactes de la charte. */
-  --brand-vert:       #364035;  /* aplats forts : héros, bandeaux, pied de page */
-  --brand-sable:      #EADECE;  /* fonds, encadrés                             */
-  --brand-anthracite: #393939;  /* tous les textes                             */
-  --brand-jaune:      #F5E993;  /* UNIQUEMENT boutons et points                */
-  --brand-olive:      #8F8F6D;  /* UNIQUEMENT bandeau de tête des cards        */
+  /* ── Couleurs de marque (valeurs exactes de la maquette) ─────────────── */
+  --brand-vert:        #364035;  /* bannières, pied de page, boutons sombres */
+  --brand-vert-raye:   #3B463A;  /* rayures sous la vidéo du héros          */
+  --brand-anthracite:  #393939;  /* texte principal                         */
+  --brand-blanc:       #FDFDFD;  /* fond de page, texte sur vert            */
+  --brand-sable:       #EADECE;  /* pastilles, formulaire, fonds de carte   */
+  --brand-jaune:       #F5E993;  /* « Prendre rendez-vous », points         */
+  --brand-olive:       #8F8F6D;  /* accents, contours de boutons légers     */
+  --brand-olive-fonce: #7A7A55;  /* tige sous la pointe des bannières       */
 
-  /* ── Surfaces — nuances de sable ───────────────────────────────────────
-     Fond de page en sable éclairci (sable mêlé à parts égales de blanc),
-     encadrés et cartes en sable plein par-dessus. */
-  --color-bg:       #F4EEE6;   /* sable éclairci — fond de page */
-  --color-bg-alt:   #EADECE;   /* sable — sections alternées    */
-  --color-surface:  #EADECE;   /* sable — encadrés, cartes      */
+  /* ── Rôles ─────────────────────────────────────────────────────────── */
+  --color-bg:          var(--brand-blanc);
+  --color-surface:     var(--brand-sable);
+  --color-ink:         var(--brand-anthracite);
+  --color-muted:       #5E5E4A;  /* texte secondaire (6.6:1 sur blanc) */
+  --color-vert:        var(--brand-vert);
+  --color-vert-raye:   var(--brand-vert-raye);
+  --color-sable:       var(--brand-sable);
+  --color-jaune:       var(--brand-jaune);
+  --color-olive:       var(--brand-olive);
+  --color-tige:        var(--brand-olive-fonce);
+  --color-line:        #E2D6C4;  /* bordures, séparateurs (décoratif) */
+  --color-field:       #D9CBB5;  /* bordure des champs                */
 
-  /* ── Texte ─────────────────────────────────────────────────────────────
-     Anthracite pour TOUS les textes, secondaires compris (plus de gris
-     atténué) : 10.0:1 sur le fond de page, 8.7:1 sur le sable. La
-     hiérarchie passe par la taille et la graisse. */
-  --color-ink:      #393939;
+  /* Aplats foncés : texte blanc, texte d'accompagnement en sable. */
+  --color-dark:         var(--brand-vert);
+  --color-on-dark:      var(--brand-blanc);
+  --color-on-dark-soft: var(--brand-sable);
 
-  /* ── Accents ───────────────────────────────────────────────────────────
-     vert  : surtitres, étiquettes, pictogrammes, filets d'accent, état
-             actif d'un intitulé (9.4:1 sur le fond, 8.2:1 sur le sable).
-     jaune : boutons, points, état actif. JAMAIS de texte jaune sur fond
-             clair (1.1:1), seulement en fond derrière de l'anthracite
-             (9.3:1) ou en texte sur vert (8.7:1). Un point jaune sur fond
-             clair est cerclé d'anthracite (classe .point). */
-  /* olive : bandeau de tête des cards, DÉCORATIF. Jamais en fond derrière
-     du texte : aucune couleur de la palette n'y atteint 4.5:1 (anthracite
-     3.4:1, sable 2.5:1). */
-  --color-vert:     #364035;
-  --color-olive:    #8F8F6D;
-  --color-sable:    #EADECE;
-  --color-jaune:    #F5E993;
+  /* Voile de la modale portrait. */
+  --scrim:       color-mix(in srgb, var(--brand-anthracite) 65%, transparent);
+  /* Seule ombre du site : soulèvement des cartes de prestation au survol. */
+  --shadow-card: 0 18px 40px color-mix(in srgb, var(--brand-vert) 14%, transparent);
 
-  /* ── Filets et bordures — sable assombri (sable + 12 % d'anthracite),
-     visible sur les deux nuances de sable. Décoratif uniquement : un
-     contour de contrôle passe en anthracite. */
-  --color-line:     #D5CABB;
-
-  /* ── Aplats foncés (héros, pied de page) ───────────────────────────────
-     Sable sur vert : 8.2:1, petits textes compris. Pas de variante atténuée
-     par transparence : la hiérarchie passe par la taille et la graisse. */
-  --color-dark:     #364035;
-  --color-on-dark:  #EADECE;
-
-  /* Voile des fenêtres modales (lightbox, portrait). Seule transparence du
-     site : elle est fonctionnelle (isoler la modale), pas décorative. */
-  --scrim:          rgb(57 57 57 / 0.82);
-
-  /* ── Typographie ───────────────────────────────────────────────────────
-     Rubik pour les titres (Medium 500, Regular 400), Mulish pour les textes
-     (Light 300 courant, Regular 400 légendes, Bold 700 surtitres). Replis
-     imposés par la charte : Verdana et Trebuchet MS. */
+  /* ── Typographie ───────────────────────────────────────────────────── */
   --font-display: "Rubik", Verdana, Geneva, sans-serif;
   --font-body:    "Mulish", "Trebuchet MS", system-ui, sans-serif;
 
-  /* Rayons — formes douces (choix du client, « trop carré » sinon) :
-     cards et images très arrondies, boutons et pastilles en pilule. */
-  --radius-btn:  999px;
-  --radius-card: 28px;
+  /* ── Formes et rythme ──────────────────────────────────────────────── */
+  --radius-btn:   999px;
+  --radius-card:  18px;   /* cartes, portraits */
+  --radius-tile:  16px;   /* mosaïque, carte, encadrés */
+  --radius-field: 10px;
+
+  --gutter:    clamp(20px, 5vw, 64px);   /* marges latérales            */
+  --pointe:    clamp(48px, 8vw, 120px);  /* bord bas en V des bannières */
+  --pente:     clamp(32px, 5vw, 72px);   /* bord haut du pied de page   */
+  --tige-haut: clamp(16px, 2vw, 28px);   /* remontée de la tige         */
 }
 
 /* ─── Base ─────────────────────────────────────────────────────────────── */
 
-/* Le fond est posé sur <html> : propagé au canevas, il est peint sous tout
-   le reste, y compris d'éventuels éléments en z-index négatif. */
 html {
   background: var(--color-bg);
 }
@@ -91,17 +69,13 @@ html {
 html, body {
   color: var(--color-ink);
   font-family: var(--font-body);
-  /* Plancher de 16 px pour le corps de texte à l'écran, interligne 1,55–1,6.
-     Mulish Light 300 est la graisse du texte courant. */
   font-size: 16px;
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* Rubik Medium 500 pour les deux niveaux de titre. Interlettrage resserré
-   (-0,02 em) réservé aux grands titres, voir .section-header et .h1. */
 h1, h2, h3, h4 {
   font-family: var(--font-display);
   font-weight: 500;
@@ -110,10 +84,6 @@ h1, h2, h3, h4 {
   line-height: 1.2;
   text-wrap: balance;
 }
-h1 { line-height: 1.05; }
-
-/* « Les textes sont alignés à gauche, jamais justifiés. » */
-p, li { text-align: left; }
 
 p { text-wrap: pretty; margin: 0; }
 
@@ -121,19 +91,10 @@ img { max-width: 100%; display: block; }
 
 button { font-family: inherit; cursor: pointer; }
 
+/* Liens : couleur héritée, pas de soulignement ; souligné au survol. */
 a { color: inherit; text-decoration: none; }
+a:not(.btn):hover { text-decoration: underline; text-underline-offset: 4px; }
 
-
-
-/* Mise en évidence : surlignage jaune DERRIÈRE le mot, jamais texte jaune. */
-mark {
-  background: var(--color-jaune);
-  color: inherit;
-  padding: 0 0.15em;
-}
-
-/* Focus clavier : contour vert Moléson 2 px, décalé de 2 px (charte,
-   composant bouton) ; jaune sur aplat foncé. */
 :focus-visible {
   outline: 2px solid var(--color-vert);
   outline-offset: 2px;
@@ -146,232 +107,437 @@ mark {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  /* Les décors qui débordent de leur bloc ne doivent pas créer de
-     défilement horizontal. Posé ici et non sur <body> : l'overflow
-     de <body> est reporté sur la fenêtre, où `clip` n'a pas d'effet.
-     `clip` et non `hidden` : pas de conteneur de défilement, les éléments
-     `sticky` continuent de fonctionner. */
+  /* Posé ici et non sur <body> : l'overflow de <body> est reporté sur la
+     fenêtre, où `clip` n'a pas d'effet. */
   overflow-x: clip;
 }
 
-/* ─── Layout utilities ─────────────────────────────────────────────────── */
+/* ─── Composants ───────────────────────────────────────────────────────── */
 
 @layer components {
+  /* Conteneur 1240 px + marges latérales fluides. */
   .container-x {
-    /* Gouttière de 16 px sur téléphone : à 48 px, la colonne de texte ne
-       faisait plus que 294 px sur un écran de 390. */
-    @apply w-full mx-auto px-4 sm:px-6 lg:px-12;
-    max-width: 1280px;
+    width: 100%;
+    max-width: calc(1240px + 2 * var(--gutter));
+    margin-inline: auto;
+    padding-inline: var(--gutter);
   }
 
-  /* Sections web : padding vertical ≥ 80 px sur desktop (charte, Formes). */
+  /* Espacement vertical entre sections (en haut seulement, comme la
+     maquette : le pied de page porte sa propre marge). */
   .section-y {
-    @apply py-16 md:py-24 lg:py-[120px];
-  }
-  /* Première section d'une page : elle passe sous l'en-tête FIXE (~80 px),
-     sa marge haute doit donc le dégager, quel que soit l'espacement réduit
-     des sections sur mobile. */
-  main > .section-y:first-child {
-    @apply pt-28 md:pt-32 lg:pt-[120px];
+    padding-top: clamp(56px, 7vw, 96px);
   }
 
-  /* Aplat foncé — vert Moléson, texte sable (8.2:1). Héros, bandeaux, pied
-     de page. Le corps du site est en Mulish Light 300 ; sur fond sombre
-     cette graisse s'amincit visuellement (le fond « mange » les jambages
-     fins), on repasse donc en Regular 400. */
   .on-dark {
     background: var(--color-dark);
     color: var(--color-on-dark);
-    font-weight: 400;
   }
   .on-dark h1, .on-dark h2, .on-dark h3, .on-dark h4 {
     color: inherit;
   }
 
-  /* Surtitre — Mulish Bold 13–14 px, capitales, interlettrage 0,1 em.
-     Réservé à trois mots au plus. En vert Moléson. */
-  .eyebrow {
-    font-family: var(--font-body);
-    font-size: 13px;
-    line-height: 1.4;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--color-vert);
-    font-weight: 700;
-  }
-  .on-dark .eyebrow {
-    color: var(--color-on-dark);
+  /* Logo noir de la charte passé en blanc sur les aplats verts. */
+  .logo-inverse {
+    object-fit: contain;
+    filter: invert(1);
+    mix-blend-mode: screen;
   }
 
-  /* Étiquettes : même style que le surtitre, couleur laissée au contexte. */
-  .label {
-    font-family: var(--font-body);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+  /* ── Bannière verte à pointe (pages internes et héros) ─────────────── */
+  .banniere {
+    position: relative;
+    overflow: hidden;
+    clip-path: polygon(
+      0 0, 100% 0,
+      100% calc(100% - var(--pointe)),
+      50% 100%,
+      0 calc(100% - var(--pointe))
+    );
+    padding-bottom: var(--pointe);
   }
-
-  /* Légende — Mulish Regular 13–14 px, interligne 1,5, couleur atténuée. */
-  .caption {
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 1.5;
-    color: var(--color-ink);
+  /* Relief à droite, fondu vers la gauche. */
+  .banniere-relief {
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: min(100%, 70%);
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    opacity: 0.55;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 55%);
+    mask-image: linear-gradient(90deg, transparent 0%, #000 55%);
+    pointer-events: none;
   }
-
-  /* Titre 1 — Rubik Medium 40–64 px, interligne 1,05, -0,02 em. */
-  .h1,
-  .section-header h1,
-  .section-header h2 {
-    font-size: clamp(40px, 3vw + 26px, 64px);
+  /* Trait vertical sous la pointe, qui remonte dans la bannière. */
+  .tige {
+    position: relative;
+    z-index: 2;
+    width: 6px;
+    border-radius: 3px;
+    height: calc(44px + var(--tige-haut));
+    background: var(--color-tige);
+    margin: calc(var(--tige-haut) * -1) auto 0;
+  }
+  .titre-page {
+    margin-top: clamp(16px, 2vw, 24px);
+    padding: 0 20px;
+    text-align: center;
+    font-size: clamp(34px, 4.4vw, 56px);
     line-height: 1.05;
     letter-spacing: -0.02em;
-    overflow-wrap: break-word;
-    hyphens: auto;
   }
 
-  .section-header {
-    @apply flex flex-col gap-4 mb-10 md:mb-[72px];
-    max-width: 720px;
+  /* Héros de l'accueil : fond rayé sous la vidéo, même pointe. */
+  .heros {
+    min-height: max(600px, 100vh);
+    min-height: max(600px, 100svh);
+    display: flex;
+    flex-direction: column;
   }
-  /* Chapô en anthracite, comme tout le texte. */
-  .section-header p {
-    font-size: 18px;
-    line-height: 1.6;
-    color: var(--color-ink);
-    max-width: 560px;
+  .heros-rayures {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      135deg,
+      var(--color-vert) 0 22px,
+      var(--color-vert-raye) 22px 44px
+    );
+  }
+  .heros-voile {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-vert) 55%, transparent) 0%,
+      color-mix(in srgb, var(--color-vert) 25%, transparent) 40%,
+      color-mix(in srgb, var(--color-vert) 85%, transparent) 100%
+    );
   }
 
-  /* Lien dans le texte — anthracite souligné d'un filet vert 2 px ;
-     survol en vert. */
-  .link {
-    color: var(--color-ink);
+  /* ── Navigation ─────────────────────────────────────────────────────── */
+  .nav-lien {
+    color: var(--color-on-dark);
+    font-size: 17px;
+    font-weight: 600;
+  }
+  .nav-lien[aria-current="page"] {
     text-decoration: underline;
-    text-decoration-color: var(--color-vert);
-    text-decoration-thickness: 2px;
-    text-underline-offset: 3px;
-    transition: color 150ms ease;
+    text-underline-offset: 6px;
   }
-  .link:hover {
+
+  /* ── Titres ─────────────────────────────────────────────────────────── */
+  .h2 {
+    font-size: clamp(28px, 3vw, 40px);
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+  }
+
+  /* Intitulé de bloc (Spécialités, Langues…). */
+  .intitule {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .eyebrow {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     color: var(--color-vert);
   }
 
-  /* Point (puce, indicateur) : jaune, cerclé d'anthracite pour rester
-     visible sur les fonds sable (le jaune seul n'y fait que 1.1:1). */
-  .point {
-    display: inline-block;
-    flex-shrink: 0;
-    width: 10px;
-    height: 10px;
-    border-radius: 9999px;
-    background: var(--color-jaune);
-    border: 1.5px solid var(--color-ink);
+  .link {
+    text-decoration: underline;
+    text-decoration-color: var(--color-olive);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
   }
 
-  /* Card — aplat sable aux grands arrondis, sans bordure (texte anthracite
-     8.7:1), avec un bandeau olive de 6 px en tête. Le bandeau est un fond
-     (et non une bordure) pour épouser l'arrondi des coins ; il ne passe
-     jamais sous du texte. */
-  .card {
-    background:
-      linear-gradient(var(--color-olive), var(--color-olive)) top / 100% 6px no-repeat,
-      var(--color-surface);
-    border-radius: var(--radius-card);
-  }
-
-  /* Pastille d'information (pathologies, certifications, planning) :
-     sable et anthracite (8.7:1), en pilule. Dans un encadré sable,
-     `bg-bg` la passe en sable éclairci. */
-  .chip {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 12px;
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 1.5;
-    background: var(--color-surface);
-    border-radius: 999px;
-    color: var(--color-ink);
-  }
-
-  /* ─── Boutons ─────────────────────────────────────────────────────── */
-
+  /* ── Boutons ────────────────────────────────────────────────────────── */
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 14px 24px;
-    font-family: var(--font-body);
+    gap: 10px;
+    padding: 15px 26px;
+    font-family: var(--font-display);
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 500;
     line-height: 1.25;
     border: 1.5px solid transparent;
     border-radius: var(--radius-btn);
     transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
-    white-space: nowrap;
+    text-decoration: none;
   }
 
-  /* Bouton principal : jaune, texte anthracite (9.3:1). Survol : fond vert
-     Moléson, texte jaune (8.7:1). */
-  .btn-primary {
+  /* Jaune : prise de rendez-vous. Survol blanc sur vert, vert sur clair. */
+  .btn-jaune {
     background: var(--color-jaune);
     color: var(--color-ink);
   }
-  .btn-primary:hover {
+  .btn-jaune:hover {
     background: var(--color-vert);
-    color: var(--color-jaune);
+    color: var(--color-on-dark);
   }
-  /* Sur aplat vert, le survol vert ferait disparaître le bouton : le filet
-     jaune garde sa forme. */
-  .on-dark .btn-primary:hover {
-    border-color: var(--color-jaune);
+  .on-dark .btn-jaune:hover {
+    background: var(--color-on-dark);
+    color: var(--color-ink);
   }
 
-  /* Bouton secondaire : transparent, filet anthracite 1,5 px. Survol en
-     sable ; dans un encadré sable, ajouter `hover:bg-bg`. */
-  .btn-ghost {
-    background: transparent;
+  /* Contour : anthracite sur clair, blanc sur vert. */
+  .btn-contour {
     color: var(--color-ink);
     border-color: var(--color-ink);
   }
-  .btn-ghost:hover {
-    background: var(--color-surface);
+  .btn-contour:hover {
+    background: var(--color-sable);
   }
-  .on-dark .btn-ghost {
+  .on-dark .btn-contour {
     color: var(--color-on-dark);
     border-color: var(--color-on-dark);
   }
-  .on-dark .btn-ghost:hover {
-    background: var(--color-sable);
-    color: var(--color-vert);
+  .on-dark .btn-contour:hover {
+    background: var(--color-on-dark);
+    color: var(--color-ink);
   }
 
-  /* ─── Placeholder imagery (avant intégration ACF) ─────────────────── */
+  /* Vert plein : envoi du formulaire, contact. */
+  .btn-vert {
+    background: var(--color-vert);
+    color: var(--color-on-dark);
+  }
+  .btn-vert:hover {
+    background: var(--color-ink);
+  }
 
+  /* Bouton léger : Mulish, filet olive. */
+  .btn-ligne {
+    padding: 11px 20px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-ink);
+    border-color: var(--color-olive);
+  }
+  .btn-ligne:hover {
+    background: var(--color-sable);
+  }
+
+  /* Bouton compact de l'en-tête. */
+  .btn-nav {
+    padding: 14px 24px;
+    font-family: var(--font-body);
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  /* ── Pastilles, champs, encadrés ───────────────────────────────────── */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 11px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    background: var(--color-sable);
+    color: var(--color-ink);
+    border-radius: var(--radius-btn);
+    white-space: nowrap;
+  }
+
+  .champ {
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--color-ink);
+    background: var(--color-bg);
+    border: 1.5px solid var(--color-field);
+    border-radius: var(--radius-field);
+    padding: 13px 14px;
+    outline: none;
+    transition: border-color 150ms ease;
+  }
+  .champ:focus {
+    border-color: var(--color-vert);
+  }
+
+  .card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-tile);
+  }
+
+  /* Pastille ronde d'icône (réseaux sociaux). */
+  .rond {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+
+  /* ── Mosaïque des valeurs ───────────────────────────────────────────── */
+  .valeur {
+    position: relative;
+    border-radius: var(--radius-tile);
+    overflow: hidden;
+    background: var(--color-vert);
+  }
+  .valeur-photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(1) contrast(1.05);
+  }
+  .valeur-voile {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--color-vert);
+    opacity: 0.35;
+    transition: opacity 0.35s ease;
+  }
+  .valeur-texte {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .valeur:hover .valeur-voile,
+  .valeur:focus-within .valeur-voile { opacity: 0.88; }
+  .valeur:hover .valeur-texte,
+  .valeur:focus-within .valeur-texte { opacity: 1; transform: none; }
+  /* Écrans tactiles : pas de survol, le texte reste visible. */
+  @media (hover: none) {
+    .valeur-voile { opacity: 0.88; }
+    .valeur-texte { opacity: 1; transform: none; }
+  }
+
+  /* ── Cartes de prestation ───────────────────────────────────────────── */
+  .prestation {
+    background: var(--color-bg);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    padding: clamp(22px, 2.6vw, 32px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .prestation:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-card);
+    border-color: var(--color-olive);
+  }
+  .prestation-icone {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-sable);
+    color: var(--color-vert);
+    transition: background-color 0.25s ease;
+  }
+  .prestation:hover .prestation-icone { background: var(--color-jaune); }
+
+  /* ── Portraits de l'équipe ──────────────────────────────────────────── */
+  .portrait-voile {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-card);
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-vert) 35%, transparent) 0%,
+      color-mix(in srgb, var(--color-vert) 92%, transparent) 60%
+    );
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px;
+    color: var(--color-on-dark);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .portrait:hover .portrait-voile,
+  .portrait:focus-visible .portrait-voile { opacity: 1; }
+  @media (hover: none) {
+    .portrait-voile { display: none; }
+  }
+
+  /* ── Pied de page ───────────────────────────────────────────────────── */
+  .pied {
+    margin-top: clamp(96px, 11vw, 160px);
+    clip-path: polygon(0 var(--pente), 100% 0, 100% 100%, 0 100%);
+    padding: calc(clamp(48px, 6vw, 80px) + var(--pente)) clamp(20px, 6vw, 80px) 28px;
+    color: var(--color-on-dark-soft);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .pied-titre {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-on-dark);
+    margin-bottom: 6px;
+  }
+  .pied-bas {
+    border-top: 1px solid color-mix(in srgb, var(--color-on-dark-soft) 60%, transparent);
+  }
+
+  /* ── Photos de remplacement (avant intégration WordPress) ──────────── */
   .ph {
     position: relative;
-    background: var(--color-surface);
-    color: var(--color-ink);
+    background: var(--color-sable);
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
   }
   .ph-label {
-    font-family: var(--font-body);
+    font-size: 12px;
     font-weight: 700;
-    font-size: 13px;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--color-ink);
-    background: var(--color-sable);
-    padding: 6px 12px;
-    border-radius: 999px;
+    letter-spacing: 0.08em;
+    color: var(--color-muted);
+    text-align: center;
+    padding: 0 12px;
   }
 }
 
-/* ─── Animations ──────────────────────────────────────────────────────── */
+/* ─── Icônes animées des prestations ─────────────────────────────────────
+   Jouées au survol de la carte. Avec prefers-reduced-motion, la règle
+   globale ramène leur durée à ~0. */
+
+.pi { transform-box: fill-box; transform-origin: center bottom; }
+.pi-speed { opacity: 0.4; }
+.prestation:hover .pi-boneL { animation: pm-boneL 0.9s ease-in-out infinite; }
+.prestation:hover .pi-boneR { animation: pm-boneR 0.9s ease-in-out infinite; }
+.prestation:hover .pi-speed { opacity: 1; animation: pm-speed 0.45s linear infinite; }
+.prestation:hover .pi-run   { animation: pm-run 0.45s ease-in-out infinite; }
+.prestation:hover .pi-sway  { animation: pm-sway 1.6s ease-in-out infinite; }
+.prestation:hover .pi-pop   { animation: pm-pop 1s ease-in-out infinite; }
+
+@keyframes pm-run   { 0%,100% { transform: translateX(-5px) rotate(-6deg); } 50% { transform: translateX(5px) rotate(4deg); } }
+@keyframes pm-sway  { 0%,100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+@keyframes pm-pop   { 0% { transform: scale(1); } 30% { transform: scale(1.18) translateY(-3px); } 55% { transform: scale(.94); } 75% { transform: scale(1.05); } 100% { transform: scale(1); } }
+@keyframes pm-speed { 0% { transform: translateX(2px); opacity: 1; } 100% { transform: translateX(-4px); opacity: .15; } }
+@keyframes pm-boneL { 0%,100% { transform: translateX(0) rotate(0); } 50% { transform: translate(-2px,1px) rotate(-8deg); } }
+@keyframes pm-boneR { 0%,100% { transform: translateX(0) rotate(0); } 50% { transform: translate(2px,-1px) rotate(8deg); } }
+
+/* ─── Animations génériques ───────────────────────────────────────────── */
 
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -393,17 +559,16 @@ mark {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }
 
-/* ─── Skeleton (loading) ─────────────────────────────────────────────────
-   Pulsation sur un aplat sable plutôt qu'un
-   reflet en dégradé : la charte proscrit les dégradés. */
+/* ─── Skeleton (loading) ─────────────────────────────────────────────── */
 
 .skeleton {
-  background: var(--color-surface);
-  border-radius: var(--radius-card);
+  background: var(--color-sable);
+  border-radius: var(--radius-tile);
   animation: pulse 1.6s ease-in-out infinite;
 }
 @keyframes pulse {
@@ -414,9 +579,10 @@ mark {
 /* ─── Prose (rendu HTML WordPress via WPContent) ─────────────────────── */
 
 .prose-custom {
-  line-height: 1.6;
-  color: var(--color-ink);
+  line-height: 1.65;
+  color: inherit;
 }
+.prose-custom > * + * { margin-top: 12px; }
 .prose-custom h2,
 .prose-custom h3,
 .prose-custom h4 {
@@ -424,43 +590,27 @@ mark {
   font-weight: 500;
   margin: 1.5em 0 0.5em;
 }
-/* Titre 2 — 22–28 px, interligne 1,2. */
 .prose-custom h2 { font-size: 1.5rem; line-height: 1.2; }
 .prose-custom h3 { font-size: 1.25rem; line-height: 1.2; }
-.prose-custom p { margin: 0 0 1em; }
 .prose-custom a {
-  color: var(--color-ink);
   text-decoration: underline;
-  text-decoration-color: var(--color-vert);
+  text-decoration-color: var(--color-olive);
   text-decoration-thickness: 2px;
   text-underline-offset: 3px;
 }
-.prose-custom a:hover { color: var(--color-vert); }
 .prose-custom img {
   max-width: 100%;
   height: auto;
-  border-radius: var(--radius-card);
-  margin: 1em 0;
+  border-radius: var(--radius-tile);
 }
 .prose-custom ul,
-.prose-custom ol { padding-left: 1.4em; margin: 0 0 1em; }
-.prose-custom li { margin: 0.25em 0; }
-/* Pas d'italique : « pas d'italique pour insister » (charte, Typographie).
-   La citation se signale par le filet vert et l'encadré sable. */
-.prose-custom blockquote {
-  border-left: 3px solid var(--color-vert);
-  background: var(--color-sable);
-  padding: 0.75rem 1rem;
-  color: var(--color-ink);
-  margin: 1.5em 0;
-}
-.prose-custom em, .prose-custom i { font-style: normal; }
+.prose-custom ol { padding-left: 1.4em; }
+.prose-custom ul { list-style: disc; }
+.prose-custom ol { list-style: decimal; }
 
 /* ─── Héros de l'accueil : apparition du titre ───────────────────────────
-   Les mots du nom montent l'un après l'autre, puis l'accroche suit. Le
-   relief se révèle lentement en arrière-plan. `both` : l'état initial
-   (invisible) s'applique pendant le délai. Avec prefers-reduced-motion, la
-   règle globale ramène la durée à ~0 : le texte s'affiche directement. */
+   Les mots du nom montent l'un après l'autre, puis l'accroche suit.
+   `both` : l'état initial (invisible) s'applique pendant le délai. */
 
 .hero-word {
   display: inline-block;
@@ -469,26 +619,12 @@ mark {
 .hero-tagline {
   animation: heroRise 1000ms cubic-bezier(0.2, 0, 0, 1) both;
 }
-.hero-relief {
-  animation: heroFade 2400ms ease-out both;
-}
 
 @keyframes heroRise {
   from { opacity: 0; transform: translateY(0.45em); }
   to   { opacity: 1; transform: none; }
 }
-@keyframes heroFade {
-  from { opacity: 0; }
-  to   { opacity: var(--hero-relief-opacity); }
-}
-
-/* Sur téléphone le relief passe sous le texte : on l'atténue pour garder
-   l'accroche lisible. */
-.hero-relief { --hero-relief-opacity: 0.5; opacity: var(--hero-relief-opacity); }
-@media (max-width: 1023px) {
-  .hero-relief { --hero-relief-opacity: 0.3; }
-}
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-word, .hero-tagline, .hero-relief { animation-delay: 0ms !important; }
+  .hero-word, .hero-tagline { animation-delay: 0ms !important; }
 }

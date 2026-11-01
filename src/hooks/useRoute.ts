@@ -14,9 +14,13 @@ export interface RouteResult {
   anchor: string | null;
 }
 
-/** Navigue sans rechargement de page (SPA). */
-export function navigate(path: string) {
-  history.pushState(null, "", path);
+/**
+ * Navigue sans rechargement de page (SPA). `replace` : remplace l'entrée
+ * courante de l'historique (redirections).
+ */
+export function navigate(path: string, { replace = false }: { replace?: boolean } = {}) {
+  if (replace) history.replaceState(null, "", path);
+  else history.pushState(null, "", path);
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
