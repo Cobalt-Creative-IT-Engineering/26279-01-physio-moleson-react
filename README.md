@@ -169,9 +169,9 @@ add_action('init', function () {
 #### Page d'options « FAQ » (à créer)
 
 La page [/faq](src/pages/FaqPage.tsx) lit une page d'options ACF qui **n'existe pas encore** côté
-WordPress. En attendant, elle affiche les questions d'exemple de
-[src/config/faq-exemple.ts](src/config/faq-exemple.ts) ; elles disparaissent d'elles-mêmes dès
-que WordPress renvoie au moins une question.
+WordPress. En attendant, elle affiche les catégories de la maquette (`FAQ_THEMES` de
+[src/config/contenu.ts](src/config/contenu.ts)) ; elles disparaissent d'elles-mêmes dès que
+WordPress renvoie au moins une catégorie contenant une question.
 
 | Élément | Valeur |
 |---|---|
@@ -179,9 +179,17 @@ que WordPress renvoie au moins une question.
 | Groupe de champs — nom GraphQL | `faq` (différent de la page : règle anti-collision) |
 | Champ texte | `titre_faq` → `titreFaq` (facultatif, titre de la page) |
 | Champ WYSIWYG | `intro_faq` → `introFaq` (facultatif) |
-| Répéteur | `questions_faq` → `questionsFaq`, sous-champs `question` (texte) et `reponse` (WYSIWYG) |
+| Répéteur | `categories_faq` → `categoriesFaq` : une ligne par catégorie |
+| ↳ Champ texte | `titre` (nom de la catégorie, ex. « Remboursement ») |
+| ↳ Répéteur imbriqué | `questions`, sous-champs `question` (texte) et `reponse` (WYSIWYG) |
 
-Activer « Show in GraphQL » sur la page d'options et sur le groupe.
+L'ordre des catégories et des questions est celui des répéteurs. Une catégorie sans titre
+s'affiche sous « Questions générales » ; une catégorie sans question est masquée. Dès qu'il y a
+plus d'une catégorie, la bannière affiche un bouton par catégorie (ancre `#faq-N`).
+
+Activer « Show in GraphQL » sur la page d'options et sur le groupe. Les noms GraphQL doivent
+correspondre **exactement** : un champ inconnu fait échouer toute la requête, et la page
+retombe sur la maquette.
 
 ### Configuration
 

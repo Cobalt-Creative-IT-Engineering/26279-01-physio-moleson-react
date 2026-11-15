@@ -52,21 +52,15 @@ export const CONTACT = {
 
 export const TBOOKING_URL = "https://www.tbooking.ch/fr/physio-du-moleson/2854-3711";
 
-// ─── Vidéo du héros ───────────────────────────────────────────────────────
-// PROVISOIRE : paysage alpin Mixkit repris de la maquette, à remplacer par la
-// vidéo du cabinet (fichier dans public/ ou URL). Sources essayées dans l'ordre.
-
-export const HERO_VIDEO_SOURCES = [
-  "https://assets.mixkit.co/videos/19434/19434-720.mp4",
-  "https://assets.mixkit.co/videos/preview/mixkit-time-lapse-of-a-meadow-with-mountains-19434-large.mp4",
-] as const;
-
 // ─── Réseaux sociaux ──────────────────────────────────────────────────────
-// Vide = lien ignoré. Instagram / Facebook : liens à renseigner.
+// Repli utilisé seulement si les options globales WordPress sont
+// indisponibles ; sinon les champs ACF `reseauxSociaux` font foi (vide =
+// réseau masqué). L'ordre ici est l'ordre d'affichage.
 
 export const SOCIAL_LINKS = {
   instagram: "",
   facebook:  "",
+  linkedin:  "",
   whatsapp:  "https://wa.me/41263039343",
 } as const;
 

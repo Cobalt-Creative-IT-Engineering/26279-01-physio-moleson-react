@@ -1,12 +1,18 @@
 import { useEffect, useRef, Fragment } from "react";
 import { useAccueilOptions } from "../hooks/useWordPress";
+import type { AccueilOptions, AccueilValeur } from "../types/wordpress";
 import { SiteHeader } from "../components/layout";
-import { HERO_VIDEO_SOURCES, TBOOKING_URL } from "../config/site";
-import { HEROS, INTRO_ACCUEIL, VALEURS } from "../config/contenu";
 import { setPageMeta } from "../lib/meta";
+import { useReveal } from "../hooks/useReveal";
 
-/** Nom du héros, sur deux lignes comme dans la maquette. */
-const HERO_LIGNES = ["Physio", "du Moléson"];
+/* Tout le contenu de l'accueil vient d'ACF (page d'options « Accueil ») :
+   pas de texte de repli. Un champ vide n'est simplement pas rendu. */
+
+/** Titre sur deux lignes comme dans la maquette : premier mot, puis le reste. */
+function lignesTitre(titre: string): string[] {
+  const [premier, ...reste] = titre.trim().split(/\s+/);
+  return reste.length ? [premier, reste.join(" ")] : [premier];
+}
 
 const reducedMotion = () =>
   window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
@@ -18,35 +24,37 @@ function linkProps(url: string) {
 
 /* ─── Héros : vidéo en boucle sur fond rayé ────────────────────────────── */
 
-function Heros() {
-  const { data, status } = useAccueilOptions();
+function Heros({ data, loading }: { data: AccueilOptions["heros"] | undefined; loading: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   // Pas de vidéo en mouvement pour qui a demandé moins d'animations : le
   // fond rayé reste seul.
   const showVideo = !reducedMotion();
 
+  const video = data?.video ?? null;
+
   // Certains navigateurs ignorent autoplay tant que muted n'est pas posé
-  // en propriété (et non en attribut).
+  // en propriété (et non en attribut). Relancé quand l'URL ACF arrive.
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
     v.muted = true;
     if (v.paused) v.play().catch(() => {});
-  }, []);
+  }, [video]);
 
-  const loading = status === "loading" && !data;
-  const words = HERO_LIGNES.map((l) => l.split(" "));
+  const lignes = data?.titre ? lignesTitre(data.titre) : [];
+  const words = lignes.map((l) => l.split(" "));
   const afterTitle = 300 + words.flat().length * 140;
   let w = 0;
 
-  const primary   = data?.ctaPrimary?.url   ? data.ctaPrimary   : { label: "Prendre rendez-vous", url: TBOOKING_URL };
-  const secondary = data?.ctaSecondary?.url ? data.ctaSecondary : { label: "Découvrir nos services", url: "/prestations" };
+  const primary   = data?.cta1.url ? data.cta1 : null;
+  const secondary = data?.cta2.url ? data.cta2 : null;
 
   return (
     <section className="banniere heros on-dark">
       <div aria-hidden className="heros-rayures" />
-      {showVideo && (
+      {showVideo && video && (
         <video
+          key={video}
           ref={videoRef}
           aria-hidden
           autoPlay
@@ -56,9 +64,7 @@ function Heros() {
           preload="auto"
           className="absolute inset-0 w-full h-full object-cover"
         >
-          {HERO_VIDEO_SOURCES.map((src) => (
-            <source key={src} src={src} type="video/mp4" />
-          ))}
+          <source src={video} type="video/mp4" />
         </video>
       )}
       <div aria-hidden className="heros-voile" />
@@ -66,52 +72,57 @@ function Heros() {
       <SiteHeader />
 
       <div className="container-x relative z-[2] mt-auto pb-[clamp(64px,9vw,112px)] flex flex-col gap-[22px]">
-        <h1
-          className="font-medium text-[clamp(48px,7.5vw,104px)] leading-[0.98] tracking-[-0.025em]"
-          aria-label={HERO_LIGNES.join(" ")}
-        >
-          {words.map((line, li) => (
-            <Fragment key={li}>
-              {li > 0 && <br />}
-              {line.map((word, wi) => (
-                <Fragment key={wi}>
-                  {wi > 0 && " "}
-                  <span aria-hidden className="hero-word" style={{ animationDelay: `${150 + w++ * 140}ms` }}>
-                    {word}
-                  </span>
-                </Fragment>
-              ))}
-            </Fragment>
-          ))}
-        </h1>
+        {lignes.length > 0 && (
+          <h1
+            className="font-medium text-[clamp(48px,7.5vw,104px)] leading-[0.98] tracking-[-0.025em]"
+            aria-label={lignes.join(" ")}
+          >
+            {words.map((line, li) => (
+              <Fragment key={li}>
+                {li > 0 && <br />}
+                {line.map((word, wi) => (
+                  <Fragment key={wi}>
+                    {wi > 0 && " "}
+                    <span aria-hidden className="hero-word" style={{ animationDelay: `${150 + w++ * 140}ms` }}>
+                      {word}
+                    </span>
+                  </Fragment>
+                ))}
+              </Fragment>
+            ))}
+          </h1>
+        )}
 
-        {/* Accroche, présentation et boutons : éditables dans WordPress, avec
-            les textes de la maquette en repli. Rendus une fois la donnée
-            connue, pour ne pas animer un texte aussitôt remplacé. */}
+        {/* Accroche, présentation et boutons : rendus une fois la donnée
+            ACF connue. */}
         {!loading && (
           <>
             <p
               className="hero-tagline font-display text-[clamp(22px,2.4vw,32px)] leading-[1.25] max-w-[640px]"
               style={{ animationDelay: `${afterTitle}ms` }}
             >
-              {data?.title || HEROS.accroche}
+              {data?.sousTitre}
             </p>
             <p
               className="hero-tagline text-[clamp(16px,1.3vw,18px)] leading-[1.6] max-w-[560px] text-on-dark-soft"
               style={{ animationDelay: `${afterTitle + 200}ms` }}
             >
-              {data?.subtitle || HEROS.presentation}
+              {data?.description}
             </p>
             <div
               className="hero-tagline flex flex-wrap gap-3.5 mt-2"
               style={{ animationDelay: `${afterTitle + 400}ms` }}
             >
-              <a {...linkProps(primary.url)} className="btn btn-jaune">
-                {primary.label} <span aria-hidden>→</span>
-              </a>
-              <a {...linkProps(secondary.url)} className="btn btn-contour">
-                {secondary.label}
-              </a>
+              {primary && (
+                <a {...linkProps(primary.url)} className="btn btn-jaune">
+                  {primary.label} <span aria-hidden>→</span>
+                </a>
+              )}
+              {secondary && (
+                <a {...linkProps(secondary.url)} className="btn btn-contour">
+                  {secondary.label}
+                </a>
+              )}
             </div>
           </>
         )}
@@ -120,52 +131,65 @@ function Heros() {
   );
 }
 
-/* ─── Mosaïque des valeurs ─────────────────────────────────────────────── */
+/* ─── Valeurs : bande olive en biseau sur photo, cartes en quinconce ──── */
 
-type Valeur = (typeof VALEURS)[number];
-
-function ValeurCase({ v, className }: { v: Valeur; className: string }) {
+function ValeurCarte({ v, delai }: { v: AccueilValeur; delai: string }) {
   return (
-    <div className={`valeur ${className}`}>
-      <img src={v.photo} alt="" loading="lazy" className="valeur-photo" />
-      <div aria-hidden className="valeur-voile" />
-      <a
-        href={v.creditUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="absolute top-3 right-4 z-[1] text-[11px] text-on-dark-soft"
-      >
-        Photo : {v.credit} / Unsplash
-      </a>
-      <div className="absolute inset-x-0 bottom-0 pointer-events-none p-[clamp(18px,2.2vw,28px)] flex flex-col gap-2.5 text-on-dark">
-        <h3 className="text-on-dark text-[clamp(24px,2.4vw,32px)] leading-[1.1]">{v.titre}</h3>
-        <p className="valeur-texte text-[15.5px] leading-[1.55] max-w-[440px]">{v.texte}</p>
-      </div>
-    </div>
+    <article className={`valeur reveal ${delai}`}>
+      {v.image && (
+        <div className="valeur-cadre">
+          <img src={v.image.url} alt={v.image.alt} loading="lazy" className="valeur-photo" />
+        </div>
+      )}
+      <h3 className="text-on-dark text-[clamp(24px,2.2vw,30px)] leading-[1.1] mt-[clamp(18px,2vw,26px)]">
+        {v.titre}
+      </h3>
+      {v.description && <p className="text-on-dark text-[15.5px] leading-[1.6] mt-3">{v.description}</p>}
+    </article>
   );
 }
 
-function Valeurs() {
-  const [haut, grand, petit1, petit2] = VALEURS;
+/** Décalage d'apparition par carte (classes complètes pour Tailwind). */
+const DELAIS = ["", "[--reveal-delay:120ms]", "[--reveal-delay:240ms]", "[--reveal-delay:360ms]"];
+
+function Valeurs({ data, montagne }: { data: AccueilOptions["valeurs"]; montagne: string | null }) {
+  const ref = useReveal<HTMLElement>(0.15);
+  const valeurs = data.items.filter((v) => v.titre);
+  // Montagne du haut : `imageSection1` ; fond de la bande : `imageDeFond`.
+  // Chacune reprend l'autre si elle manque.
+  const fond = data.fond?.url ?? montagne;
+  const haut = montagne ?? fond;
+
   return (
-    <section id="valeurs" aria-label="Nos valeurs" className="section-y">
-      <div className="container-x flex flex-col gap-3">
-        <ValeurCase v={haut} className="h-[clamp(180px,20vw,240px)]" />
-        <div className="flex flex-wrap gap-3">
-          <ValeurCase v={grand} className="flex-[2_1_420px] min-h-[clamp(360px,40vw,520px)]" />
-          <div className="flex-[1_1_280px] flex flex-col gap-3">
-            <ValeurCase v={petit1} className="flex-[1_1_0] min-h-[220px]" />
-            <ValeurCase v={petit2} className="flex-[1_1_0] min-h-[220px]" />
-          </div>
+    <div className="valeurs-bloc">
+    {/* Montagne au-dessus de la bande, visible aussi dans le biseau. */}
+    {haut && <div aria-hidden className="valeurs-montagne" style={{ backgroundImage: `url(${haut})` }} />}
+    <section id="valeurs" ref={ref} aria-labelledby="valeurs-titre" className="valeurs on-dark">
+      {fond && <div aria-hidden className="valeurs-fond" style={{ backgroundImage: `url(${fond})` }} />}
+      <div className="container-x relative">
+        <h2 id="valeurs-titre" className="reveal text-on-dark text-center text-[clamp(36px,4.5vw,60px)] leading-none tracking-[-0.02em]">
+          Nos valeurs
+        </h2>
+        <div className="valeurs-grille">
+          {valeurs.map((v, i) => (
+            <ValeurCarte key={`${i}-${v.titre}`} v={v} delai={DELAIS[i] ?? ""} />
+          ))}
         </div>
       </div>
     </section>
+    </div>
   );
 }
 
 /* ─── Page ─────────────────────────────────────────────────────────────── */
 
 export function HomePage() {
+  // Un seul appel pour toute la page ; chaque section reçoit son groupe ACF.
+  const { data, status } = useAccueilOptions();
+  const loading = status === "loading" && !data;
+  const introRef = useReveal<HTMLElement>();
+  const slogan = data?.slogan;
+  const sloganCta = slogan?.cta.url ? slogan.cta : null;
   useEffect(() => {
     setPageMeta({
       title: undefined,
@@ -176,21 +200,26 @@ export function HomePage() {
 
   return (
     <>
-      <Heros />
+      <Heros data={data?.heros} loading={loading} />
 
-      <section id="a-propos" className="pt-[clamp(72px,9vw,128px)]">
+      <section id="a-propos" ref={introRef} className="pt-[clamp(72px,9vw,128px)]">
         <div className="container-x grid grid-cols-[repeat(auto-fit,minmax(min(100%,360px),1fr))] gap-[clamp(28px,5vw,80px)] items-start">
-          <h2 className="text-vert text-[clamp(44px,6vw,84px)] leading-none tracking-[-0.025em]">
-            {INTRO_ACCUEIL.titre}
+          <h2 className="reveal reveal-gauche text-vert text-[clamp(44px,6vw,84px)] leading-none tracking-[-0.025em]">
+            {slogan?.titre}
           </h2>
           <div className="flex flex-col gap-[22px] items-start">
-            <p className="text-[clamp(16px,1.35vw,19px)] leading-[1.65]">{INTRO_ACCUEIL.texte}</p>
-            <a href="/cabinet" className="btn btn-ligne">Découvrir le cabinet →</a>
+            <p className="reveal reveal-droite [--reveal-delay:150ms] text-[clamp(16px,1.35vw,19px)] leading-[1.65]">{slogan?.description}</p>
+            {/* Enveloppe : la transition de .reveal écraserait celles du bouton. */}
+            {sloganCta && (
+              <div className="reveal reveal-droite [--reveal-delay:300ms]">
+                <a {...linkProps(sloganCta.url)} className="btn btn-ligne">{sloganCta.label} →</a>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      <Valeurs />
+      {data && <Valeurs data={data.valeurs} montagne={data.imageSection1?.url ?? null} />}
     </>
   );
 }

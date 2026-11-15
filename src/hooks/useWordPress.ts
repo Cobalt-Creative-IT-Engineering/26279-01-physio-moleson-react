@@ -11,6 +11,7 @@ import {
   getMediaByIds,
   getACFOptionsPage,
   graphqlFetch,
+  lienInterne,
 } from "../lib/wordpress";
 import type {
   WPPost,
@@ -327,9 +328,10 @@ const GQL_GLOBAL = `
       optionsGlobale {
         telephone
         email
+        resume
         logo { node { sourceUrl altText databaseId mediaDetails { width height } } }
         adresses { lieu adresse npa ville }
-        reseauxSociaux { facebook instagram }
+        reseauxSociaux { facebook instagram linkedin whatsapp }
       }
     }
   }
@@ -340,9 +342,10 @@ type GQLGlobalResponse = {
     optionsGlobale: {
       telephone: string | null;
       email: string | null;
+      resume: string | null;
       logo: GQLMediaEdge;
       adresses: { lieu: string | null; adresse: string | null; npa: string | null; ville: string | null }[] | null;
-      reseauxSociaux: { facebook: string | null; instagram: string | null } | null;
+      reseauxSociaux: { facebook: string | null; instagram: string | null; linkedin: string | null; whatsapp: string | null } | null;
     } | null;
   } | null;
 };
@@ -352,6 +355,7 @@ function fromGQLGlobal(d: GQLGlobalResponse | null): GlobalOptions | null {
   if (!g) return null;
   return {
     logo:  fromGQLMedia(g.logo ?? null),
+    resume: g.resume?.trim() ?? "",
     phone: g.telephone ?? "",
     email: g.email ?? "",
     addresses: (g.adresses ?? []).map((a, i): CabinetAddress => ({
@@ -364,6 +368,8 @@ function fromGQLGlobal(d: GQLGlobalResponse | null): GlobalOptions | null {
     social: {
       instagram: g.reseauxSociaux?.instagram || undefined,
       facebook:  g.reseauxSociaux?.facebook  || undefined,
+      linkedin:  g.reseauxSociaux?.linkedin  || undefined,
+      whatsapp:  g.reseauxSociaux?.whatsapp  || undefined,
     } as SocialLinks,
   };
 }
@@ -371,35 +377,67 @@ function fromGQLGlobal(d: GQLGlobalResponse | null): GlobalOptions | null {
 // ─── Accueil via WPGraphQL (ACF Options Page `accueil`) ───────────────────
 
 // Champs suffixés `*Accueil` côté WP (anti-collision entre Options pages).
+// Groupes ACF de la page d'options « Accueil » : banner, slogan, valeurs
+// (valeur1 → valeur4), plus une image de section.
 const GQL_ACCUEIL = `
+  fragment ImgAccueil on AcfMediaItemConnectionEdge {
+    node { sourceUrl altText databaseId mediaDetails { width height } }
+  }
   query Accueil {
     accueil {
       accueils {
-        sourcil
-        titreAccueil
-        sousTitreAccueil
-        ctaPrimaireAccueil { label url }
-        ctaSecondaireAccueil { label url }
-        imagesAccueil {
-          image1 { node { sourceUrl altText databaseId mediaDetails { width height } } }
-          image2 { node { sourceUrl altText databaseId mediaDetails { width height } } }
+        banner {
+          titre
+          sousTitre
+          description
+          bouton1 { texteBouton urlBouton }
+          bouton2 { texteBouton urlBouton }
+          video { node { mediaItemUrl } }
         }
-        valeursAccueil { label nombre }
+        slogan {
+          titre
+          description
+          bouton { boutonTexte urlBouton }
+        }
+        imageSection1 { ...ImgAccueil }
+        valeurs {
+          imageDeFond { ...ImgAccueil }
+          valeur1 { titre description image { ...ImgAccueil } }
+          valeur2 { titre description image { ...ImgAccueil } }
+          valeur3 { titre description image { ...ImgAccueil } }
+          valeur4 { titre description image { ...ImgAccueil } }
+        }
       }
     }
   }
 `;
 
+type GQLValeurAccueil = { titre: string | null; description: string | null; image: GQLMediaEdge } | null;
+
 type GQLAccueilResponse = {
   accueil: {
     accueils: {
-      sourcil: string | null;
-      titreAccueil: string | null;
-      sousTitreAccueil: string | null;
-      ctaPrimaireAccueil: { label: string | null; url: string | null } | null;
-      ctaSecondaireAccueil: { label: string | null; url: string | null } | null;
-      imagesAccueil: { image1: GQLMediaEdge; image2: GQLMediaEdge } | null;
-      valeursAccueil: { label: string | null; nombre: number | null }[] | null;
+      banner: {
+        titre: string | null;
+        sousTitre: string | null;
+        description: string | null;
+        bouton1: { texteBouton: string | null; urlBouton: string | null } | null;
+        bouton2: { texteBouton: string | null; urlBouton: string | null } | null;
+        video: { node: { mediaItemUrl: string | null } } | null;
+      } | null;
+      slogan: {
+        titre: string | null;
+        description: string | null;
+        bouton: { boutonTexte: string | null; urlBouton: string | null } | null;
+      } | null;
+      imageSection1: GQLMediaEdge;
+      valeurs: {
+        imageDeFond: GQLMediaEdge;
+        valeur1: GQLValeurAccueil;
+        valeur2: GQLValeurAccueil;
+        valeur3: GQLValeurAccueil;
+        valeur4: GQLValeurAccueil;
+      } | null;
     } | null;
   } | null;
 };
@@ -407,22 +445,34 @@ type GQLAccueilResponse = {
 function fromGQLAccueil(d: GQLAccueilResponse | null): AccueilOptions | null {
   const a = d?.accueil?.accueils;
   if (!a) return null;
-  const cta = (c: { label: string | null; url: string | null } | null): CTA => ({
-    label: c?.label ?? "",
-    url:   c?.url ?? "",
+  const cta = (label: string | null | undefined, url: string | null | undefined): CTA => ({
+    label: label ?? "",
+    url:   url ? lienInterne(url) : "",
   });
+  const v = a.valeurs;
   return {
-    eyebrow:        a.sourcil ?? "",
-    title:          a.titreAccueil ?? "",
-    subtitle:       a.sousTitreAccueil ?? "",
-    ctaPrimary:     cta(a.ctaPrimaireAccueil ?? null),
-    ctaSecondary:   cta(a.ctaSecondaireAccueil ?? null),
-    stats:          (a.valeursAccueil ?? []).map((v) => ({
-                      number: v.nombre != null ? String(v.nombre) : "",
-                      label:  v.label ?? "",
-                    })),
-    imageMain:      fromGQLMedia(a.imagesAccueil?.image1 ?? null),
-    imageSecondary: fromGQLMedia(a.imagesAccueil?.image2 ?? null),
+    heros: {
+      titre:       a.banner?.titre ?? "",
+      sousTitre:   a.banner?.sousTitre ?? "",
+      description: a.banner?.description ?? "",
+      cta1:        cta(a.banner?.bouton1?.texteBouton, a.banner?.bouton1?.urlBouton),
+      cta2:        cta(a.banner?.bouton2?.texteBouton, a.banner?.bouton2?.urlBouton),
+      video:       a.banner?.video?.node?.mediaItemUrl ?? null,
+    },
+    slogan: {
+      titre:       a.slogan?.titre ?? "",
+      description: a.slogan?.description ?? "",
+      cta:         cta(a.slogan?.bouton?.boutonTexte, a.slogan?.bouton?.urlBouton),
+    },
+    imageSection1: fromGQLMedia(a.imageSection1 ?? null),
+    valeurs: {
+      fond:  fromGQLMedia(v?.imageDeFond ?? null),
+      items: [v?.valeur1, v?.valeur2, v?.valeur3, v?.valeur4].map((x) => ({
+        titre:       x?.titre ?? "",
+        description: x?.description ?? "",
+        image:       fromGQLMedia(x?.image ?? null),
+      })),
+    },
   };
 }
 
@@ -492,7 +542,7 @@ const GQL_FAQ = `
       faq {
         titreFaq
         introFaq
-        questionsFaq { question reponse }
+        categoriesFaq { titre questions { question reponse } }
       }
     }
   }
@@ -503,7 +553,10 @@ type GQLFaqResponse = {
     faq: {
       titreFaq: string | null;
       introFaq: string | null;
-      questionsFaq: { question: string | null; reponse: string | null }[] | null;
+      categoriesFaq: {
+        titre: string | null;
+        questions: { question: string | null; reponse: string | null }[] | null;
+      }[] | null;
     } | null;
   } | null;
 };
@@ -514,10 +567,16 @@ function fromGQLFaq(d: GQLFaqResponse | null): FaqOptions | null {
   return {
     title: f.titreFaq ?? "",
     intro: f.introFaq ?? "",
-    // Une ligne de répéteur sans question n'a rien à afficher.
-    items: (f.questionsFaq ?? [])
-      .filter((q) => q.question)
-      .map((q) => ({ question: q.question ?? "", answer: q.reponse ?? "" })),
+    // Catégories dans l'ordre du répéteur. Une question vide, puis une
+    // catégorie restée sans question, n'ont rien à afficher.
+    themes: (f.categoriesFaq ?? [])
+      .map((c) => ({
+        title: c.titre?.trim() || "Questions générales",
+        items: (c.questions ?? [])
+          .filter((q) => q.question)
+          .map((q) => ({ question: q.question ?? "", answer: q.reponse ?? "" })),
+      }))
+      .filter((c) => c.items.length > 0),
   };
 }
 

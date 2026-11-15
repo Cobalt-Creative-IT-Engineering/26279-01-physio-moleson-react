@@ -112,6 +112,25 @@ async function fetcher<T>(url: string): Promise<T> {
   return res.json();
 }
 
+/**
+ * Lien saisi dans WordPress → href utilisable par le front. Une URL absolue
+ * qui vise le site lui-même (localhost, domaine WordPress, domaine public)
+ * devient un chemin relatif, pris en charge par la navigation SPA ; les
+ * liens réellement externes sont laissés tels quels.
+ */
+const HOTES_INTERNES = new Set(["localhost", "127.0.0.1", "physio-moleson.ch", "www.physio-moleson.ch"]);
+export function lienInterne(url: string): string {
+  if (!/^https?:\/\//i.test(url)) return url;
+  try {
+    const u = new URL(url);
+    const wpHote = new URL(RAW_WP_URL).hostname;
+    if (HOTES_INTERNES.has(u.hostname) || u.hostname === wpHote || u.hostname === window.location.hostname) {
+      return `${u.pathname}${u.search}${u.hash}` || "/";
+    }
+  } catch { /* URL invalide : rendue telle quelle */ }
+  return url;
+}
+
 export async function graphqlFetch<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
   const res = await fetch(GRAPHQL_URL, {
     method: "POST",

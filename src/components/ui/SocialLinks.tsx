@@ -1,10 +1,12 @@
 import { SOCIAL_LINKS } from "../../config/site";
+import type { SocialLinks as SocialLinksData } from "../../types/wordpress";
 
 type Network = keyof typeof SOCIAL_LINKS;
 
 const LABELS: Record<Network, string> = {
   instagram: "Instagram",
   facebook:  "Facebook",
+  linkedin:  "LinkedIn",
   whatsapp:  "WhatsApp",
 };
 
@@ -25,6 +27,13 @@ function Glyph({ name }: { name: Network }) {
       </svg>
     );
   }
+  if (name === "linkedin") {
+    return (
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+        <path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.5h4V21H3zM9.5 9.5h3.8v1.6h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1V21h-4v-5.1c0-1.22-.02-2.78-1.7-2.78-1.7 0-1.96 1.33-1.96 2.7V21h-4z" />
+      </svg>
+    );
+  }
   return (
     <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden>
       <path d="M3.5 20.5l1.3-4.2A8.5 8.5 0 1 1 8 19.3z" />
@@ -35,19 +44,22 @@ function Glyph({ name }: { name: Network }) {
 
 /**
  * Pastilles rondes des réseaux sociaux. Un réseau sans URL n'est pas affiché.
- * `overrides` : liens venant de WordPress (options globales), prioritaires.
+ * `links` : liens des options globales WordPress. Dès qu'ils sont chargés,
+ * ils font foi (champ vide = réseau masqué) ; SOCIAL_LINKS ne sert que tant
+ * que WordPress n'a pas répondu.
  * `variant` : « sable » sur fond clair, « contour » sur aplat vert.
  */
 export function SocialLinks({
-  overrides = {},
+  links: wp,
   variant = "sable",
 }: {
-  overrides?: Partial<Record<Network, string | undefined>>;
+  links?: SocialLinksData;
   variant?: "sable" | "contour";
 }) {
+  const source: Partial<Record<Network, string>> = wp ?? SOCIAL_LINKS;
   const links = (Object.keys(SOCIAL_LINKS) as Network[])
-    .map((name) => [name, overrides[name] || SOCIAL_LINKS[name]] as const)
-    .filter(([, url]) => !!url);
+    .map((name) => [name, source[name]] as const)
+    .filter((l): l is readonly [Network, string] => !!l[1]);
 
   if (links.length === 0) return null;
 

@@ -119,7 +119,7 @@ export function ContactPage() {
               </div>
               <div className="border-t border-line mt-3 pt-[18px] flex flex-wrap justify-between items-center gap-x-6 gap-y-3 text-[15px]">
                 <a href={`mailto:${email}`} className="font-semibold">{email}</a>
-                <SocialLinks overrides={{ instagram: g?.social.instagram, facebook: g?.social.facebook }} />
+                <SocialLinks links={g?.social} />
               </div>
             </div>
 

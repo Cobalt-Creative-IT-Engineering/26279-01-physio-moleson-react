@@ -106,9 +106,6 @@ export type GQLImage = {
 // transforment les réponses brutes ACF en ces objets typés (mappage des
 // repeaters, normalisation des images, etc.).
 
-/** Une statistique d'accueil (répéteur `valeurs`). */
-export type HeroStat = { number: string; label: string };
-
 /** Bouton d'appel à l'action. */
 export type CTA = { label: string; url: string };
 
@@ -129,12 +126,13 @@ export type SocialLinks = {
   instagram?: string;
   facebook?: string;
   linkedin?: string;
-  youtube?: string;
+  whatsapp?: string;
 };
 
 /** Options Page "Global" — données de site réutilisables partout. */
 export interface GlobalOptions {
   logo:      WPImage | null;
+  resume:    string;
   phone:     string;
   email:     string;
   addresses: CabinetAddress[];
@@ -143,15 +141,28 @@ export interface GlobalOptions {
 
 /** Options Page "Accueil" — bloc hero de la page d'accueil. */
 export interface AccueilOptions {
-  eyebrow:        string;  // sourcil
-  title:          string;  // titre
-  subtitle:       string;  // sousTitre
-  ctaPrimary:     CTA;
-  ctaSecondary:   CTA;
-  stats:          HeroStat[];   // valeurs
-  imageMain:      WPImage | null;
-  imageSecondary: WPImage | null;
+  heros: {
+    titre:       string;
+    sousTitre:   string;
+    description: string;
+    cta1:        CTA;
+    cta2:        CTA;
+    video:       string | null;  // URL du fichier
+  };
+  slogan: {
+    titre:       string;
+    description: string;
+    cta:         CTA;
+  };
+  imageSection1: WPImage | null;
+  valeurs: {
+    fond:  WPImage | null;
+    items: AccueilValeur[];      // toujours 4 entrées (valeur1 → valeur4)
+  };
 }
+
+/** Une valeur de l'accueil (groupe `valeurN`). */
+export type AccueilValeur = { titre: string; description: string; image: WPImage | null };
 
 /** Options Page "Sensopro". */
 export interface SensoproOptions {
@@ -167,10 +178,13 @@ export interface SensoproOptions {
 /** Options Page "FAQ". */
 export type FaqItem = { question: string; answer: string /* HTML wysiwyg */ };
 
+/** Une catégorie de la FAQ et ses questions. */
+export type FaqTheme = { title: string; items: FaqItem[] };
+
 export interface FaqOptions {
-  title: string;
-  intro: string; // HTML wysiwyg
-  items: FaqItem[];
+  title:  string;
+  intro:  string; // HTML wysiwyg
+  themes: FaqTheme[];
 }
 
 /** Options Page "Cabinet" — galeries des deux cabinets. */

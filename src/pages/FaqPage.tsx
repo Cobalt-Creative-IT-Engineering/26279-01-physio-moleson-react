@@ -16,13 +16,11 @@ export function FaqPage() {
     });
   }, []);
 
-  // Tant que la page d'options n'existe pas côté WordPress, la requête échoue
-  // (champ `faqs` inconnu) : on affiche alors les thèmes de la maquette. Les
-  // questions WordPress, sans thème, forment un seul groupe.
+  // Catégories du répéteur ACF `categoriesFaq`. Tant que la page d'options
+  // n'existe pas côté WordPress, la requête échoue (champ `faqs` inconnu) :
+  // on affiche alors les catégories de la maquette.
   const loading = status === "loading" && !data;
-  const themes: FaqTheme[] = data?.items.length
-    ? [{ title: data.title || "Questions générales", items: data.items }]
-    : loading ? [] : FAQ_THEMES;
+  const themes: FaqTheme[] = data?.themes.length ? data.themes : loading ? [] : FAQ_THEMES;
 
   return (
     <>

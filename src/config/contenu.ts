@@ -1,4 +1,5 @@
-import type { FaqItem, ScheduleDay } from "../types/wordpress";
+import type { FaqItem, FaqTheme, ScheduleDay } from "../types/wordpress";
+export type { FaqTheme };
 
 /**
  * Contenus de la maquette (doc/maquette/, constantes PLANNING, SERVICES,
@@ -11,48 +12,7 @@ import type { FaqItem, ScheduleDay } from "../types/wordpress";
  */
 
 // ─── Accueil ──────────────────────────────────────────────────────────────
-
-export const HEROS = {
-  accroche:     "Une équipe à votre écoute, votre santé en mouvement.",
-  presentation: "Cinq thérapeutes diplômés vous accompagnent avec passion dans votre rééducation pour soulager vos douleurs et retrouver votre mobilité, au pied du Moléson.",
-} as const;
-
-export const INTRO_ACCUEIL = {
-  titre: "Santé, sport et performance",
-  texte: "Créé par cinq physiothérapeutes passionnés, Physio du Moléson est un centre interdisciplinaire situé au centre-ville de Bulle dédié à la santé, à la réhabilitation et à la performance. Que vous cherchiez à améliorer votre qualité de vie ; que vous soyez sportif·ve ou non, amateur ou professionnel·le désirant améliorer ses performances ; notre équipe est là pour vous aider à atteindre vos objectifs en mettant votre santé au centre de la prise en charge.",
-} as const;
-
-/** Valeurs de la mosaïque (textes à faire valider). Photos Unsplash, créditées. */
-export const VALEURS = [
-  {
-    titre:  "Proximité",
-    texte:  "Un cabinet au centre de Bulle, au pied du Moléson, et des séances à domicile quand vous ne pouvez pas vous déplacer.",
-    photo:  "https://images.unsplash.com/photo-1614450771009-c21bd418af60?fm=jpg&q=70&w=1800&h=460&auto=format&fit=crop&crop=focalpoint&fp-y=0.72&fp-x=0.5",
-    credit: "Ryan Klaus",
-    creditUrl: "https://unsplash.com/@ryankphoto",
-  },
-  {
-    titre:  "Mouvement",
-    texte:  "Le mouvement est au cœur du traitement. Exercices adaptés, entraînement actif et conseils pour rester en mouvement au quotidien.",
-    photo:  "https://images.unsplash.com/photo-1652871325050-189c81306cc3?fm=jpg&q=70&w=1600&auto=format&fit=crop",
-    credit: "Markus Spiske",
-    creditUrl: "https://unsplash.com/@markusspiske",
-  },
-  {
-    titre:  "Écoute",
-    texte:  "Chaque prise en charge commence par vous : vos douleurs, vos objectifs, votre rythme. Nous prenons le temps de comprendre avant de traiter.",
-    photo:  "https://images.unsplash.com/photo-1456694441711-af0ab2d64c96?fm=jpg&q=70&w=1600&auto=format&fit=crop",
-    credit: "Samuel Clara",
-    creditUrl: "https://unsplash.com/@samuelclara",
-  },
-  {
-    titre:  "Sport",
-    texte:  "Blessure, reprise ou performance : nous accompagnons les sportif·ve·s amateurs et confirmés jusqu'au retour sur le terrain.",
-    photo:  "https://images.unsplash.com/photo-1652161413302-9b48a8c0f24a?fm=jpg&q=70&w=1600&auto=format&fit=crop",
-    credit: "Markus Spiske",
-    creditUrl: "https://unsplash.com/@markusspiske",
-  },
-] as const;
+// Tout vient d'ACF (page d'options « Accueil ») : aucun repli ici.
 
 // ─── Cabinet ──────────────────────────────────────────────────────────────
 
@@ -140,7 +100,6 @@ export const BIO_A_COMPLETER = "Portrait à compléter.";
 // Affichée tant que la page d'options ACF « FAQ » n'existe pas côté WordPress
 // (ou ne contient aucune question). Réponses en HTML, comme celles de WP.
 
-export type FaqTheme = { title: string; items: FaqItem[] };
 
 const q = (question: string, answer: string): FaqItem => ({ question, answer: `<p>${answer}</p>` });
 
