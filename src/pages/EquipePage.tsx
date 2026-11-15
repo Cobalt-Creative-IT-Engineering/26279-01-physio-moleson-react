@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useTherapeutes, usePageEquipe } from "../hooks/useWordPress";
 import type { Therapeute } from "../types/wordpress";
 import { PageBanner, BannerText } from "../components/layout";
-import { Skeleton, WPContent } from "../components/ui";
+import { Skeleton, WPContent, Apparition } from "../components/ui";
 import { LANGUES, LANGUE_PAR_DEFAUT } from "../config/contenu";
 import { setPageMeta } from "../lib/meta";
 
@@ -301,7 +301,13 @@ export function EquipePage() {
               <Skeleton className="h-8 w-48 opacity-30" />
             </div>
           )}
-          {membres.length > 0 && <Slider membres={membres} onOpen={setOpenKey} />}
+          {membres.length > 0 && (
+            <Apparition>
+              <div className="reveal">
+                <Slider membres={membres} onOpen={setOpenKey} />
+              </div>
+            </Apparition>
+          )}
         </div>
       </section>
 

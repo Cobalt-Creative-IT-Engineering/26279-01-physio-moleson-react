@@ -3,6 +3,7 @@ import { useCabinetOptions } from "../hooks/useWordPress";
 import type { CabinetItem, WPImage } from "../types/wordpress";
 import { PageBanner, BannerText } from "../components/layout";
 import { setPageMeta } from "../lib/meta";
+import { useReveal } from "../hooks/useReveal";
 
 /** Ancre d'un cabinet, dérivée de son titre (« Cabinet n°66 » → cab-cabinet-n-66). */
 const ancre = (titre: string) =>
@@ -22,13 +23,21 @@ function Photo({ img, alt, className }: { img: WPImage; alt: string; className: 
   );
 }
 
-/** Un cabinet : tag, titre et planning à gauche, galerie à droite. */
+/** Décalage d'apparition des vignettes (classes complètes pour Tailwind). */
+const DELAIS_VIGNETTES = ["[--reveal-delay:250ms]", "[--reveal-delay:350ms]", "[--reveal-delay:450ms]"];
+
+/**
+ * Un cabinet : tag, titre et planning à gauche, galerie à droite. Apparition
+ * au défilement : colonne de gauche depuis la gauche, photo principale depuis
+ * la droite, puis les vignettes l'une après l'autre.
+ */
 function Cabinet({ c }: { c: CabinetItem }) {
+  const ref = useReveal<HTMLElement>(0.15);
   const [principale, ...autres] = c.images;
   return (
-    <section id={ancre(c.titre)} className="section-y scroll-mt-4">
+    <section ref={ref} id={ancre(c.titre)} className="section-y scroll-mt-4">
       <div className="container-x flex flex-wrap gap-[clamp(28px,4vw,64px)] items-start">
-        <div className="flex-[1_1_340px] flex flex-col gap-[18px]">
+        <div className="reveal reveal-gauche flex-[1_1_340px] flex flex-col gap-[18px]">
           {c.tag && <span className="intitule">{c.tag}</span>}
           <h2 className="text-[clamp(22px,2vw,28px)] leading-[1.15] tracking-[-0.01em]">{c.titre}</h2>
           {c.schedule.length > 0 && (
@@ -60,9 +69,18 @@ function Cabinet({ c }: { c: CabinetItem }) {
             en vignettes dessous. Sans photo, pas de colonne. */}
         {principale && (
           <div className="flex-[2_1_520px] min-w-0 grid grid-cols-3 gap-3">
-            <Photo img={principale} alt={c.titre} className="col-span-3 h-[clamp(260px,34vw,460px)]" />
-            {autres.slice(0, 3).map((img) => (
-              <Photo key={img.id} img={img} alt={c.titre} className="h-[clamp(110px,13vw,180px)]" />
+            <Photo
+              img={principale}
+              alt={c.titre}
+              className="reveal reveal-droite [--reveal-delay:120ms] col-span-3 h-[clamp(260px,34vw,460px)]"
+            />
+            {autres.slice(0, 3).map((img, i) => (
+              <Photo
+                key={img.id}
+                img={img}
+                alt={c.titre}
+                className={`reveal ${DELAIS_VIGNETTES[i]} h-[clamp(110px,13vw,180px)]`}
+              />
             ))}
           </div>
         )}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useGlobalOptions, useAccueilOptions } from "../hooks/useWordPress";
 import { PageBanner } from "../components/layout";
-import { SocialLinks } from "../components/ui";
+import { SocialLinks, Apparition } from "../components/ui";
 import { SECRETARIAT } from "../config/site";
 import { lienTel } from "../lib/telephone";
 import { setPageMeta } from "../lib/meta";
@@ -97,8 +97,8 @@ export function ContactPage() {
       <PageBanner title="Nous contacter" video={accueil?.heros.video} />
 
       <section id="contact-form" className="section-y">
-        <div className="container-x grid grid-cols-[repeat(auto-fit,minmax(min(100%,320px),1fr))] gap-[clamp(32px,5vw,80px)]">
-          <div className="flex flex-col gap-[18px]">
+        <Apparition className="container-x grid grid-cols-[repeat(auto-fit,minmax(min(100%,320px),1fr))] gap-[clamp(32px,5vw,80px)]">
+          <div className="reveal reveal-gauche flex flex-col gap-[18px]">
             <h2 className="h2">Une question ? Écrivez-nous.</h2>
             <p className="max-w-[420px]">
               Nous vous répondons par e-mail ou par téléphone. Pour réserver une
@@ -146,17 +146,17 @@ export function ContactPage() {
 
           {/* Encadré olive (on-dark : texte blanc, survol des boutons en blanc) ;
               les champs restent blancs. */}
-          <div className="on-dark bg-olive text-on-dark rounded-[20px] p-[clamp(24px,3.4vw,40px)]">
+          <div className="reveal reveal-droite [--reveal-delay:150ms] on-dark bg-olive text-on-dark rounded-[20px] p-[clamp(24px,3.4vw,40px)]">
             <ContactForm />
           </div>
-        </div>
+        </Apparition>
       </section>
 
       {first && (
       <section id="contact-carte" className="section-y">
-        <div className="container-x flex flex-col gap-6">
-          <h2 className="h2">Nous trouver</h2>
-          <div className="flex flex-col gap-2.5">
+        <Apparition className="container-x flex flex-col gap-6">
+          <h2 className="reveal reveal-gauche h2">Nous trouver</h2>
+          <div className="reveal [--reveal-delay:150ms] flex flex-col gap-2.5">
             <div className="flex flex-col gap-0.5">
               <span className="font-display font-medium text-[20px]">Physio du Moléson</span>
               <span className="text-[15px] text-muted">{first.street}, {ville}</span>
@@ -171,7 +171,7 @@ export function ContactPage() {
               />
             </div>
           </div>
-        </div>
+        </Apparition>
       </section>
       )}
     </>

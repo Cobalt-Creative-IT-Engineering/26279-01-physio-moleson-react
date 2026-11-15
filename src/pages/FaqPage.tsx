@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useFaqOptions, usePageFaq } from "../hooks/useWordPress";
 import type { FaqEntry, FaqTheme } from "../types/wordpress";
 import { PageBanner, BannerText } from "../components/layout";
-import { Skeleton, WPContent } from "../components/ui";
+import { Skeleton, WPContent, Apparition } from "../components/ui";
 import { setPageMeta } from "../lib/meta";
 
 /**
@@ -62,15 +62,12 @@ export function FaqPage() {
           )}
 
           {themes.map((t, ti) => (
-            <section
-              key={t.title}
-              id={`faq-${ti}`}
-              className="scroll-mt-4 grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] gap-x-[clamp(24px,4vw,56px)] gap-y-4 items-start"
-            >
-              <h2 className="text-[clamp(24px,2.4vw,30px)] leading-[1.15]">{t.title}</h2>
+            <section key={t.title} id={`faq-${ti}`} className="scroll-mt-4">
+             <Apparition className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] gap-x-[clamp(24px,4vw,56px)] gap-y-4 items-start">
+              <h2 className="reveal reveal-gauche text-[clamp(24px,2.4vw,30px)] leading-[1.15]">{t.title}</h2>
               {/* Accordéon natif <details>/<summary> : ouverture au clavier et
                   annonce de l'état par les lecteurs d'écran sans JavaScript. */}
-              <div className="sm:col-span-2 min-w-0 flex flex-col border-t border-line">
+              <div className="reveal reveal-droite [--reveal-delay:150ms] sm:col-span-2 min-w-0 flex flex-col border-t border-line">
                 {t.items.map((q) => (
                   <details key={q.question} className="group border-b border-line">
                     <summary className="flex justify-between items-center gap-5 py-5 cursor-pointer list-none [&::-webkit-details-marker]:hidden text-[17px] font-semibold">
@@ -87,13 +84,16 @@ export function FaqPage() {
                   </details>
                 ))}
               </div>
+             </Apparition>
             </section>
           ))}
 
-          <div className="on-dark bg-olive text-on-dark rounded-[20px] p-[clamp(24px,3.4vw,40px)] flex flex-wrap items-center justify-between gap-5">
-            <h2 className="text-[clamp(22px,2.2vw,28px)]">Vous ne trouvez pas votre réponse ?</h2>
-            <a href="/contact" className="btn btn-jaune">Nous contacter →</a>
-          </div>
+          <Apparition>
+            <div className="reveal on-dark bg-olive text-on-dark rounded-[20px] p-[clamp(24px,3.4vw,40px)] flex flex-wrap items-center justify-between gap-5">
+              <h2 className="text-[clamp(22px,2.2vw,28px)]">Vous ne trouvez pas votre réponse ?</h2>
+              <a href="/contact" className="btn btn-jaune">Nous contacter →</a>
+            </div>
+          </Apparition>
         </div>
       </div>
     </>
