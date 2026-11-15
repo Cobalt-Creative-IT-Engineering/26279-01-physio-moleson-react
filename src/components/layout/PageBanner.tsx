@@ -80,8 +80,10 @@ export function PageBanner({
 export function BannerText({ children, soft = false }: { children: ReactNode; soft?: boolean }) {
   return (
     <p
-      className={`max-w-[640px] text-center ${
-        soft ? "text-[16px] leading-[1.6] text-on-dark-soft" : "text-[clamp(17px,1.6vw,20px)] leading-[1.55]"
+      className={`text-center ${
+        soft
+          ? "max-w-[680px] text-[clamp(17px,1.5vw,20px)] leading-[1.6] text-on-dark-soft"
+          : "max-w-[820px] font-display font-medium text-[clamp(26px,3.2vw,44px)] leading-[1.15] tracking-[-0.01em]"
       }`}
     >
       {children}

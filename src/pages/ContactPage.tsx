@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useGlobalOptions } from "../hooks/useWordPress";
+import { useGlobalOptions, useAccueilOptions } from "../hooks/useWordPress";
 import { PageBanner } from "../components/layout";
 import { SocialLinks } from "../components/ui";
 import { SECRETARIAT } from "../config/site";
@@ -24,7 +24,7 @@ function ContactForm() {
       <div role="status" className="flex flex-col gap-3.5 items-start py-5">
         <h3 className="text-[26px]">Merci, votre message est envoyé.</h3>
         <p>Nous vous répondons dans les meilleurs délais.</p>
-        <button type="button" onClick={() => setSent(false)} className="btn btn-ligne text-[14px] px-[18px] py-2.5">
+        <button type="button" onClick={() => setSent(false)} className="btn btn-contour text-[14px] px-[18px] py-2.5">
           Écrire un autre message
         </button>
       </div>
@@ -52,8 +52,8 @@ function ContactForm() {
         <textarea name="message" required rows={5} className="champ resize-y" />
       </label>
       <div className="col-span-full flex flex-wrap items-center justify-between gap-3.5">
-        <span className="text-[13px] text-muted">Pas de données médicales sensibles par ce formulaire.</span>
-        <button type="submit" className="btn btn-vert">Envoyer le message</button>
+        <span className="text-[13px]">Pas de données médicales sensibles par ce formulaire.</span>
+        <button type="submit" className="btn btn-jaune">Envoyer le message</button>
       </div>
     </form>
   );
@@ -63,6 +63,8 @@ function ContactForm() {
 
 export function ContactPage() {
   const { data: g } = useGlobalOptions();
+  // Pas de page d'options Contact : la bannière reprend la vidéo de l'accueil.
+  const { data: accueil } = useAccueilOptions();
 
   useEffect(() => {
     setPageMeta({
@@ -92,7 +94,7 @@ export function ContactPage() {
 
   return (
     <>
-      <PageBanner title="Nous contacter" />
+      <PageBanner title="Nous contacter" video={accueil?.heros.video} />
 
       <section id="contact-form" className="section-y">
         <div className="container-x grid grid-cols-[repeat(auto-fit,minmax(min(100%,320px),1fr))] gap-[clamp(32px,5vw,80px)]">
@@ -142,7 +144,9 @@ export function ContactPage() {
             )}
           </div>
 
-          <div className="bg-sable rounded-[20px] p-[clamp(24px,3.4vw,40px)]">
+          {/* Encadré olive (on-dark : texte blanc, survol des boutons en blanc) ;
+              les champs restent blancs. */}
+          <div className="on-dark bg-olive text-on-dark rounded-[20px] p-[clamp(24px,3.4vw,40px)]">
             <ContactForm />
           </div>
         </div>

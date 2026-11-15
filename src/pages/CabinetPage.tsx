@@ -1,4 +1,4 @@
-import { useEffect, Fragment } from "react";
+import { useEffect } from "react";
 import { useCabinetOptions } from "../hooks/useWordPress";
 import type { CabinetItem, WPImage } from "../types/wordpress";
 import { PageBanner, BannerText } from "../components/layout";
@@ -71,22 +71,6 @@ function Cabinet({ c }: { c: CabinetItem }) {
   );
 }
 
-/** Image de section pleine largeur, recadrée en bandeau. Décorative. */
-function ImageSection({ img }: { img: WPImage }) {
-  return (
-    <div className="section-y">
-      <img
-        src={img.url}
-        alt=""
-        loading="lazy"
-        width={img.width || undefined}
-        height={img.height || undefined}
-        className="block w-full h-[clamp(240px,34vw,520px)] object-cover"
-      />
-    </div>
-  );
-}
-
 /**
  * Page Cabinet : tout vient de la page d'options ACF `pageCabinet` (groupe
  * `cabinet`) : bannière et un bloc par ligne du répéteur des cabinets.
@@ -104,7 +88,6 @@ export function CabinetPage() {
 
   const banner = data?.banner;
   const cabinets = data?.cabinets ?? [];
-  const imageSection = data?.imageSection ?? null;
 
   return (
     <>
@@ -122,12 +105,8 @@ export function CabinetPage() {
         )}
       </PageBanner>
 
-      {/* L'image de section s'intercale après le premier cabinet. */}
-      {cabinets.map((c, i) => (
-        <Fragment key={c.titre}>
-          {i === 1 && imageSection && <ImageSection img={imageSection} />}
-          <Cabinet c={c} />
-        </Fragment>
+      {cabinets.map((c) => (
+        <Cabinet key={c.titre} c={c} />
       ))}
     </>
   );

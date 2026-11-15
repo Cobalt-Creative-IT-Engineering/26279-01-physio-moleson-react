@@ -4,7 +4,7 @@ export function NotFoundPage() {
   return (
     <>
       <PageBanner title="Page introuvable">
-        <BannerText>Le lien que vous avez suivi semble incorrect, ou la page n'existe plus.</BannerText>
+        <BannerText soft>Le lien que vous avez suivi semble incorrect, ou la page n'existe plus.</BannerText>
       </PageBanner>
       <section className="section-y">
         <div className="container-x flex flex-wrap justify-center gap-3">

@@ -197,8 +197,8 @@ a:not(.btn):hover { text-decoration: underline; text-underline-offset: 4px; }
     margin-top: clamp(16px, 2vw, 24px);
     padding: 0 20px;
     text-align: center;
-    font-size: clamp(34px, 4.4vw, 56px);
-    line-height: 1.05;
+    font-size: clamp(40px, 5.6vw, 76px);
+    line-height: 1.02;
     letter-spacing: -0.02em;
   }
 
@@ -521,29 +521,113 @@ a:not(.btn):hover { text-decoration: underline; text-underline-offset: 4px; }
   .prestation:hover .prestation-svg-repos { opacity: 0; }
   .prestation:hover .prestation-svg-survol { opacity: 1; }
 
-  /* ── Portraits de l'équipe ──────────────────────────────────────────── */
-  .portrait-voile {
+  /* ── Slider de l'équipe ────────────────────────────────────────────────
+     Bande olive à bords en biais, image de fond ACF (N&B, assombrie) sous un
+     voile olive, comme la bande des valeurs de l'accueil ; portraits en losange (clip-path) posés
+     au centre de la scène et décalés selon data-pos. Les transitions sont
+     annulées par la règle globale prefers-reduced-motion. */
+  .equipe-slider {
+    --biais: clamp(36px, 6vw, 100px);
+    --losange: clamp(220px, 32vw, 380px);
+    --pas: clamp(160px, 29vw, 370px);
+    position: relative;
+    overflow: hidden;
+    margin-top: clamp(40px, 5vw, 72px);
+    clip-path: polygon(0 var(--biais), 100% 0, 100% calc(100% - var(--biais)), 0 100%);
+    padding-block: calc(var(--biais) + clamp(36px, 5vw, 64px));
+    isolation: isolate;
+    background: var(--color-olive);
+  }
+  .eq-fond {
     position: absolute;
     inset: 0;
-    border-radius: var(--radius-card);
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--color-vert) 35%, transparent) 0%,
-      color-mix(in srgb, var(--color-vert) 92%, transparent) 60%
-    );
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    gap: 12px;
-    padding: 16px;
-    color: var(--color-on-dark);
-    opacity: 0;
-    transition: opacity 0.25s ease;
+    z-index: -1;
+    background-size: cover;
+    background-position: center;
+    filter: grayscale(1) brightness(0.35);
   }
-  .portrait:hover .portrait-voile,
-  .portrait:focus-visible .portrait-voile { opacity: 1; }
-  @media (hover: none) {
-    .portrait-voile { display: none; }
+  /* Voile olive sur la section (pas sur .eq-fond : il hériterait du filtre). */
+  .equipe-slider::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: color-mix(in srgb, var(--color-olive) 72%, transparent);
+  }
+  .eq-scene {
+    position: relative;
+    width: 100%;
+    height: calc(var(--losange) * 1.02);
+    margin-block: clamp(16px, 2.5vw, 32px);
+    touch-action: pan-y;
+  }
+  .eq-item {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--losange);
+    aspect-ratio: 1;
+    transition: transform 0.6s cubic-bezier(0.2, 0, 0, 1), opacity 0.6s ease, filter 0.6s ease;
+  }
+  .eq-losange {
+    position: absolute;
+    inset: 0;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    background: var(--color-vert-raye);
+  }
+  .eq-losange img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    user-select: none;
+  }
+  .eq-item[data-pos="centre"] {
+    z-index: 2;
+    transform: translate(-50%, -50%);
+  }
+  .eq-item[data-pos="gauche"],
+  .eq-item[data-pos="droite"] {
+    z-index: 1;
+    opacity: 0.55;
+    filter: grayscale(1);
+  }
+  .eq-item[data-pos="gauche"] { transform: translate(-50%, -50%) translateX(calc(-1 * var(--pas))) scale(0.58); }
+  .eq-item[data-pos="droite"] { transform: translate(-50%, -50%) translateX(var(--pas)) scale(0.58); }
+  .eq-item[data-pos="gauche"]:hover,
+  .eq-item[data-pos="droite"]:hover { opacity: 0.85; }
+  .eq-item[data-pos^="cache"] { opacity: 0; pointer-events: none; }
+  .eq-item[data-pos="cache-gauche"] { transform: translate(-50%, -50%) translateX(calc(-2 * var(--pas))) scale(0.4); }
+  .eq-item[data-pos="cache-droite"] { transform: translate(-50%, -50%) translateX(calc(2 * var(--pas))) scale(0.4); }
+  .eq-item:focus-visible { outline: none; }
+  .eq-item:focus-visible .eq-losange { outline: 3px solid var(--color-jaune); outline-offset: -3px; }
+  /* Flèches entre le portrait central et ses voisins. */
+  .eq-fleche {
+    position: absolute;
+    top: 50%;
+    z-index: 3;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1.5px solid var(--color-on-dark-soft);
+    color: var(--color-on-dark);
+    font-size: 26px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: translateY(-50%);
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  .eq-fleche:hover { background: var(--color-sable); color: var(--color-vert); }
+  .eq-fleche-g { left: calc(50% - var(--losange) / 2 - 22px); }
+  .eq-fleche-d { right: calc(50% - var(--losange) / 2 - 22px); }
+  /* Petits écrans : place au seul portrait central, flèches sur les bords. */
+  @media (max-width: 640px) {
+    .equipe-slider { --losange: min(72vw, 300px); }
+    .eq-item[data-pos="gauche"],
+    .eq-item[data-pos="droite"] { opacity: 0; pointer-events: none; }
+    .eq-fleche-g { left: 0; }
+    .eq-fleche-d { right: 0; }
   }
 
   /* ── Pied de page ───────────────────────────────────────────────────── */

@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
-import { useTherapeutes } from "../hooks/useWordPress";
+import { useTherapeutes, usePageEquipe } from "../hooks/useWordPress";
 import type { Therapeute } from "../types/wordpress";
 import { PageBanner, BannerText } from "../components/layout";
 import { Skeleton, WPContent } from "../components/ui";
-import { TBOOKING_URL } from "../config/site";
-import { INTRO_EQUIPE, LANGUES, LANGUE_PAR_DEFAUT } from "../config/contenu";
+import { LANGUES, LANGUE_PAR_DEFAUT } from "../config/contenu";
 import { setPageMeta } from "../lib/meta";
 
 /* ─── Données affichées ────────────────────────────────────────────────── */
@@ -35,11 +34,8 @@ const texte = (html: string) =>
 function toMembre(t: Therapeute): Membre {
   const [first, ...rest] = t.name.trim().split(" ");
   const bioHtml = t.bio;
-  const specialites = t.certifs.length
-    ? t.certifs
-    : t.extras
-      ? t.extras.split(/\s*[·,]\s*/).filter(Boolean)
-      : [];
+  // Spécialités : champ texte, éléments séparés par « , », « · » ou « - ».
+  const specialites = t.extras ? t.extras.split(/\s*[·,]\s*|\s+-\s+/).filter(Boolean) : [];
   return {
     key:       String(t.id),
     first,
@@ -47,49 +43,123 @@ function toMembre(t: Therapeute): Membre {
     name:      t.name,
     role:      t.role || "Physiothérapeute",
     bioHtml,
-    bioCourte: t.bioShort || texte(bioHtml),
+    bioCourte: texte(bioHtml),
     specialites,
     langues:   LANGUES[first] ?? LANGUE_PAR_DEFAUT,
     photo:     t.photo,
-    tbooking:  t.tbookingUrl || TBOOKING_URL,
+    // Pas d'URL Tbooking sur la fiche = pas de bouton de rendez-vous.
+    tbooking:  t.tbookingUrl,
   };
 }
 
-/* ─── Carte ────────────────────────────────────────────────────────────── */
+/* ─── Slider ───────────────────────────────────────────────────────────── */
 
-function Carte({ m, onOpen }: { m: Membre; onOpen: () => void }) {
+/** Position d'un portrait par rapport au portrait actif (carrousel circulaire). */
+function position(i: number, actif: number, n: number) {
+  let off = (((i - actif) % n) + n) % n;
+  if (off > n / 2) off -= n;
+  if (off === 0) return "centre";
+  if (off === -1) return "gauche";
+  if (off === 1) return "droite";
+  return off < 0 ? "cache-gauche" : "cache-droite";
+}
+
+/**
+ * Carrousel des thérapeutes : portraits en losange, l'actif au centre en
+ * couleur, ses voisins réduits en noir et blanc. Flèches, clic sur un
+ * voisin, flèches du clavier ou glissé au doigt pour changer ; clic sur le
+ * portrait central pour ouvrir la fiche complète. Pas de défilement
+ * automatique.
+ */
+function Slider({ membres, onOpen }: { membres: Membre[]; onOpen: (key: string) => void }) {
+  const [actif, setActif] = useState(0);
+  const [depart, setDepart] = useState<number | null>(null);
+  const n = membres.length;
+  const aller = (i: number) => setActif(((i % n) + n) % n);
+  const m = membres[actif];
+  if (!m) return null;
+
+  const surClavier = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowLeft")  { e.preventDefault(); aller(actif - 1); }
+    if (e.key === "ArrowRight") { e.preventDefault(); aller(actif + 1); }
+  };
+
   return (
-    <article className="flex flex-col gap-3.5">
-      {/* Toute la photo ouvre le portrait : le voile et son bouton n'en sont
-          que l'indication visuelle (survol ou focus clavier). */}
-      <button
-        type="button"
-        onClick={onOpen}
-        aria-label={`Voir le portrait de ${m.name}`}
-        className="portrait relative block w-full aspect-[4/3] rounded-card text-left"
+    <div
+      role="region"
+      aria-roledescription="carrousel"
+      aria-label="Thérapeutes"
+      onKeyDown={surClavier}
+      className="flex flex-col items-center"
+    >
+
+      <div
+        className="eq-scene"
+        onPointerDown={(e) => setDepart(e.clientX)}
+        onPointerUp={(e) => {
+          if (depart === null) return;
+          const dx = e.clientX - depart;
+          if (Math.abs(dx) > 40) aller(actif + (dx < 0 ? 1 : -1));
+          setDepart(null);
+        }}
       >
-        {m.photo ? (
-          <img src={m.photo.url} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover rounded-card" />
-        ) : (
-          <div className="ph absolute inset-0 rounded-card">
-            <span className="ph-label">Portrait</span>
-          </div>
+        {membres.map((x, i) => {
+          const pos = position(i, actif, n);
+          const visible = pos === "centre" || pos === "gauche" || pos === "droite";
+          return (
+            <button
+              key={x.key}
+              type="button"
+              data-pos={pos}
+              tabIndex={visible ? 0 : -1}
+              aria-hidden={!visible}
+              aria-label={pos === "centre" ? `Voir le portrait de ${x.name}` : `Afficher ${x.name}`}
+              onClick={() => (pos === "centre" ? onOpen(x.key) : aller(i))}
+              className="eq-item"
+            >
+              <span className="eq-losange">
+                {x.photo ? (
+                  <img src={x.photo.url} alt="" loading="lazy" draggable={false} />
+                ) : (
+                  <span className="ph absolute inset-0" />
+                )}
+              </span>
+            </button>
+          );
+        })}
+
+        {n > 1 && (
+          <>
+            <button type="button" onClick={() => aller(actif - 1)} aria-label="Thérapeute précédent" className="eq-fleche eq-fleche-g">
+              ‹
+            </button>
+            <button type="button" onClick={() => aller(actif + 1)} aria-label="Thérapeute suivant" className="eq-fleche eq-fleche-d">
+              ›
+            </button>
+          </>
         )}
-        <div aria-hidden className="portrait-voile">
-          <p className="text-[14px] leading-[1.5] line-clamp-3">{m.bioCourte}</p>
-          <span className="self-start bg-on-dark text-ink rounded-btn px-[18px] py-2.5 font-display font-medium text-[15px]">
-            Voir le portrait →
-          </span>
-        </div>
-      </button>
-      <div className="flex flex-col gap-1">
-        <h2 className="flex flex-col font-display leading-[1.1]">
-          <span className="font-medium text-[28px] tracking-[-0.01em]">{m.first}</span>
-          <span className="font-normal text-[14px] mt-0.5">{m.last}</span>
-        </h2>
-        <span className="text-[14px] text-muted">{m.role}</span>
       </div>
-    </article>
+
+      {/* Fiche courte du portrait actif, annoncée à chaque changement. */}
+      <div aria-live="polite" className="flex flex-col items-center text-center gap-2 max-w-[560px] mt-2">
+        <h2 className="flex flex-col font-display leading-[1.1]">
+          <span className="font-medium text-[clamp(28px,3vw,40px)] tracking-[-0.01em]">{m.first}</span>
+          <span className="font-normal text-[15px] mt-1 uppercase tracking-[0.12em] text-on-dark-soft">{m.last}</span>
+        </h2>
+        <span className="text-[14px] text-on-dark-soft">{m.role}</span>
+        {m.bioCourte && <p className="text-[15px] leading-[1.6] line-clamp-3 mt-1">{m.bioCourte}</p>}
+        <div className="flex flex-wrap justify-center gap-3 mt-3">
+          <button type="button" onClick={() => onOpen(m.key)} className="btn btn-contour">
+            Voir le portrait
+          </button>
+          {m.tbooking && (
+            <a href={m.tbooking} target="_blank" rel="noopener" className="btn btn-jaune">
+              Prendre rendez-vous <span aria-hidden>→</span>
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -172,14 +242,16 @@ function Portrait({ m, onClose }: { m: Membre; onClose: () => void }) {
             </div>
           </div>
 
-          <a
-            href={m.tbooking}
-            target="_blank"
-            rel="noopener"
-            className="btn btn-jaune self-start mt-[22px] px-7 py-4 whitespace-normal text-left"
-          >
-            Prendre rendez-vous avec {m.first} <span aria-hidden>→</span>
-          </a>
+          {m.tbooking && (
+            <a
+              href={m.tbooking}
+              target="_blank"
+              rel="noopener"
+              className="btn btn-jaune self-start mt-[22px] px-7 py-4 whitespace-normal text-left"
+            >
+              Prendre rendez-vous avec {m.first} <span aria-hidden>→</span>
+            </a>
+          )}
         </div>
       </div>
     </div>
@@ -201,28 +273,35 @@ export function EquipePage() {
   }, []);
 
   const loading = status === "loading" && therapeutes.length === 0;
-  const membres = therapeutes.map(toMembre);
+  const { data: page } = usePageEquipe();
+  const banner = page?.banner;
+  const fond = page?.fond ?? null;
+  // Sélection de la page Équipe (champ Relation) : ces thérapeutes, dans cet
+  // ordre ; sans sélection, tous les thérapeutes publiés.
+  const choix = page?.therapeutes ?? [];
+  const liste = choix.length
+    ? choix.map((id) => therapeutes.find((t) => t.id === id)).filter((t): t is Therapeute => !!t)
+    : therapeutes;
+  const membres = liste.map(toMembre);
   const open = membres.find((m) => m.key === openKey) ?? null;
 
   return (
     <>
-      <PageBanner title="Notre équipe">
-        <BannerText>{INTRO_EQUIPE.accroche}</BannerText>
-        <BannerText soft>{INTRO_EQUIPE.texte}</BannerText>
+      <PageBanner title={banner?.titre || "Notre équipe"} video={banner?.video}>
+        {banner?.sousTitre && <BannerText>{banner.sousTitre}</BannerText>}
+        {banner?.description && <BannerText soft>{banner.description}</BannerText>}
       </PageBanner>
 
-      <section className="section-y">
-        <div className="container-x grid grid-cols-[repeat(auto-fill,minmax(min(100%,360px),1fr))] gap-[clamp(20px,2.4vw,32px)]">
-          {loading &&
-            Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex flex-col gap-3.5">
-                <Skeleton className="aspect-[4/3]" />
-                <Skeleton className="h-7 w-1/3" />
-              </div>
-            ))}
-          {membres.map((m) => (
-            <Carte key={m.key} m={m} onOpen={() => setOpenKey(m.key)} />
-          ))}
+      <section className="equipe-slider on-dark">
+        {fond && <div aria-hidden className="eq-fond" style={{ backgroundImage: `url(${fond.url})` }} />}
+        <div className="container-x relative">
+          {loading && (
+            <div className="flex flex-col items-center gap-6">
+              <Skeleton className="w-[clamp(220px,32vw,380px)] aspect-square rotate-45 rounded-none opacity-30" />
+              <Skeleton className="h-8 w-48 opacity-30" />
+            </div>
+          )}
+          {membres.length > 0 && <Slider membres={membres} onOpen={setOpenKey} />}
         </div>
       </section>
 

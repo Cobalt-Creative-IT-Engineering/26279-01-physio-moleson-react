@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { usePagePrestations } from "../hooks/useWordPress";
 import { PageBanner, BannerText } from "../components/layout";
 import { WPContent } from "../components/ui";
-import { TBOOKING_URL } from "../config/site";
 import { setPageMeta } from "../lib/meta";
 
 /**
@@ -46,10 +45,10 @@ export function PrestationsPage() {
   const prestations = data?.prestations ?? [];
   // Encadré Sensopro rendu seulement si le sous-groupe a un titre.
   const senso = data?.sensopro.titre ? data.sensopro : null;
-  const sensoBouton = senso && {
-    label: senso.bouton.label || "Prendre rendez-vous",
-    url:   senso.bouton.url || TBOOKING_URL,
-  };
+  // Bouton affiché seulement si une URL est saisie dans ACF.
+  const sensoBouton = senso?.bouton.url
+    ? { label: senso.bouton.label || "Prendre rendez-vous", url: senso.bouton.url }
+    : null;
 
   return (
     <>
@@ -70,7 +69,7 @@ export function PrestationsPage() {
         </div>
       </section>
 
-      {senso && sensoBouton && (
+      {senso && (
         <section id="sensopro" className="section-y scroll-mt-4">
           <div className="container-x">
             <div className="on-dark rounded-[24px] overflow-hidden flex flex-wrap">
@@ -82,11 +81,13 @@ export function PrestationsPage() {
                 {senso.description && (
                   <WPContent html={senso.description} className="text-[17px] leading-[1.6] text-on-dark-soft max-w-[520px]" />
                 )}
-                <div className="flex flex-wrap gap-3 mt-1">
-                  <a {...linkProps(sensoBouton.url)} className="btn btn-jaune">
-                    {sensoBouton.label} <span aria-hidden>→</span>
-                  </a>
-                </div>
+                {sensoBouton && (
+                  <div className="flex flex-wrap gap-3 mt-1">
+                    <a {...linkProps(sensoBouton.url)} className="btn btn-jaune">
+                      {sensoBouton.label} <span aria-hidden>→</span>
+                    </a>
+                  </div>
+                )}
               </div>
               {/* Galerie ACF en grille : une image pleine colonne, puis deux
                   par ligne ; une dernière image seule prend toute la ligne.

@@ -166,22 +166,40 @@ add_action('init', function () {
 
 > **REMARQUE** : en développement, Vite proxifie `/wp-json` et `/graphql` vers `VITE_WP_URL`, donc le CORS n'est strictement requis que pour les builds de production.
 
-#### FAQ (type de publication « FAQs »)
+#### Contenu WordPress (ACF)
 
-La page [/faq](src/pages/FaqPage.tsx) lit les entrées du type de publication **FAQs**, une entrée
-par question, et les regroupe par catégorie.
+**Tout le contenu vient de WordPress, sans texte de repli** : un champ vide n'est pas affiché.
+Seules exceptions, faute de champ ACF : les langues des thérapeutes
+([src/config/contenu.ts](src/config/contenu.ts)), les horaires du secrétariat et le lien
+Tbooking de l'en-tête et du pied de page ([src/config/site.ts](src/config/site.ts)).
 
-| Élément | Valeur |
-|---|---|
-| Type de publication — noms GraphQL | `faqQuestion` / `faqQuestions` (**pas** `FAQ` : collision avec le groupe `Faq`) |
-| Groupe de champs — nom GraphQL | `faq`, rattaché au type FAQs |
-| Champ texte | `question` (à défaut, le titre de l'entrée) |
-| Champ WYSIWYG | `reponse` |
-| Choix multiple | `categorie` : une question cochée dans plusieurs catégories apparaît dans chacune |
+| Page du site | Source WordPress (nom GraphQL) | Contenu |
+|---|---|---|
+| Accueil | page d'options `accueil`, groupe `accueils` | `banner` (titre, sous-titre, description, 2 boutons, vidéo), `slogan`, `imageSection1` (montagne au-dessus des valeurs), `valeurs` (`imageDeFond`, `valeur1` → `valeur4`) |
+| Prestations | page d'options `prestationPage`, groupe `prestations` | `banner`, répéteur `prestations` (titre, description, `iconeFixe`, `iconeEnMouvement`), sous-groupe `sensopro` (titre, sous-titre, description, bouton, `gallerie`) |
+| Cabinet | page d'options `pageCabinet`, groupe `cabinet` | `banner`, répéteur `cabinet` (titre, détails : tag, galerie, planning jour → thérapeutes) |
+| Équipe | type `therapeutes` + page d'options `pageEquipe`, groupe `equipe` | fiches (rôle, biographie, spécialités, photo, URL Tbooking) ; `bannerEquipe`, `imageDeFond` du carrousel, relation `therapeute` (sélection et ordre, vide = tous) |
+| FAQ | type `faqQuestions` + page d'options `pageFAQs`, groupe `pageFaq` | questions (question, réponse, catégories) ; `bannerFaq` (sous-champ `sousTitrre`, faute conservée), relation `faq` (sélection et ordre, vide = toutes) |
+| Contact, en-tête, pied de page | page d'options `optGlobale`, groupe `optionsGlobale` | téléphone, e-mail, adresses, réseaux sociaux, logo, résumé. La bannière Contact reprend la vidéo de l'accueil. |
 
-Ordre : champ « Ordre » de WordPress, puis date de création. Les catégories apparaissent dans
-l'ordre de leur première question ; une question sans catégorie va dans « Questions générales ».
-Sans aucune question publiée, la page n'affiche aucune question (pas de contenu de repli).
+Règles à respecter côté WordPress, toutes apprises à nos dépens :
+
+- **Noms de champ uniques entre pages d'options.** ACF enregistre toutes les pages d'options au
+  même endroit (`options_<nom du champ>`). Deux champs `banner` sur deux pages partagent donc leurs
+  valeurs. Les bannières s'appellent `banner-accueil`, `banner-prestations`, `banner-cabinet`,
+  `banner-equipe`, `banner-faq` (le **GraphQL Field Name** peut rester `banner`).
+- **Noms GraphQL distincts** entre une page d'options (ou un type de publication) et le groupe
+  qu'elle porte : `FAQ` + `Faq` ou `Sensopro` + `Sensopro` s'écrasent. Pas d'accent dans un nom
+  GraphQL (`pageéQuipe` casse le rattachement).
+- **« Manually Set GraphQL Types » désactivé** sur les groupes : activé sans type coché, le groupe
+  n'est rattaché à rien.
+- **Médias rattachés à une entrée supprimée** : un fichier téléversé depuis une fiche mise à la
+  corbeille devient privé (401) et le champ image renvoie `null`. Vider la corbeille ou
+  « Détacher » le fichier dans Médias.
+- **Renommer ou supprimer un champ casse la requête de sa page** tant que le code n'est pas
+  adapté : prévenir le développeur.
+- **Ordre** des fiches thérapeutes et des questions : champ « Ordre » de WordPress, puis date de
+  création.
 
 ### Configuration
 
@@ -190,6 +208,7 @@ Les principaux points d'entrée de configuration :
 - `src/config/site.ts`
   - `SITE_CONFIG` — nom du site, langue, description (utilisés comme valeurs par défaut pour les meta tags)
   - `SECRETARIAT` — horaires du secrétariat (téléphone, e-mail, adresses et réseaux sociaux viennent des options globales ACF)
+  - `TBOOKING_URL` — prise de rendez-vous de l'en-tête et du pied de page (les autres boutons Tbooking viennent d'ACF et sont masqués sans URL)
   - `NAV_ITEMS` — items de navigation (`cta: true` pour afficher un item sous forme de bouton)
   - `ACTIVE_THEME` — sélectionne le thème visuel actif (voir [src/themes/](src/themes/))
 - `src/config/acf-schemas.ts` — mapping clé sémantique TypeScript → slug ACF dans WordPress

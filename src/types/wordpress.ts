@@ -187,9 +187,19 @@ export type FaqItem = { question: string; answer: string /* HTML wysiwyg */ };
 /** Une catégorie de la FAQ et ses questions. */
 export type FaqTheme = { title: string; items: FaqItem[] };
 
-/** FAQ : questions du type `faqQuestion`, regroupées par catégorie. */
+/** Une question du type `faqQuestion`. */
+export type FaqEntry = { id: number; question: string; answer: string; categories: string[] };
+
+/** FAQ : toutes les questions publiées (regroupées par la page). */
 export interface FaqOptions {
-  themes: FaqTheme[];
+  questions: FaqEntry[];
+}
+
+/** Page d'options « Page FAQ » : bannière et sélection de questions. */
+export interface PageFaq {
+  banner:    { titre: string; sousTitre: string; description: string; video: string | null };
+  /** IDs des questions choisies, dans l'ordre ; vide = toutes. */
+  questions: number[];
 }
 
 /** Une journée du planning hebdomadaire d'un cabinet. */
@@ -198,8 +208,6 @@ export type ScheduleDay = { day: string; names: string[] };
 /** Page d'options « Cabinet » : bannière et un bloc par cabinet. */
 export interface CabinetOptions {
   banner:       { titre: string; sousTitre: string; description: string; video: string | null };
-  /** Image pleine largeur affichée entre les cabinets. */
-  imageSection: WPImage | null;
   cabinets:     CabinetItem[];
 }
 
@@ -211,16 +219,21 @@ export interface CabinetItem {
   schedule:    ScheduleDay[];
 }
 
+/** Page d'options « Page équipe » : bannière, fond du carrousel, sélection. */
+export interface PageEquipe {
+  banner:      { titre: string; sousTitre: string; description: string; video: string | null };
+  fond:        WPImage | null;
+  /** IDs des thérapeutes choisis, dans l'ordre ; vide = tous. */
+  therapeutes: number[];
+}
+
 /** Thérapeute (CPT). Le titre WordPress est le nom du/de la thérapeute. */
 export interface Therapeute {
   id:           number;
   slug:         string;
   name:         string;
   role:         string;
-  since:        number | null;
-  certifs:      string[];
   bio:          string; // HTML wysiwyg
-  bioShort:     string;
   extras:       string;
   photo:        WPImage | null;
   tbookingUrl:  string;

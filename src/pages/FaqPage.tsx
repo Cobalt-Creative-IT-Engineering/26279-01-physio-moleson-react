@@ -1,11 +1,29 @@
 import { useEffect } from "react";
-import { useFaqOptions } from "../hooks/useWordPress";
-import { PageBanner } from "../components/layout";
+import { useFaqOptions, usePageFaq } from "../hooks/useWordPress";
+import type { FaqEntry, FaqTheme } from "../types/wordpress";
+import { PageBanner, BannerText } from "../components/layout";
 import { Skeleton, WPContent } from "../components/ui";
 import { setPageMeta } from "../lib/meta";
 
+/**
+ * Regroupement par catégorie, dans l'ordre de première apparition. Une
+ * question cochée dans plusieurs catégories figure dans chacune ; sans
+ * catégorie, elle rejoint « Questions générales ».
+ */
+function parCategorie(questions: FaqEntry[]): FaqTheme[] {
+  const groupes = new Map<string, FaqTheme["items"]>();
+  for (const q of questions) {
+    for (const cat of q.categories.length ? q.categories : ["Questions générales"]) {
+      if (!groupes.has(cat)) groupes.set(cat, []);
+      groupes.get(cat)!.push({ question: q.question, answer: q.answer });
+    }
+  }
+  return [...groupes].map(([title, items]) => ({ title, items }));
+}
+
 export function FaqPage() {
   const { data, status } = useFaqOptions();
+  const { data: page } = usePageFaq();
 
   useEffect(() => {
     setPageMeta({
@@ -15,22 +33,22 @@ export function FaqPage() {
     });
   }, []);
 
-  // Questions WordPress (type `faqQuestion`) regroupées par catégorie.
+  // Questions WordPress (type `faqQuestion`). Sélection de la page FAQ
+  // (champ Relation) : ces questions, dans cet ordre ; sinon toutes.
   const loading = status === "loading" && !data;
-  const themes = data?.themes ?? [];
+  const toutes = data?.questions ?? [];
+  const choix = page?.questions ?? [];
+  const questions = choix.length
+    ? choix.map((id) => toutes.find((q) => q.id === id)).filter((q): q is FaqEntry => !!q)
+    : toutes;
+  const themes = parCategorie(questions);
+  const banner = page?.banner;
 
   return (
     <>
-      <PageBanner title="Questions fréquentes">
-        {themes.length > 1 && (
-          <div className="flex flex-wrap justify-center gap-2.5 mt-2">
-            {themes.map((t, i) => (
-              <a key={t.title} href={`/faq#faq-${i}`} className="btn btn-contour">
-                {t.title}
-              </a>
-            ))}
-          </div>
-        )}
+      <PageBanner title={banner?.titre || "Questions fréquentes"} video={banner?.video}>
+        {banner?.sousTitre && <BannerText>{banner.sousTitre}</BannerText>}
+        {banner?.description && <BannerText soft>{banner.description}</BannerText>}
       </PageBanner>
 
       <div className="container-x pt-[clamp(40px,5vw,72px)]">
@@ -72,9 +90,9 @@ export function FaqPage() {
             </section>
           ))}
 
-          <div className="bg-sable rounded-[20px] p-[clamp(24px,3.4vw,40px)] flex flex-wrap items-center justify-between gap-5">
+          <div className="on-dark bg-olive text-on-dark rounded-[20px] p-[clamp(24px,3.4vw,40px)] flex flex-wrap items-center justify-between gap-5">
             <h2 className="text-[clamp(22px,2.2vw,28px)]">Vous ne trouvez pas votre réponse ?</h2>
-            <a href="/contact" className="btn btn-vert">Nous contacter →</a>
+            <a href="/contact" className="btn btn-jaune">Nous contacter →</a>
           </div>
         </div>
       </div>

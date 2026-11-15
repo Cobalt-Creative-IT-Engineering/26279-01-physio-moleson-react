@@ -26,8 +26,9 @@ import type {
   AccueilOptions,
   CTA,
   PagePrestations,
+  PageEquipe,
+  PageFaq,
   FaqOptions,
-  FaqItem,
   CabinetOptions,
   Therapeute,
   CabinetAddress,
@@ -590,33 +591,79 @@ type GQLFaqResponse = {
 function fromGQLFaq(d: GQLFaqResponse | null): FaqOptions | null {
   const nodes = d?.faqQuestions?.nodes;
   if (!nodes) return null;
-  // Regroupement par catégorie, dans l'ordre de première apparition. Une
-  // question cochée dans plusieurs catégories figure dans chacune ; sans
-  // catégorie, elle rejoint « Questions générales ».
-  const groupes = new Map<string, FaqItem[]>();
-  for (const n of nodes) {
-    const question = n.faq?.question?.trim() || n.title?.trim() || "";
-    if (!question) continue;
-    const item: FaqItem = { question, answer: n.faq?.reponse ?? "" };
-    const cats = (n.faq?.categorie ?? []).map((c) => c.trim()).filter(Boolean);
-    for (const cat of cats.length ? cats : ["Questions générales"]) {
-      if (!groupes.has(cat)) groupes.set(cat, []);
-      groupes.get(cat)!.push(item);
+  return {
+    questions: nodes
+      .map((n) => ({
+        id:         n.databaseId,
+        question:   n.faq?.question?.trim() || n.title?.trim() || "",
+        answer:     n.faq?.reponse ?? "",
+        categories: (n.faq?.categorie ?? []).map((c) => c.trim()).filter(Boolean),
+      }))
+      .filter((q) => q.question),
+  };
+}
+
+// ─── Page FAQ via WPGraphQL (ACF Options Page `pageFAQs`) ─────────────────
+// Groupe `pageFaq` (type PageFaq) : bannière (`bannerFaq`) et relation `faq`
+// (questions choisies et ordonnées). Le sous-champ du sous-titre s'appelle
+// `sousTitrre` côté ACF (faute de frappe conservée) ; s'il est renommé,
+// adapter ici.
+const GQL_PAGE_FAQ = `
+  query PageFaq {
+    pageFAQs {
+      pageFaq {
+        bannerFaq { titre sousTitrre description video { node { mediaItemUrl } } }
+        faq { nodes { databaseId } }
+      }
     }
   }
-  return { themes: [...groupes].map(([title, items]) => ({ title, items })) };
+`;
+
+type GQLPageFaqResponse = {
+  pageFAQs: {
+    pageFaq: {
+      bannerFaq: {
+        titre: string | null;
+        sousTitrre: string | null;
+        description: string | null;
+        video: { node: { mediaItemUrl: string | null } } | null;
+      } | null;
+      faq: { nodes: { databaseId: number }[] } | null;
+    } | null;
+  } | null;
+};
+
+function fromGQLPageFaq(d: GQLPageFaqResponse | null): PageFaq | null {
+  const f = d?.pageFAQs?.pageFaq;
+  if (!f) return null;
+  return {
+    banner: {
+      titre:       f.bannerFaq?.titre ?? "",
+      sousTitre:   f.bannerFaq?.sousTitrre ?? "",
+      description: f.bannerFaq?.description ?? "",
+      video:       f.bannerFaq?.video?.node?.mediaItemUrl ?? null,
+    },
+    questions: (f.faq?.nodes ?? []).map((n) => n.databaseId),
+  };
+}
+
+export function usePageFaq() {
+  const state = useFetch<GQLPageFaqResponse>(
+    () => graphqlFetch<GQLPageFaqResponse>(GQL_PAGE_FAQ),
+    { cacheKey: "gql-page-faq", staleMs: 120_000, persist: true }
+  );
+  const data = useMemo(() => fromGQLPageFaq(state.data), [state.data]);
+  return { ...state, data };
 }
 
 // ─── Cabinet via WPGraphQL (ACF Options Page `pageCabinet`) ───────────────
 // Groupe `cabinet` (type Cabinet) : bannière et répéteur `cabinet`, une ligne
-// par cabinet (titre, détails : tag, galerie, planning jour → thérapeute(s)),
-// plus une image de section affichée entre les cabinets.
+// par cabinet (titre, détails : tag, galerie, planning jour → thérapeute(s)).
 const GQL_CABINET = `
   query Cabinet {
     pageCabinet {
       cabinet {
         banner { titre sousTitre description video { node { mediaItemUrl } } }
-        imageSection { node { sourceUrl altText databaseId mediaDetails { width height } } }
         cabinet {
           titre
           details {
@@ -641,7 +688,6 @@ type GQLCabinetResponse = {
         description: string | null;
         video: { node: { mediaItemUrl: string | null } } | null;
       } | null;
-      imageSection: GQLMediaEdge;
       cabinet: {
         titre: string | null;
         details: { tag: string | null; gallerie: GQLMediaConnection; planning: GQLPlanningRow[] | null } | null;
@@ -673,7 +719,6 @@ function fromGQLCabinet(d: GQLCabinetResponse | null): CabinetOptions | null {
       description: c.banner?.description ?? "",
       video:       c.banner?.video?.node?.mediaItemUrl ?? null,
     },
-    imageSection: fromGQLMedia(c.imageSection ?? null),
     // Une ligne de répéteur sans titre n'a rien à afficher.
     cabinets: (c.cabinet ?? [])
       .filter((x) => x.titre?.trim())
@@ -777,12 +822,9 @@ const GQL_THERAPEUTES = `
         title
         therapeutes {
           role
-          debutDactivite
           biographie
-          biographieCourt
           specialites
           urlTbooking
-          certifications { designation }
           photo { node { sourceUrl altText databaseId mediaDetails { width height } } }
         }
       }
@@ -795,13 +837,11 @@ type GQLTherapeuteNode = {
   slug: string;
   title: string | null;
   therapeutes: {
-    role: string | null;
-    debutDactivite: number | null;
+    // Champ « choix » : chaîne ou liste selon le réglage ACF (sélection multiple).
+    role: string | string[] | null;
     biographie: string | null;
-    biographieCourt: string | null;
     specialites: string | null;
     urlTbooking: string | null;
-    certifications: { designation: string | null }[] | null;
     photo: GQLMediaEdge;
   } | null;
 };
@@ -814,17 +854,66 @@ function fromGQLTherapeute(n: GQLTherapeuteNode): Therapeute {
     id:          n.databaseId,
     slug:        n.slug,
     name:        n.title ?? "",
-    role:        a?.role ?? "",
-    since:       typeof a?.debutDactivite === "number" ? a.debutDactivite : null,
-    certifs:     (a?.certifications ?? [])
-                   .map((c) => c?.designation ?? "")
-                   .filter(Boolean),
+    role:        Array.isArray(a?.role) ? a.role.filter(Boolean).join(", ") : a?.role ?? "",
     bio:         a?.biographie ?? "",
-    bioShort:    a?.biographieCourt ?? "",
     extras:      a?.specialites ?? "",
     photo:       fromGQLMedia(a?.photo ?? null),
     tbookingUrl: a?.urlTbooking ?? "",
   };
+}
+
+// ─── Page Équipe via WPGraphQL (ACF Options Page `pageEquipe`) ────────────
+// Groupe `equipe` (type Equipe) : bannière (`bannerEquipe`), image de fond du
+// carrousel et relation `therapeute` (thérapeutes choisis et ordonnés).
+const GQL_PAGE_EQUIPE = `
+  query PageEquipe {
+    pageEquipe {
+      equipe {
+        bannerEquipe { titre sousTitre description video { node { mediaItemUrl } } }
+        imageDeFond { node { sourceUrl altText databaseId mediaDetails { width height } } }
+        therapeute { nodes { databaseId } }
+      }
+    }
+  }
+`;
+
+type GQLPageEquipeResponse = {
+  pageEquipe: {
+    equipe: {
+      bannerEquipe: {
+        titre: string | null;
+        sousTitre: string | null;
+        description: string | null;
+        video: { node: { mediaItemUrl: string | null } } | null;
+      } | null;
+      imageDeFond: GQLMediaEdge;
+      therapeute: { nodes: { databaseId: number }[] } | null;
+    } | null;
+  } | null;
+};
+
+function fromGQLPageEquipe(d: GQLPageEquipeResponse | null): PageEquipe | null {
+  const e = d?.pageEquipe?.equipe;
+  if (!e) return null;
+  return {
+    banner: {
+      titre:       e.bannerEquipe?.titre ?? "",
+      sousTitre:   e.bannerEquipe?.sousTitre ?? "",
+      description: e.bannerEquipe?.description ?? "",
+      video:       e.bannerEquipe?.video?.node?.mediaItemUrl ?? null,
+    },
+    fond:        fromGQLMedia(e.imageDeFond ?? null),
+    therapeutes: (e.therapeute?.nodes ?? []).map((n) => n.databaseId),
+  };
+}
+
+export function usePageEquipe() {
+  const state = useFetch<GQLPageEquipeResponse>(
+    () => graphqlFetch<GQLPageEquipeResponse>(GQL_PAGE_EQUIPE),
+    { cacheKey: "gql-page-equipe", staleMs: 120_000, persist: true }
+  );
+  const data = useMemo(() => fromGQLPageEquipe(state.data), [state.data]);
+  return { ...state, data };
 }
 
 /** Liste des thérapeutes via WPGraphQL, ordonnés par menu_order côté WP. */
