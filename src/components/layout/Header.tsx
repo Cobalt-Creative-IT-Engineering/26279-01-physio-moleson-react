@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { NAV_ITEMS, CONTACT, TBOOKING_URL } from "../../config/site";
+import { NAV_ITEMS, TBOOKING_URL } from "../../config/site";
+import { useGlobalOptions } from "../../hooks/useWordPress";
+import { lienTel } from "../../lib/telephone";
 import { useRoute } from "../../hooks/useRoute";
 import { Logo } from "../ui";
 
@@ -23,6 +25,9 @@ function PhoneIcon() {
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const { route } = useRoute();
+  // Téléphone des options globales ACF ; masqué tant qu'il est vide.
+  const { data: g } = useGlobalOptions();
+  const phone = g?.phone ?? "";
 
   const isActive = (url: string) => (url === "/" ? route === "/" : route.startsWith(url));
 
@@ -60,10 +65,12 @@ export function SiteHeader() {
             {item.title}
           </a>
         ))}
-        <a href={`tel:${CONTACT.phoneTel}`} className="nav-lien inline-flex items-center gap-2 whitespace-nowrap">
-          <PhoneIcon />
-          {CONTACT.phone}
-        </a>
+        {phone && (
+          <a href={`tel:${lienTel(phone)}`} className="nav-lien inline-flex items-center gap-2 whitespace-nowrap">
+            <PhoneIcon />
+            {phone}
+          </a>
+        )}
         <a href={TBOOKING_URL} target="_blank" rel="noopener" className="btn btn-jaune btn-nav">
           Prendre rendez-vous
         </a>
@@ -116,10 +123,12 @@ export function SiteHeader() {
                 {item.title}
               </a>
             ))}
-            <a href={`tel:${CONTACT.phoneTel}`} className="nav-lien inline-flex items-center gap-2 mt-8 text-[17px]">
-              <PhoneIcon />
-              {CONTACT.phone}
-            </a>
+            {phone && (
+              <a href={`tel:${lienTel(phone)}`} className="nav-lien inline-flex items-center gap-2 mt-8 text-[17px]">
+                <PhoneIcon />
+                {phone}
+              </a>
+            )}
             <a href={TBOOKING_URL} target="_blank" rel="noopener" className="btn btn-jaune self-start mt-6">
               Prendre rendez-vous <span aria-hidden>→</span>
             </a>

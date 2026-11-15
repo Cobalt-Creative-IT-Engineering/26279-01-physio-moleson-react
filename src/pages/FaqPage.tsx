@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useFaqOptions } from "../hooks/useWordPress";
 import { PageBanner } from "../components/layout";
 import { Skeleton, WPContent } from "../components/ui";
-import { FAQ_THEMES, type FaqTheme } from "../config/contenu";
 import { setPageMeta } from "../lib/meta";
 
 export function FaqPage() {
@@ -16,11 +15,9 @@ export function FaqPage() {
     });
   }, []);
 
-  // Catégories du répéteur ACF `categoriesFaq`. Tant que la page d'options
-  // n'existe pas côté WordPress, la requête échoue (champ `faqs` inconnu) :
-  // on affiche alors les catégories de la maquette.
+  // Questions WordPress (type `faqQuestion`) regroupées par catégorie.
   const loading = status === "loading" && !data;
-  const themes: FaqTheme[] = data?.themes.length ? data.themes : loading ? [] : FAQ_THEMES;
+  const themes = data?.themes ?? [];
 
   return (
     <>

@@ -1,5 +1,6 @@
-import { SITE_CONFIG, SOCIAL_LINKS, COMING_SOON_UNTIL } from "../config/site";
-import { Logo } from "../components/ui";
+import { SITE_CONFIG, COMING_SOON_UNTIL } from "../config/site";
+import { Logo, SocialLinks } from "../components/ui";
+import { useGlobalOptions } from "../hooks/useWordPress";
 
 // Affichée via App.tsx quand FORCE_COMING_SOON=true ou que la date
 // VITE_COMING_SOON_UNTIL n'est pas encore atteinte.
@@ -10,7 +11,8 @@ export function ComingSoonPage() {
       })
     : null;
 
-  const socials = Object.entries(SOCIAL_LINKS).filter(([, url]) => !!url);
+  // Réseaux sociaux des options globales ACF.
+  const { data: g } = useGlobalOptions();
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4 sm:px-12">
@@ -26,17 +28,9 @@ export function ComingSoonPage() {
             Ouverture prévue le <strong className="text-ink">{dateLabel}</strong>.
           </p>
         )}
-        {socials.length > 0 && (
-          <ul className="flex gap-6 mt-2">
-            {socials.map(([name, url]) => (
-              <li key={name}>
-                <a href={url} target="_blank" rel="noreferrer" className="link capitalize">
-                  {name}
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
+        <div className="mt-2">
+          <SocialLinks links={g?.social} />
+        </div>
       </div>
     </main>
   );

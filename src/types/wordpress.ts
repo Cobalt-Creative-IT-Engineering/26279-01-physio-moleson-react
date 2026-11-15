@@ -109,9 +109,6 @@ export type GQLImage = {
 /** Bouton d'appel à l'action. */
 export type CTA = { label: string; url: string };
 
-/** Un bénéfice ou une étape Sensopro. */
-export type SensoproItem = { number: string; title: string; description: string };
-
 /** Adresse d'un cabinet. */
 export type CabinetAddress = {
   id: number;
@@ -164,54 +161,54 @@ export interface AccueilOptions {
 /** Une valeur de l'accueil (groupe `valeurN`). */
 export type AccueilValeur = { titre: string; description: string; image: WPImage | null };
 
-/** Options Page "Sensopro". */
-export interface SensoproOptions {
-  title:             string;
-  intro:             string; // HTML wysiwyg
-  image:             WPImage | null;
-  benefits:          SensoproItem[];
-  steps:             SensoproItem[];
-  firstSessionTitle: string;
-  firstSessionText:  string; // HTML wysiwyg
+/** Page d'options « Page prestations » : bannière, prestations, Sensopro. */
+export interface PagePrestations {
+  banner:      { titre: string; sousTitre: string; description: string; video: string | null };
+  prestations: PrestationItem[];
+  sensopro: {
+    titre:       string;
+    sousTitre:   string;
+    description: string; // HTML wysiwyg ou texte
+    bouton:      CTA;
+    galerie:     WPImage[];
+  };
 }
 
-/** Options Page "FAQ". */
+/** Une ligne du répéteur des prestations. */
+export interface PrestationItem {
+  titre:       string;
+  description: string; // HTML wysiwyg
+  /** Pictogramme SVG : version fixe et version animée (boucle). */
+  icone:       { fixe: string | null; mouvement: string | null };
+}
+
 export type FaqItem = { question: string; answer: string /* HTML wysiwyg */ };
 
 /** Une catégorie de la FAQ et ses questions. */
 export type FaqTheme = { title: string; items: FaqItem[] };
 
+/** FAQ : questions du type `faqQuestion`, regroupées par catégorie. */
 export interface FaqOptions {
-  title:  string;
-  intro:  string; // HTML wysiwyg
   themes: FaqTheme[];
 }
 
-/** Options Page "Cabinet" — galeries des deux cabinets. */
 /** Une journée du planning hebdomadaire d'un cabinet. */
 export type ScheduleDay = { day: string; names: string[] };
 
+/** Page d'options « Cabinet » : bannière et un bloc par cabinet. */
 export interface CabinetOptions {
-  title:      string;
-  intro:      string; // HTML wysiwyg
-  tag66:      string;
-  images66:   WPImage[];
-  schedule66: ScheduleDay[];
-  tag68:      string;
-  images68:   WPImage[];
-  schedule68: ScheduleDay[];
+  banner:       { titre: string; sousTitre: string; description: string; video: string | null };
+  /** Image pleine largeur affichée entre les cabinets. */
+  imageSection: WPImage | null;
+  cabinets:     CabinetItem[];
 }
 
-/** Service (CPT). Le titre WordPress est le nom du service. */
-export interface Service {
-  id:          number;
-  slug:        string;
-  title:       string;
-  num:         string;
-  short:       string;
-  description: string; // HTML wysiwyg
-  tags:        string[];
-  image:       WPImage | null;
+/** Une ligne du répéteur des cabinets. */
+export interface CabinetItem {
+  titre:       string;
+  tag:         string;
+  images:      WPImage[];
+  schedule:    ScheduleDay[];
 }
 
 /** Thérapeute (CPT). Le titre WordPress est le nom du/de la thérapeute. */

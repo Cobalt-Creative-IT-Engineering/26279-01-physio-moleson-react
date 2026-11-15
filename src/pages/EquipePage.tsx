@@ -4,9 +4,7 @@ import type { Therapeute } from "../types/wordpress";
 import { PageBanner, BannerText } from "../components/layout";
 import { Skeleton, WPContent } from "../components/ui";
 import { TBOOKING_URL } from "../config/site";
-import {
-  INTRO_EQUIPE, EQUIPE, BIOS, BIO_A_COMPLETER, LANGUES, LANGUE_PAR_DEFAUT,
-} from "../config/contenu";
+import { INTRO_EQUIPE, LANGUES, LANGUE_PAR_DEFAUT } from "../config/contenu";
 import { setPageMeta } from "../lib/meta";
 
 /* ─── Données affichées ────────────────────────────────────────────────── */
@@ -31,18 +29,17 @@ const texte = (html: string) =>
     .trim();
 
 /**
- * Fiche WordPress complétée par la maquette : bio, langues et spécialités
- * sont cherchées par prénom quand WordPress ne les renseigne pas.
+ * Fiche WordPress. Seules les langues, sans champ ACF, sont cherchées par
+ * prénom dans contenu.ts.
  */
 function toMembre(t: Therapeute): Membre {
   const [first, ...rest] = t.name.trim().split(" ");
-  const bioRepli = BIOS[first];
-  const bioHtml = t.bio || (bioRepli ? bioRepli.map((p) => `<p>${p}</p>`).join("") : `<p>${BIO_A_COMPLETER}</p>`);
+  const bioHtml = t.bio;
   const specialites = t.certifs.length
     ? t.certifs
     : t.extras
       ? t.extras.split(/\s*[·,]\s*/).filter(Boolean)
-      : EQUIPE.find((e) => e.nom === t.name)?.specialites ?? [];
+      : [];
   return {
     key:       String(t.id),
     first,
@@ -50,19 +47,13 @@ function toMembre(t: Therapeute): Membre {
     name:      t.name,
     role:      t.role || "Physiothérapeute",
     bioHtml,
-    bioCourte: t.bioShort || (bioRepli ? bioRepli[0] : texte(bioHtml)),
+    bioCourte: t.bioShort || texte(bioHtml),
     specialites,
     langues:   LANGUES[first] ?? LANGUE_PAR_DEFAUT,
     photo:     t.photo,
     tbooking:  t.tbookingUrl || TBOOKING_URL,
   };
 }
-
-/** Équipe de la maquette, si WordPress ne renvoie personne. */
-const EQUIPE_REPLI: Therapeute[] = EQUIPE.map((e, i) => ({
-  id: -(i + 1), slug: "", name: e.nom, role: "", since: e.depuis,
-  certifs: e.specialites, bio: "", bioShort: "", extras: "", photo: null, tbookingUrl: "",
-}));
 
 /* ─── Carte ────────────────────────────────────────────────────────────── */
 
@@ -210,7 +201,7 @@ export function EquipePage() {
   }, []);
 
   const loading = status === "loading" && therapeutes.length === 0;
-  const membres = (therapeutes.length ? therapeutes : loading ? [] : EQUIPE_REPLI).map(toMembre);
+  const membres = therapeutes.map(toMembre);
   const open = membres.find((m) => m.key === openKey) ?? null;
 
   return (

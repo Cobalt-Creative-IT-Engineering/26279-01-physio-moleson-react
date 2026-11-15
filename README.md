@@ -166,30 +166,22 @@ add_action('init', function () {
 
 > **REMARQUE** : en développement, Vite proxifie `/wp-json` et `/graphql` vers `VITE_WP_URL`, donc le CORS n'est strictement requis que pour les builds de production.
 
-#### Page d'options « FAQ » (à créer)
+#### FAQ (type de publication « FAQs »)
 
-La page [/faq](src/pages/FaqPage.tsx) lit une page d'options ACF qui **n'existe pas encore** côté
-WordPress. En attendant, elle affiche les catégories de la maquette (`FAQ_THEMES` de
-[src/config/contenu.ts](src/config/contenu.ts)) ; elles disparaissent d'elles-mêmes dès que
-WordPress renvoie au moins une catégorie contenant une question.
+La page [/faq](src/pages/FaqPage.tsx) lit les entrées du type de publication **FAQs**, une entrée
+par question, et les regroupe par catégorie.
 
 | Élément | Valeur |
 |---|---|
-| Page d'options — nom GraphQL | `faqs` |
-| Groupe de champs — nom GraphQL | `faq` (différent de la page : règle anti-collision) |
-| Champ texte | `titre_faq` → `titreFaq` (facultatif, titre de la page) |
-| Champ WYSIWYG | `intro_faq` → `introFaq` (facultatif) |
-| Répéteur | `categories_faq` → `categoriesFaq` : une ligne par catégorie |
-| ↳ Champ texte | `titre` (nom de la catégorie, ex. « Remboursement ») |
-| ↳ Répéteur imbriqué | `questions`, sous-champs `question` (texte) et `reponse` (WYSIWYG) |
+| Type de publication — noms GraphQL | `faqQuestion` / `faqQuestions` (**pas** `FAQ` : collision avec le groupe `Faq`) |
+| Groupe de champs — nom GraphQL | `faq`, rattaché au type FAQs |
+| Champ texte | `question` (à défaut, le titre de l'entrée) |
+| Champ WYSIWYG | `reponse` |
+| Choix multiple | `categorie` : une question cochée dans plusieurs catégories apparaît dans chacune |
 
-L'ordre des catégories et des questions est celui des répéteurs. Une catégorie sans titre
-s'affiche sous « Questions générales » ; une catégorie sans question est masquée. Dès qu'il y a
-plus d'une catégorie, la bannière affiche un bouton par catégorie (ancre `#faq-N`).
-
-Activer « Show in GraphQL » sur la page d'options et sur le groupe. Les noms GraphQL doivent
-correspondre **exactement** : un champ inconnu fait échouer toute la requête, et la page
-retombe sur la maquette.
+Ordre : champ « Ordre » de WordPress, puis date de création. Les catégories apparaissent dans
+l'ordre de leur première question ; une question sans catégorie va dans « Questions générales ».
+Sans aucune question publiée, la page n'affiche aucune question (pas de contenu de repli).
 
 ### Configuration
 
@@ -197,7 +189,7 @@ Les principaux points d'entrée de configuration :
 
 - `src/config/site.ts`
   - `SITE_CONFIG` — nom du site, langue, description (utilisés comme valeurs par défaut pour les meta tags)
-  - `SOCIAL_LINKS` — liens vers les réseaux sociaux (vides = ignorés)
+  - `SECRETARIAT` — horaires du secrétariat (téléphone, e-mail, adresses et réseaux sociaux viennent des options globales ACF)
   - `NAV_ITEMS` — items de navigation (`cta: true` pour afficher un item sous forme de bouton)
   - `ACTIVE_THEME` — sélectionne le thème visuel actif (voir [src/themes/](src/themes/))
 - `src/config/acf-schemas.ts` — mapping clé sémantique TypeScript → slug ACF dans WordPress

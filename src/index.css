@@ -157,6 +157,19 @@ a:not(.btn):hover { text-decoration: underline; text-underline-offset: 4px; }
     );
     padding-bottom: var(--pointe);
   }
+  /* Voile sur la vidéo de fond : texte blanc lisible, même dégradé que le
+     héros de l'accueil. */
+  .banniere-voile {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-vert) 70%, transparent) 0%,
+      color-mix(in srgb, var(--color-vert) 55%, transparent) 50%,
+      color-mix(in srgb, var(--color-vert) 85%, transparent) 100%
+    );
+  }
   /* Relief à droite, fondu vers la gauche. */
   .banniere-relief {
     position: absolute;
@@ -477,12 +490,17 @@ a:not(.btn):hover { text-decoration: underline; text-underline-offset: 4px; }
     display: flex;
     flex-direction: column;
     gap: 14px;
-    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    transition:
+      transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease,
+      background-color 0.25s ease, color 0.25s ease;
   }
+  /* Survol : carte olive, texte blanc (titre et description héritent). */
   .prestation:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-card);
     border-color: var(--color-olive);
+    background: var(--color-olive);
+    color: var(--color-on-dark);
   }
   .prestation-icone {
     width: 64px;
@@ -496,6 +514,12 @@ a:not(.btn):hover { text-decoration: underline; text-underline-offset: 4px; }
     transition: background-color 0.25s ease;
   }
   .prestation:hover .prestation-icone { background: var(--color-jaune); }
+  /* Pictogrammes WordPress (SVG en <img>) : fixe au repos, animé au survol. */
+  .prestation-icone { position: relative; }
+  .prestation-svg { width: 40px; height: 40px; }
+  .prestation-svg-survol { position: absolute; opacity: 0; }
+  .prestation:hover .prestation-svg-repos { opacity: 0; }
+  .prestation:hover .prestation-svg-survol { opacity: 1; }
 
   /* ── Portraits de l'équipe ──────────────────────────────────────────── */
   .portrait-voile {
@@ -608,25 +632,6 @@ a:not(.btn):hover { text-decoration: underline; text-underline-offset: 4px; }
   }
 }
 
-/* ─── Icônes animées des prestations ─────────────────────────────────────
-   Jouées au survol de la carte. Avec prefers-reduced-motion, la règle
-   globale ramène leur durée à ~0. */
-
-.pi { transform-box: fill-box; transform-origin: center bottom; }
-.pi-speed { opacity: 0.4; }
-.prestation:hover .pi-boneL { animation: pm-boneL 0.9s ease-in-out infinite; }
-.prestation:hover .pi-boneR { animation: pm-boneR 0.9s ease-in-out infinite; }
-.prestation:hover .pi-speed { opacity: 1; animation: pm-speed 0.45s linear infinite; }
-.prestation:hover .pi-run   { animation: pm-run 0.45s ease-in-out infinite; }
-.prestation:hover .pi-sway  { animation: pm-sway 1.6s ease-in-out infinite; }
-.prestation:hover .pi-pop   { animation: pm-pop 1s ease-in-out infinite; }
-
-@keyframes pm-run   { 0%,100% { transform: translateX(-5px) rotate(-6deg); } 50% { transform: translateX(5px) rotate(4deg); } }
-@keyframes pm-sway  { 0%,100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
-@keyframes pm-pop   { 0% { transform: scale(1); } 30% { transform: scale(1.18) translateY(-3px); } 55% { transform: scale(.94); } 75% { transform: scale(1.05); } 100% { transform: scale(1); } }
-@keyframes pm-speed { 0% { transform: translateX(2px); opacity: 1; } 100% { transform: translateX(-4px); opacity: .15; } }
-@keyframes pm-boneL { 0%,100% { transform: translateX(0) rotate(0); } 50% { transform: translate(-2px,1px) rotate(-8deg); } }
-@keyframes pm-boneR { 0%,100% { transform: translateX(0) rotate(0); } 50% { transform: translate(2px,-1px) rotate(8deg); } }
 
 /* ─── Animations génériques ───────────────────────────────────────────── */
 

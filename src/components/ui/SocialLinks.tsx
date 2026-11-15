@@ -1,7 +1,8 @@
-import { SOCIAL_LINKS } from "../../config/site";
 import type { SocialLinks as SocialLinksData } from "../../types/wordpress";
 
-type Network = keyof typeof SOCIAL_LINKS;
+/** Réseaux pris en charge, dans l'ordre d'affichage. */
+const NETWORKS = ["instagram", "facebook", "linkedin", "whatsapp"] as const;
+type Network = (typeof NETWORKS)[number];
 
 const LABELS: Record<Network, string> = {
   instagram: "Instagram",
@@ -43,10 +44,8 @@ function Glyph({ name }: { name: Network }) {
 }
 
 /**
- * Pastilles rondes des réseaux sociaux. Un réseau sans URL n'est pas affiché.
- * `links` : liens des options globales WordPress. Dès qu'ils sont chargés,
- * ils font foi (champ vide = réseau masqué) ; SOCIAL_LINKS ne sert que tant
- * que WordPress n'a pas répondu.
+ * Pastilles rondes des réseaux sociaux. `links` : liens des options globales
+ * WordPress (champ ACF `reseauxSociaux`) ; un réseau sans URL est masqué.
  * `variant` : « sable » sur fond clair, « contour » sur aplat vert.
  */
 export function SocialLinks({
@@ -56,8 +55,8 @@ export function SocialLinks({
   links?: SocialLinksData;
   variant?: "sable" | "contour";
 }) {
-  const source: Partial<Record<Network, string>> = wp ?? SOCIAL_LINKS;
-  const links = (Object.keys(SOCIAL_LINKS) as Network[])
+  const source: Partial<Record<Network, string>> = wp ?? {};
+  const links = NETWORKS
     .map((name) => [name, source[name]] as const)
     .filter((l): l is readonly [Network, string] => !!l[1]);
 

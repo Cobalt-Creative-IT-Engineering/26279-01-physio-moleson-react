@@ -1,16 +1,38 @@
 import { useEffect } from "react";
-import { useServices, useSensoproOptions } from "../hooks/useWordPress";
+import { usePagePrestations } from "../hooks/useWordPress";
 import { PageBanner, BannerText } from "../components/layout";
-import { WPContent, PrestationIcon } from "../components/ui";
+import { WPContent } from "../components/ui";
 import { TBOOKING_URL } from "../config/site";
-import { INTRO_PRESTATIONS, PRESTATIONS, SENSOPRO } from "../config/contenu";
 import { setPageMeta } from "../lib/meta";
 
-const ICONES = PRESTATIONS.map((p) => p.icone);
+/**
+ * Pictogramme venant de WordPress : deux SVG superposés, la version fixe au
+ * repos et la version animée (en boucle) au survol de la carte. Une seule
+ * des deux fournie = affichée en permanence. Images décoratives : alt vide.
+ */
+function IconeWP({ fixe, mouvement }: { fixe: string | null; mouvement: string | null }) {
+  const repos = fixe ?? mouvement;
+  if (!repos) return null;
+  return (
+    <div aria-hidden className="prestation-icone">
+      <img src={repos} alt="" className={`prestation-svg ${fixe && mouvement ? "prestation-svg-repos" : ""}`} />
+      {fixe && mouvement && <img src={mouvement} alt="" className="prestation-svg prestation-svg-survol" />}
+    </div>
+  );
+}
 
+/** Lien externe → nouvel onglet ; interne → navigation SPA. */
+function linkProps(url: string) {
+  return /^https?:/.test(url) ? { href: url, target: "_blank", rel: "noopener" } : { href: url };
+}
+
+/**
+ * Page Prestations : tout vient de la page d'options ACF « Page prestations »
+ * (`prestationPage`, groupe `prestations`) : bannière, répéteur des prestations
+ * et sous-groupe Sensopro. Un champ vide n'est pas affiché.
+ */
 export function PrestationsPage() {
-  const { services } = useServices();
-  const { data: senso } = useSensoproOptions();
+  const { data } = usePagePrestations();
 
   useEffect(() => {
     setPageMeta({
@@ -20,83 +42,78 @@ export function PrestationsPage() {
     });
   }, []);
 
-  // Services WordPress si publiés, sinon ceux de la maquette. Les
-  // pictogrammes suivent l'ordre des services.
-  const cartes = services.length
-    ? services.map((s, i) => ({
-        key:   String(s.id),
-        titre: s.title,
-        texte: s.description || (s.short ? `<p>${s.short}</p>` : ""),
-        icone: ICONES[i % ICONES.length],
-      }))
-    : PRESTATIONS.map((p) => ({ key: p.titre, titre: p.titre, texte: `<p>${p.texte}</p>`, icone: p.icone }));
-
-  const points = senso?.benefits.length ? senso.benefits.map((b) => b.title) : SENSOPRO.points;
+  const banner = data?.banner;
+  const prestations = data?.prestations ?? [];
+  // Encadré Sensopro rendu seulement si le sous-groupe a un titre.
+  const senso = data?.sensopro.titre ? data.sensopro : null;
+  const sensoBouton = senso && {
+    label: senso.bouton.label || "Prendre rendez-vous",
+    url:   senso.bouton.url || TBOOKING_URL,
+  };
 
   return (
     <>
-      <PageBanner title="Nos prestations">
-        <BannerText>{INTRO_PRESTATIONS}</BannerText>
+      <PageBanner title={banner?.titre || "Prestations"} video={banner?.video}>
+        {banner?.sousTitre && <BannerText>{banner.sousTitre}</BannerText>}
+        {banner?.description && <BannerText soft>{banner.description}</BannerText>}
       </PageBanner>
 
       <section className="section-y">
         <div className="container-x grid grid-cols-[repeat(auto-fit,minmax(min(100%,max(340px,calc((100%_-_16px)_/_2))),1fr))] gap-4">
-          {cartes.map((c) => (
-            <article key={c.key} className="prestation">
-              <PrestationIcon name={c.icone} />
-              <h2 className="text-[24px]">{c.titre}</h2>
-              <WPContent html={c.texte} className="text-[16px] leading-[1.6]" />
+          {prestations.map((p, i) => (
+            <article key={`${i}-${p.titre}`} className="prestation">
+              <IconeWP fixe={p.icone.fixe} mouvement={p.icone.mouvement} />
+              <h2 className="text-[24px]">{p.titre}</h2>
+              {p.description && <WPContent html={p.description} className="text-[16px] leading-[1.6]" />}
             </article>
           ))}
         </div>
       </section>
 
-      <section id="sensopro" className="section-y scroll-mt-4">
-        <div className="container-x">
-          <div className="on-dark rounded-[24px] overflow-hidden flex flex-wrap">
-            <div className="flex-[1_1_380px] p-[clamp(28px,4vw,56px)] flex flex-col gap-5 justify-center">
-              <h2 className="text-[clamp(32px,3.6vw,52px)] leading-[1.05] tracking-[-0.02em]">
-                {senso?.title || SENSOPRO.titre}
-              </h2>
-              {senso?.intro ? (
-                <WPContent html={senso.intro} className="text-[17px] leading-[1.6] text-on-dark-soft max-w-[480px]" />
-              ) : (
-                <p className="text-[17px] leading-[1.6] text-on-dark-soft max-w-[480px]">{SENSOPRO.texte}</p>
-              )}
-              <ul className="flex flex-col gap-2.5 text-[16px] leading-[1.5]">
-                {points.map((p) => (
-                  <li key={p} className="flex gap-3 items-baseline">
-                    <span aria-hidden className="flex-none w-2 h-2 rounded-full bg-jaune -translate-y-0.5" />
-                    <span>{p}</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="text-[15px] leading-[1.55]">
-                <strong className="font-bold">{senso?.firstSessionTitle || SENSOPRO.premiereSeance}</strong>
-              </p>
-              <div className="flex flex-wrap gap-3 mt-1">
-                <a href={TBOOKING_URL} target="_blank" rel="noopener" className="btn btn-jaune">
-                  Prendre rendez-vous <span aria-hidden>→</span>
-                </a>
+      {senso && sensoBouton && (
+        <section id="sensopro" className="section-y scroll-mt-4">
+          <div className="container-x">
+            <div className="on-dark rounded-[24px] overflow-hidden flex flex-wrap">
+              <div className="flex-[1_1_380px] p-[clamp(28px,4vw,56px)] flex flex-col gap-5 justify-center">
+                <h2 className="text-[clamp(32px,3.6vw,52px)] leading-[1.05] tracking-[-0.02em]">{senso.titre}</h2>
+                {senso.sousTitre && (
+                  <p className="font-display text-[clamp(19px,1.8vw,24px)] leading-[1.3]">{senso.sousTitre}</p>
+                )}
+                {senso.description && (
+                  <WPContent html={senso.description} className="text-[17px] leading-[1.6] text-on-dark-soft max-w-[520px]" />
+                )}
+                <div className="flex flex-wrap gap-3 mt-1">
+                  <a {...linkProps(sensoBouton.url)} className="btn btn-jaune">
+                    {sensoBouton.label} <span aria-hidden>→</span>
+                  </a>
+                </div>
               </div>
-            </div>
-            <div className="flex-[1_1_380px] min-h-[360px] relative">
-              {senso?.image ? (
-                <img
-                  src={senso.image.url}
-                  alt={senso.image.alt || "Sensopro Luna"}
-                  loading="lazy"
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-              ) : (
-                <div className="ph absolute inset-0">
-                  <span className="ph-label">Photo Sensopro Luna</span>
+              {/* Galerie ACF en grille : une image pleine colonne, puis deux
+                  par ligne ; une dernière image seule prend toute la ligne.
+                  Images recadrées. Pas d'image = pas de colonne. */}
+              {senso.galerie.length > 0 && (
+                <div
+                  className={`flex-[1_1_380px] min-h-[360px] grid gap-[3px] bg-vert ${
+                    senso.galerie.length > 1 ? "grid-cols-2" : "grid-cols-1"
+                  }`}
+                >
+                  {senso.galerie.map((img, i) => (
+                    <img
+                      key={img.id}
+                      src={img.url}
+                      alt={img.alt || senso.titre}
+                      loading="lazy"
+                      className={`w-full h-full min-h-[180px] object-cover ${
+                        i === senso.galerie.length - 1 && i % 2 === 0 ? "col-span-full" : ""
+                      }`}
+                    />
+                  ))}
                 </div>
               )}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </>
   );
 }

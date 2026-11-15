@@ -25,19 +25,18 @@ import type {
   GlobalOptions,
   AccueilOptions,
   CTA,
-  SensoproOptions,
+  PagePrestations,
   FaqOptions,
+  FaqItem,
   CabinetOptions,
-  Service,
   Therapeute,
-  SensoproItem,
   CabinetAddress,
   SocialLinks,
 } from "../types/wordpress";
 
 // Re-export des types utiles
 export type { WPPost, WPPage, ACFOptions, QueryParams, WPTaxonomyTerm, FetchState, UsePostsOptions };
-export type { GlobalOptions, AccueilOptions, SensoproOptions, FaqOptions, CabinetOptions, Service, Therapeute };
+export type { GlobalOptions, AccueilOptions, PagePrestations, FaqOptions, CabinetOptions, Therapeute };
 
 // ─── Cache en mémoire ─────────────────────────────────────────────────────
 
@@ -476,172 +475,214 @@ function fromGQLAccueil(d: GQLAccueilResponse | null): AccueilOptions | null {
   };
 }
 
-// ─── Sensopro via WPGraphQL (ACF Options Page `sensopros`) ────────────────
-
-// Champs suffixés `*Sensopro` côté WP (anti-collision entre Options pages).
-const GQL_SENSOPRO = `
-  query Sensopro {
-    sensopros {
-      sensopro {
-        titreSensopro
-        introSensopro
-        premiereSessionSensopro
-        premiereSessionSensoproDescription
-        imageSensopro { node { sourceUrl altText databaseId mediaDetails { width height } } }
-        beneficesSensopro { numero titre description }
-        etapesSensopro { numero titre description }
+// ─── Page Prestations via WPGraphQL (ACF Options Page `prestationPage`) ──
+// Un seul groupe `prestations` (type Prestations) : bannière, répéteur des
+// prestations (pictogramme SVG fixe + animé) et sous-groupe Sensopro.
+// `mediaItemUrl` plutôt que `sourceUrl`, vide pour les fichiers non photo.
+const GQL_PAGE_PRESTATIONS = `
+  query PagePrestations {
+    prestationPage {
+      prestations {
+        banner { titre sousTitre description video { node { mediaItemUrl } } }
+        prestations {
+          titre
+          description
+          iconeFixe { node { mediaItemUrl } }
+          iconeEnMouvement { node { mediaItemUrl } }
+        }
+        sensopro {
+          titre sousTitre description bouton { texte url }
+          gallerie { nodes { sourceUrl altText databaseId mediaDetails { width height } } }
+        }
       }
     }
   }
 `;
 
-type GQLSensoproItem = { numero: string | null; titre: string | null; description: string | null };
+type GQLFichier = { node: { mediaItemUrl: string | null } } | null;
 
-type GQLSensoproResponse = {
-  sensopros: {
-    sensopro: {
-      titreSensopro: string | null;
-      introSensopro: string | null;
-      premiereSessionSensopro: string | null;
-      premiereSessionSensoproDescription: string | null;
-      imageSensopro: GQLMediaEdge;
-      beneficesSensopro: GQLSensoproItem[] | null;
-      etapesSensopro: GQLSensoproItem[] | null;
+type GQLPagePrestationsResponse = {
+  prestationPage: {
+    prestations: {
+      banner: {
+        titre: string | null;
+        sousTitre: string | null;
+        description: string | null;
+        video: GQLFichier;
+      } | null;
+      prestations: {
+        titre: string | null;
+        description: string | null;
+        iconeFixe: GQLFichier;
+        iconeEnMouvement: GQLFichier;
+      }[] | null;
+      sensopro: {
+        titre: string | null;
+        sousTitre: string | null;
+        description: string | null;
+        bouton: { texte: string | null; url: string | null } | null;
+        gallerie: { nodes: GQLMediaNode[] } | null;
+      } | null;
     } | null;
   } | null;
 };
 
-function toSensoproItems(items: GQLSensoproItem[] | null): SensoproItem[] {
-  return (items ?? []).map((i) => ({
-    number:      i.numero ?? "",
-    title:       i.titre ?? "",
-    description: i.description ?? "",
-  }));
-}
-
-function fromGQLSensopro(d: GQLSensoproResponse | null): SensoproOptions | null {
-  const s = d?.sensopros?.sensopro;
-  if (!s) return null;
+function fromGQLPagePrestations(d: GQLPagePrestationsResponse | null): PagePrestations | null {
+  const g = d?.prestationPage?.prestations;
+  if (!g) return null;
   return {
-    title:             s.titreSensopro ?? "",
-    intro:             s.introSensopro ?? "",
-    image:             fromGQLMedia(s.imageSensopro ?? null),
-    benefits:          toSensoproItems(s.beneficesSensopro ?? null),
-    steps:             toSensoproItems(s.etapesSensopro ?? null),
-    firstSessionTitle: s.premiereSessionSensopro ?? "",
-    firstSessionText:  s.premiereSessionSensoproDescription ?? "",
+    banner: {
+      titre:       g.banner?.titre ?? "",
+      sousTitre:   g.banner?.sousTitre ?? "",
+      description: g.banner?.description ?? "",
+      video:       g.banner?.video?.node?.mediaItemUrl ?? null,
+    },
+    // Une ligne de répéteur sans titre n'a rien à afficher.
+    prestations: (g.prestations ?? [])
+      .filter((p) => p.titre?.trim())
+      .map((p) => ({
+        titre:       p.titre!.trim(),
+        description: p.description ?? "",
+        icone: {
+          fixe:      p.iconeFixe?.node?.mediaItemUrl ?? null,
+          mouvement: p.iconeEnMouvement?.node?.mediaItemUrl ?? null,
+        },
+      })),
+    sensopro: {
+      titre:       g.sensopro?.titre ?? "",
+      sousTitre:   g.sensopro?.sousTitre ?? "",
+      description: g.sensopro?.description ?? "",
+      bouton: {
+        label: g.sensopro?.bouton?.texte ?? "",
+        url:   g.sensopro?.bouton?.url ? lienInterne(g.sensopro.bouton.url) : "",
+      },
+      galerie: (g.sensopro?.gallerie?.nodes ?? []).map(mediaNodeToImage).filter((i): i is WPImage => !!i),
+    },
   };
 }
 
-// ─── FAQ via WPGraphQL (ACF Options Page `faqs`) ──────────────────────────
-
-// Champs suffixés `*Faq` côté WP (anti-collision entre Options pages).
+// ─── FAQ via WPGraphQL (type de publication `faqQuestion`) ────────────────
+// Une entrée par question ; groupe ACF `faq` : question, réponse (WYSIWYG)
+// et catégorie(s) (choix multiple). Ordre : champ « Ordre » de WP, puis date
+// de création.
 const GQL_FAQ = `
   query Faq {
-    faqs {
-      faq {
-        titreFaq
-        introFaq
-        categoriesFaq { titre questions { question reponse } }
+    faqQuestions(first: 100, where: { orderby: [{ field: MENU_ORDER, order: ASC }, { field: DATE, order: ASC }] }) {
+      nodes {
+        databaseId
+        title
+        faq { question reponse categorie }
       }
     }
   }
 `;
 
 type GQLFaqResponse = {
-  faqs: {
-    faq: {
-      titreFaq: string | null;
-      introFaq: string | null;
-      categoriesFaq: {
-        titre: string | null;
-        questions: { question: string | null; reponse: string | null }[] | null;
-      }[] | null;
-    } | null;
+  faqQuestions: {
+    nodes: {
+      databaseId: number;
+      title: string | null;
+      faq: { question: string | null; reponse: string | null; categorie: string[] | null } | null;
+    }[];
   } | null;
 };
 
 function fromGQLFaq(d: GQLFaqResponse | null): FaqOptions | null {
-  const f = d?.faqs?.faq;
-  if (!f) return null;
-  return {
-    title: f.titreFaq ?? "",
-    intro: f.introFaq ?? "",
-    // Catégories dans l'ordre du répéteur. Une question vide, puis une
-    // catégorie restée sans question, n'ont rien à afficher.
-    themes: (f.categoriesFaq ?? [])
-      .map((c) => ({
-        title: c.titre?.trim() || "Questions générales",
-        items: (c.questions ?? [])
-          .filter((q) => q.question)
-          .map((q) => ({ question: q.question ?? "", answer: q.reponse ?? "" })),
-      }))
-      .filter((c) => c.items.length > 0),
-  };
+  const nodes = d?.faqQuestions?.nodes;
+  if (!nodes) return null;
+  // Regroupement par catégorie, dans l'ordre de première apparition. Une
+  // question cochée dans plusieurs catégories figure dans chacune ; sans
+  // catégorie, elle rejoint « Questions générales ».
+  const groupes = new Map<string, FaqItem[]>();
+  for (const n of nodes) {
+    const question = n.faq?.question?.trim() || n.title?.trim() || "";
+    if (!question) continue;
+    const item: FaqItem = { question, answer: n.faq?.reponse ?? "" };
+    const cats = (n.faq?.categorie ?? []).map((c) => c.trim()).filter(Boolean);
+    for (const cat of cats.length ? cats : ["Questions générales"]) {
+      if (!groupes.has(cat)) groupes.set(cat, []);
+      groupes.get(cat)!.push(item);
+    }
+  }
+  return { themes: [...groupes].map(([title, items]) => ({ title, items })) };
 }
 
-// ─── Cabinet via WPGraphQL (ACF Options Page `cabinets`) ──────────────────
-// Champs `titreCabinet`/`descriptionCabinet` suffixés (anti-collision).
-// Asymétrie conservée : cabinet66 → `gallerie`, cabinet68 → `images`.
-// Planning : répéteur `planning` (sous-champs `jour`, `praticiens`) dans
-// chaque sous-groupe cabinet66 / cabinet68.
+// ─── Cabinet via WPGraphQL (ACF Options Page `pageCabinet`) ───────────────
+// Groupe `cabinet` (type Cabinet) : bannière et répéteur `cabinet`, une ligne
+// par cabinet (titre, détails : tag, galerie, planning jour → thérapeute(s)),
+// plus une image de section affichée entre les cabinets.
 const GQL_CABINET = `
   query Cabinet {
-    cabinets {
+    pageCabinet {
       cabinet {
-        titreCabinet
-        descriptionCabinet
-        cabinet66 {
-          tag
-          gallerie { nodes { sourceUrl altText databaseId mediaDetails { width height } } }
-          planning { jour praticiens }
-        }
-        cabinet68 {
-          tag
-          images { nodes { sourceUrl altText databaseId mediaDetails { width height } } }
-          planning { jour praticiens }
+        banner { titre sousTitre description video { node { mediaItemUrl } } }
+        imageSection { node { sourceUrl altText databaseId mediaDetails { width height } } }
+        cabinet {
+          titre
+          details {
+            tag
+            gallerie { nodes { sourceUrl altText databaseId mediaDetails { width height } } }
+            planning { jour therapeute }
+          }
         }
       }
     }
   }
 `;
 
-type GQLPlanningRow = { jour: string | null; praticiens: string | null };
+type GQLPlanningRow = { jour: string | null; therapeute: string | null };
 
 type GQLCabinetResponse = {
-  cabinets: {
+  pageCabinet: {
     cabinet: {
-      titreCabinet: string | null;
-      descriptionCabinet: string | null;
-      cabinet66: { tag: string | null; gallerie: GQLMediaConnection; planning: GQLPlanningRow[] | null } | null;
-      cabinet68: { tag: string | null; images: GQLMediaConnection; planning: GQLPlanningRow[] | null } | null;
+      banner: {
+        titre: string | null;
+        sousTitre: string | null;
+        description: string | null;
+        video: { node: { mediaItemUrl: string | null } } | null;
+      } | null;
+      imageSection: GQLMediaEdge;
+      cabinet: {
+        titre: string | null;
+        details: { tag: string | null; gallerie: GQLMediaConnection; planning: GQLPlanningRow[] | null } | null;
+      }[] | null;
     } | null;
   } | null;
 };
 
 /** Découpe "Mégane, Noël" (ou séparé par ·) en ["Mégane", "Noël"]. */
 function toSchedule(rows: GQLPlanningRow[] | null) {
-  return (rows ?? []).map((r) => ({
-    day:   r.jour ?? "",
-    names: (r.praticiens ?? "")
-             .split(/[,·]/)
-             .map((s) => s.trim())
-             .filter(Boolean),
-  }));
+  return (rows ?? [])
+    .map((r) => ({
+      day:   r.jour?.trim() ?? "",
+      names: (r.therapeute ?? "")
+               .split(/[,·]/)
+               .map((s) => s.trim())
+               .filter(Boolean),
+    }))
+    .filter((r) => r.day);
 }
 
 function fromGQLCabinet(d: GQLCabinetResponse | null): CabinetOptions | null {
-  const c = d?.cabinets?.cabinet;
+  const c = d?.pageCabinet?.cabinet;
   if (!c) return null;
   return {
-    title:      c.titreCabinet ?? "",
-    intro:      c.descriptionCabinet ?? "",
-    tag66:      c.cabinet66?.tag ?? "",
-    images66:   fromGQLGallery(c.cabinet66?.gallerie ?? null),
-    schedule66: toSchedule(c.cabinet66?.planning ?? null),
-    tag68:      c.cabinet68?.tag ?? "",
-    images68:   fromGQLGallery(c.cabinet68?.images ?? null),
-    schedule68: toSchedule(c.cabinet68?.planning ?? null),
+    banner: {
+      titre:       c.banner?.titre ?? "",
+      sousTitre:   c.banner?.sousTitre ?? "",
+      description: c.banner?.description ?? "",
+      video:       c.banner?.video?.node?.mediaItemUrl ?? null,
+    },
+    imageSection: fromGQLMedia(c.imageSection ?? null),
+    // Une ligne de répéteur sans titre n'a rien à afficher.
+    cabinets: (c.cabinet ?? [])
+      .filter((x) => x.titre?.trim())
+      .map((x) => ({
+        titre:       x.titre!.trim(),
+        tag:         x.details?.tag ?? "",
+        images:      fromGQLGallery(x.details?.gallerie ?? null),
+        schedule:    toSchedule(x.details?.planning ?? null),
+      })),
   };
 }
 
@@ -663,12 +704,12 @@ export function useAccueilOptions() {
   return { ...state, data };
 }
 
-export function useSensoproOptions() {
-  const state = useFetch<GQLSensoproResponse>(
-    () => graphqlFetch<GQLSensoproResponse>(GQL_SENSOPRO),
-    { cacheKey: "gql-sensopro", staleMs: 120_000, persist: true }
+export function usePagePrestations() {
+  const state = useFetch<GQLPagePrestationsResponse>(
+    () => graphqlFetch<GQLPagePrestationsResponse>(GQL_PAGE_PRESTATIONS),
+    { cacheKey: "gql-page-prestations", staleMs: 120_000, persist: true }
   );
-  const data = useMemo(() => fromGQLSensopro(state.data), [state.data]);
+  const data = useMemo(() => fromGQLPagePrestations(state.data), [state.data]);
   return { ...state, data };
 }
 
@@ -690,7 +731,7 @@ export function useCabinetOptions() {
   return { ...state, data };
 }
 
-// ─── CPT via WPGraphQL — service & therapeute ────────────────────────────
+// ─── CPT via WPGraphQL — therapeute ─────────────────────────────────────
 
 /** Nœud média WPGraphQL (MediaItem). */
 type GQLMediaNode = {
@@ -721,60 +762,6 @@ function fromGQLMedia(edge: GQLMediaEdge): WPImage | null {
 type GQLMediaConnection = { nodes: GQLMediaNode[] } | null;
 function fromGQLGallery(conn: GQLMediaConnection): WPImage[] {
   return (conn?.nodes ?? []).map(mediaNodeToImage).filter((i): i is WPImage => i !== null);
-}
-
-// ─── Services via WPGraphQL ───────────────────────────────────────────────
-// Groupe ACF exposé sous `services` (type `Services`), camelCase auto.
-
-// Champs suffixés `*Service` côté WP (anti-collision entre groupes ACF).
-const GQL_SERVICES = `
-  query Services {
-    services(first: 20, where: { orderby: { field: MENU_ORDER, order: ASC } }) {
-      nodes {
-        databaseId
-        slug
-        title
-        services {
-          numeroService
-          descriptionServiceCourte
-          descriptionService
-          typeDePathologiesService { pathologie }
-          imageService { node { sourceUrl altText databaseId mediaDetails { width height } } }
-        }
-      }
-    }
-  }
-`;
-
-type GQLServiceNode = {
-  databaseId: number;
-  slug: string;
-  title: string | null;
-  services: {
-    numeroService: string | null;
-    descriptionServiceCourte: string | null;
-    descriptionService: string | null;
-    typeDePathologiesService: { pathologie: string | null }[] | null;
-    imageService: GQLMediaEdge;
-  } | null;
-};
-
-type GQLServicesResponse = { services: { nodes: GQLServiceNode[] } };
-
-function fromGQLService(n: GQLServiceNode): Service {
-  const a = n.services;
-  return {
-    id:          n.databaseId,
-    slug:        n.slug,
-    title:       n.title ?? "",
-    num:         a?.numeroService ?? "",
-    short:       a?.descriptionServiceCourte ?? "",
-    description: a?.descriptionService ?? "",
-    tags:        (a?.typeDePathologiesService ?? [])
-                   .map((t) => t?.pathologie ?? "")
-                   .filter(Boolean),
-    image:       fromGQLMedia(a?.imageService ?? null),
-  };
 }
 
 // ─── Thérapeutes via WPGraphQL ────────────────────────────────────────────
@@ -838,19 +825,6 @@ function fromGQLTherapeute(n: GQLTherapeuteNode): Therapeute {
     photo:       fromGQLMedia(a?.photo ?? null),
     tbookingUrl: a?.urlTbooking ?? "",
   };
-}
-
-/** Liste des services via WPGraphQL, ordonnés par menu_order côté WP. */
-export function useServices() {
-  const state = useFetch<GQLServicesResponse>(
-    () => graphqlFetch<GQLServicesResponse>(GQL_SERVICES),
-    { cacheKey: "gql-services", staleMs: 120_000, persist: true }
-  );
-  const services = useMemo(
-    () => (state.data?.services?.nodes ?? []).map(fromGQLService),
-    [state.data]
-  );
-  return { ...state, services };
 }
 
 /** Liste des thérapeutes via WPGraphQL, ordonnés par menu_order côté WP. */

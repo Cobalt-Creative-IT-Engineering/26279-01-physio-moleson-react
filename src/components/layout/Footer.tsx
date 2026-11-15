@@ -1,29 +1,21 @@
-import { SITE_CONFIG, CONTACT, NAV_ITEMS, TBOOKING_URL } from "../../config/site";
+import { SITE_CONFIG, NAV_ITEMS, TBOOKING_URL } from "../../config/site";
+import { lienTel } from "../../lib/telephone";
 import { useGlobalOptions } from "../../hooks/useWordPress";
 import { Logo, SocialLinks } from "../ui";
 
-/** « 026 303 93 43 » → « +41263039343 » pour un lien tel:. */
-function lienTel(numero: string): string {
-  const chiffres = numero.replace(/[^\d+]/g, "");
-  if (chiffres.startsWith("+")) return chiffres;
-  if (chiffres.startsWith("00")) return `+${chiffres.slice(2)}`;
-  if (chiffres.startsWith("0")) return `+41${chiffres.slice(1)}`;
-  return chiffres;
-}
-
 /**
  * Pied de page : logo, résumé, téléphone, e-mail, adresses et réseaux sociaux
- * viennent des options globales ACF (`options_globale`). Les valeurs de
- * CONTACT ne servent que tant que WordPress n'a pas répondu.
+ * viennent des options globales ACF (`options_globale`). Champ vide = rien
+ * d'affiché.
  */
 export function Footer() {
   const { data: g } = useGlobalOptions();
 
-  const phone     = g?.phone || CONTACT.phone;
+  const phone     = g?.phone ?? "";
   const tel       = lienTel(phone);
-  const email     = g?.email || CONTACT.email;
+  const email     = g?.email ?? "";
   // Ordre de la rue (66 avant 68), quel que soit celui saisi dans WordPress.
-  const addresses = [...(g && g.addresses.length ? g.addresses : CONTACT.addresses)]
+  const addresses = [...(g?.addresses ?? [])]
     .sort((x, y) => x.street.localeCompare(y.street, "fr", { numeric: true }));
 
   return (
@@ -61,9 +53,9 @@ export function Footer() {
           {addresses.map((a) => (
             <span key={a.id}>{a.street}</span>
           ))}
-          <span>{addresses[0]?.postcode} {addresses[0]?.city}, Suisse</span>
-          <a href={`tel:${tel}`}>{phone}</a>
-          <a href={`mailto:${email}`}>{email}</a>
+          {addresses[0] && <span>{addresses[0].postcode} {addresses[0].city}, Suisse</span>}
+          {phone && <a href={`tel:${tel}`}>{phone}</a>}
+          {email && <a href={`mailto:${email}`}>{email}</a>}
         </div>
       </div>
 

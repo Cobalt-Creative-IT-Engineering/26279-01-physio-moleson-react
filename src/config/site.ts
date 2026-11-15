@@ -27,42 +27,21 @@ export const SITE_CONFIG = {
   description: "Cabinet de physiothérapie à Bulle. Une équipe de cinq thérapeutes diplômé·e·s à votre écoute, au pied du Moléson.",
 } as const;
 
-// ─── Coordonnées ─────────────────────────────────────────────────────────
-// Ces valeurs servent de fallback. À terme, elles seront remplacées par des
-// champs ACF (Options Page "global") pour permettre l'édition côté WordPress.
+// ─── Secrétariat ──────────────────────────────────────────────────────────
+// Horaires du secrétariat téléphonique (pas de champ ACF). Téléphone,
+// e-mail, adresses et réseaux sociaux viennent des options globales ACF.
+// `highlight` = ligne mise en avant.
 
-export const CONTACT = {
-  phone:        "026 303 93 43",
-  phoneTel:     "+41263039343",
-  email:        "physiomoleson@gmail.com",
-  addresses: [
-    { id: 66, label: "Cabinet n°66", street: "Rue Saint-Denis 66", postcode: "1630", city: "Bulle" },
-    { id: 68, label: "Cabinet n°68", street: "Rue Saint-Denis 68", postcode: "1630", city: "Bulle" },
-  ],
-  // Horaires du secrétariat téléphonique. `highlight` = ligne mise en avant.
-  secretariat: [
-    { days: "Mercredi non-stop",  hours: "09:00–12:00, 13:00–17:00", highlight: true  },
-    { days: "Lun, Mar, Jeu, Ven", hours: "Sur rappel, 07:30–18:00",  highlight: false },
-  ],
-} as const;
+export const SECRETARIAT = [
+  { days: "Mercredi non-stop",  hours: "09:00–12:00, 13:00–17:00", highlight: true  },
+  { days: "Lun, Mar, Jeu, Ven", hours: "Sur rappel, 07:30–18:00",  highlight: false },
+] as const;
 
 // ─── Prise de rendez-vous ─────────────────────────────────────────────────
 // Agenda Tbooking du cabinet, ouvert dans un nouvel onglet. Une fiche
 // thérapeute peut fournir son propre lien (champ ACF `urlTbooking`).
 
 export const TBOOKING_URL = "https://www.tbooking.ch/fr/physio-du-moleson/2854-3711";
-
-// ─── Réseaux sociaux ──────────────────────────────────────────────────────
-// Repli utilisé seulement si les options globales WordPress sont
-// indisponibles ; sinon les champs ACF `reseauxSociaux` font foi (vide =
-// réseau masqué). L'ordre ici est l'ordre d'affichage.
-
-export const SOCIAL_LINKS = {
-  instagram: "",
-  facebook:  "",
-  linkedin:  "",
-  whatsapp:  "https://wa.me/41263039343",
-} as const;
 
 // ─── Navigation principale ────────────────────────────────────────────────
 // Le bouton « Prendre rendez-vous » (TBOOKING_URL) s'ajoute à droite.
