@@ -823,18 +823,20 @@ a:not(.btn):hover { text-decoration: underline; text-underline-offset: 4px; }
    Avec mouvement réduit, le hook révèle d'emblée et la règle globale
    annule la transition. */
 
+/* Durée courte (600 ms) et décalages réduits de 40 % : le contenu doit
+   paraître présent dès l'arrivée sur la page, pas « en attente ». */
 .reveal {
   opacity: 0;
-  transform: translateY(28px);
+  transform: translateY(20px);
   transition:
-    opacity 900ms cubic-bezier(0.2, 0, 0, 1),
-    transform 900ms cubic-bezier(0.2, 0, 0, 1);
-  transition-delay: var(--reveal-delay, 0ms);
+    opacity 600ms cubic-bezier(0.2, 0, 0, 1),
+    transform 600ms cubic-bezier(0.2, 0, 0, 1);
+  transition-delay: calc(var(--reveal-delay, 0ms) * 0.6);
 }
 /* Arrivées latérales : depuis la gauche ou la droite. Le débordement
    pendant l'animation est coupé par `overflow-x: clip` sur .app. */
-.reveal-gauche { transform: translateX(-64px); }
-.reveal-droite { transform: translateX(64px); }
+.reveal-gauche { transform: translateX(-40px); }
+.reveal-droite { transform: translateX(40px); }
 [data-revealed] .reveal,
 .reveal[data-revealed] {
   opacity: 1;

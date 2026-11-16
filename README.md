@@ -22,39 +22,31 @@
 
 Site vitrine du **Cabinet physio du Moléson** (physio-moleson.ch).
 
-L'application est un frontend React + TypeScript découplé : WordPress sert uniquement de source de contenu (API REST, ACF et WPGraphQL), et le site est déployé sous forme de fichiers statiques sur un hébergement Apache classique (Infomaniak). Le projet est dérivé du blueprint interne [`wp-react-headless-blueprint`](https://github.com/Cobalt-Creative-IT-Engineering/wp-react-headless-blueprint) qui fournit une couche de données typée, un cache mémoire + `sessionStorage`, un système de schémas ACF, un routeur basé sur l'History API et un système de thèmes.
+L'application est un frontend React + TypeScript découplé : WordPress sert uniquement de source de contenu (API REST, ACF et WPGraphQL), et le site est déployé sous forme de fichiers statiques sur un hébergement Apache classique (Infomaniak). Le projet est dérivé du blueprint interne [`wp-react-headless-blueprint`](https://github.com/Cobalt-Creative-IT-Engineering/wp-react-headless-blueprint) qui fournit une couche de données typée, un routeur basé sur l'History API et un système de thèmes. Le contenu est lu en **WPGraphQL** ; un cache mémoire + `localStorage` affiche aussitôt le dernier contenu connu puis le rafraîchit en arrière-plan, et les données de toutes les pages sont préchargées après le premier affichage.
 
 > **Backend WordPress** : la procédure pour déployer/configurer l'instance WP côté backend est documentée en interne — voir [Cobalt Knowledge #150](https://cobalt-it.odoo.com/odoo/knowledge/150). À suivre **avant** de configurer ce frontend.
 
 ## Charte graphique
 
-La référence est [doc/charte/](doc/charte/) (charte « Alpage », version finale d'octobre 2026 ;
-ouvrir le `.dc.html` dans un navigateur, ou lire le `README.md` du dossier). Elle est implémentée
-dans les variables CSS de [src/index.css](src/index.css) :
-
-Palette **resserrée à la demande du client** : trois couleurs de base, le jaune pour les boutons
-et les points, l'olive pour le seul bandeau des cards.
+Les couleurs et le logo viennent de [doc/charte/](doc/charte/) (charte « Alpage ») ; la
+**maquette** [doc/maquette/](doc/maquette/) fait foi pour les écrans. Le tout est implémenté dans les
+variables CSS de [src/index.css](src/index.css) (`--brand-*`, classes Tailwind par rôle).
 
 | Rôle | Couleur | Classe | Emploi |
 |---|---|---|---|
-| Vert Moléson | `#364035` | `vert`, `.on-dark` | Aplats forts (héros, pied de page) ; surtitres, pictos, liens au survol. |
-| Sable | `#EADECE` | `sable`, `surface` | Encadrés et cards ; texte sur aplat vert. |
-| Sable éclairci | `#F4EEE6` | `bg` | Fond de page (dérivé : sable + blanc à parts égales). |
-| Anthracite | `#393939` | `ink` | Tous les textes. |
-| Jaune pointage | `#F5E993` | `jaune` | **Uniquement** boutons, points, état actif. |
-| Olive | `#8F8F6D` | `olive` | **Uniquement** le bandeau de tête des cards (jamais sous du texte). |
-| Filet | `#D5CABB` | `line` | Bordures décoratives (dérivé). |
+| Blanc | `#FDFDFD` | `bg` | Fond de page. |
+| Vert Moléson | `#364035` | `vert`, `.on-dark` | Bannières, pied de page, boutons sombres. |
+| Anthracite | `#393939` | `ink` | Textes ; secondaire en `muted`. |
+| Sable | `#EADECE` | `sable` | Pastilles (planning, FAQ, réseaux sociaux). |
+| Olive | `#8F8F6D` | `olive` | Cartes et encadrés mis en avant (formulaire de contact, encadré FAQ), survol des cartes de prestation, voiles des bandes Valeurs et Équipe. Texte blanc dessus (≈ 3,4:1) : titres, libellés et survols seulement. |
+| Jaune | `#F5E993` | `jaune` | Prise de rendez-vous et boutons des encadrés olive. |
 
-Typographie : **Rubik** pour les titres (Medium 500, -0,02 em sur les grands titres), **Mulish**
-pour les textes (Light 300 courant, Regular 400 légendes, Bold 700 surtitres), avec Verdana et
-Trebuchet MS en replis. Corps de texte jamais sous 16 px, interligne 1,6, aligné à gauche, sans
-italique.
+Typographie : **Rubik** pour les titres et boutons, **Mulish** pour les textes. Corps de texte
+16 px, interligne 1,6. Bannières : titre de page 40–76 px, sous-titre Rubik 26–44 px.
 
-Formes : cards et images aux coins arrondis, boutons et pastilles en pilule ; ni ombre ni
-transparence sur les aplats.
-
-Couples **proscrits** pour du texte : jaune sur fond clair, et tout texte sur olive.
-Les règles détaillées sont commentées sur place dans `src/index.css`.
+Formes : cartes et images aux coins arrondis, boutons et pastilles en pilule ; pas d'ombre sauf le
+soulèvement des cartes de prestation au survol. Les règles détaillées sont dans
+[CLAUDE.md](CLAUDE.md) et commentées sur place dans `src/index.css`.
 
 ## Stack technique
 
@@ -85,23 +77,25 @@ Les règles détaillées sont commentées sur place dans `src/index.css`.
 └── src/
     ├── main.tsx                <- Point d'entrée Vite
     ├── App.tsx                 <- Shell de l'app + table de routage
-    ├── index.css               <- Couches Tailwind, design tokens (charte « Alpage »)
+    ├── index.css               <- Couches Tailwind, design tokens, animations
     ├── types/
-    │   └── wordpress.ts        <- Toutes les interfaces TypeScript WP / ACF
+    │   └── wordpress.ts        <- Interfaces TypeScript des contenus WordPress
     ├── lib/
-    │   ├── wordpress.ts        <- Client REST + ACF + WPGraphQL
-    │   └── meta.ts             <- Mise à jour des balises <title>, og:*, twitter:*
+    │   ├── wordpress.ts        <- Client WPGraphQL (graphqlFetch), lienInterne
+    │   ├── meta.ts             <- Mise à jour des balises <title>, og:*, twitter:*
+    │   ├── rebond.ts           <- Rebond des boutons au survol et au clic
+    │   └── telephone.ts        <- Numéro → lien tel:
     ├── hooks/
     │   ├── useRoute.ts         <- Routing basé sur l'History API
-    │   ├── useScrollSpy.ts
-    │   └── useWordPress.ts     <- Hooks de données + couche de cache
+    │   ├── useReveal.ts        <- Apparition au défilement
+    │   └── useWordPress.ts     <- Requêtes GraphQL par page, cache, préchargement
     ├── config/
-    │   ├── acf-schemas.ts      <- Schémas ACF (clé sémantique → slug WP)
-    │   └── site.ts             <- Nom du site, items de navigation, thème actif
+    │   ├── site.ts             <- Nom du site, navigation, secrétariat, Tbooking, thème
+    │   └── contenu.ts          <- Seuls contenus sans champ ACF (langues des thérapeutes)
+    ├── assets/                 <- Logo, relief des bannières (AVIF)
     ├── components/
-    │   ├── acf/                <- ACFField / ACFRenderer / helpers acfReader
-    │   ├── layout/             <- Nav, Footer
-    │   └── ui/                 <- Primitives UI génériques (Skeleton, PostCard, …)
+    │   ├── layout/             <- En-tête, bannière des pages, pied de page
+    │   └── ui/                 <- Primitives (WPContent, Apparition, SocialLinks, …)
     ├── pages/                  <- Un fichier par route
     └── themes/                 <- Système de thèmes (Decorations + classes CSS)
 ```
@@ -138,10 +132,8 @@ Plugins requis côté WordPress :
 | Plugin | Rôle |
 |---|---|
 | Advanced Custom Fields (ACF) | Champs personnalisés |
-| ACF to REST API | Expose les champs ACF sur `/wp-json/acf/v3/*` |
-| WPGraphQL | Options pages et champs non exposés par REST |
+| WPGraphQL | Source de tout le contenu du site (pages d'options et types de publication) |
 | WPGraphQL for ACF | Expose les champs ACF dans le schéma GraphQL |
-| WP REST API Menus (optionnel) | Uniquement si `getMenu()` est utilisé |
 
 Le CORS doit être activé pour l'origine du frontend. Ajoutez ceci dans le `functions.php` du thème WP :
 
@@ -209,9 +201,9 @@ Les principaux points d'entrée de configuration :
   - `SITE_CONFIG` — nom du site, langue, description (utilisés comme valeurs par défaut pour les meta tags)
   - `SECRETARIAT` — horaires du secrétariat (téléphone, e-mail, adresses et réseaux sociaux viennent des options globales ACF)
   - `TBOOKING_URL` — prise de rendez-vous de l'en-tête et du pied de page (les autres boutons Tbooking viennent d'ACF et sont masqués sans URL)
-  - `NAV_ITEMS` — items de navigation (`cta: true` pour afficher un item sous forme de bouton)
+  - `NAV_ITEMS` — items de navigation
   - `ACTIVE_THEME` — sélectionne le thème visuel actif (voir [src/themes/](src/themes/))
-- `src/config/acf-schemas.ts` — mapping clé sémantique TypeScript → slug ACF dans WordPress
+- `src/hooks/useWordPress.ts` — une requête GraphQL et sa fonction de mapping `fromGQL*` par page ; c'est là qu'on adapte un champ ACF renommé
 
 > **ATTENTION** : ne jamais pointer un environnement de développement local vers la base WordPress de production.
 

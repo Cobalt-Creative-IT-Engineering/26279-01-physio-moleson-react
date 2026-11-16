@@ -43,26 +43,52 @@ export type { GlobalOptions, AccueilOptions, PagePrestations, FaqOptions, Cabine
 
 const memoryCache = new Map<string, { data: unknown; updatedAt: number }>();
 const DEFAULT_STALE_MS = 60_000;
-const SESSION_STALE_MS = 30 * 60_000; // 30 min pour sessionStorage
-const SESSION_PREFIX   = "wp:";
+/**
+ * Cache durable (localStorage) : le dernier contenu connu s'affiche aussitôt,
+ * d'une visite à l'autre, puis useFetch le rafraîchit en arrière-plan
+ * (stale-while-revalidate). Au-delà de 7 jours, il est ignoré.
+ */
+const STOCKAGE_STALE_MS = 7 * 24 * 60 * 60_000;
+const STOCKAGE_PREFIX   = "wp:";
 
-// ─── Sérialisation sessionStorage (gère les Maps) ─────────────────────────
+/** Petite empreinte (djb2, base 36) pour versionner les clés de cache. */
+function empreinte(texte: string): string {
+  let h = 5381;
+  for (let i = 0; i < texte.length; i++) h = ((h << 5) + h + texte.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+}
 
-function sessionWrite(key: string, data: unknown): void {
+/**
+ * Clé de cache d'une requête GraphQL : le nom suivi de l'empreinte du texte
+ * de la requête. Une requête modifiée (champ ACF renommé…) change de clé :
+ * un ancien contenu stocké, de forme différente, n'est jamais relu.
+ */
+function cleGQL(nom: string, requete: string): string {
+  return `${nom}:v${empreinte(requete)}`;
+}
+
+// ─── Sérialisation localStorage (gère les Maps) ───────────────────────────
+
+function stockageEcrire(key: string, data: unknown): void {
   try {
     const value = data instanceof Map
       ? { __map: true, entries: Array.from((data as Map<unknown, unknown>).entries()) }
       : data;
-    sessionStorage.setItem(
-      SESSION_PREFIX + key,
-      JSON.stringify({ v: value, t: Date.now() })
-    );
-  } catch { /* quota exceeded ou private mode : on ignore */ }
+    // Une clé versionnée remplace ses anciennes versions.
+    const base = key.includes(":v") ? STOCKAGE_PREFIX + key.slice(0, key.lastIndexOf(":v") + 2) : null;
+    if (base) {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(base) && k !== STOCKAGE_PREFIX + key) localStorage.removeItem(k);
+      }
+    }
+    localStorage.setItem(STOCKAGE_PREFIX + key, JSON.stringify({ v: value, t: Date.now() }));
+  } catch { /* quota dépassé ou navigation privée : on ignore */ }
 }
 
-function sessionRead<T>(key: string, staleMs = SESSION_STALE_MS): T | null {
+function stockageLire<T>(key: string, staleMs = STOCKAGE_STALE_MS): T | null {
   try {
-    const raw = sessionStorage.getItem(SESSION_PREFIX + key);
+    const raw = localStorage.getItem(STOCKAGE_PREFIX + key);
     if (!raw) return null;
     const { v, t } = JSON.parse(raw) as { v: unknown; t: number };
     if (Date.now() - t > staleMs) return null;
@@ -93,7 +119,7 @@ function useFetch<T>(
     if (!cacheKey) return null;
     const mem = memoryCache.get(cacheKey);
     if (mem) return mem.data as T;
-    if (persist) return sessionRead<T>(cacheKey, persistStaleMs);
+    if (persist) return stockageLire<T>(cacheKey, persistStaleMs);
     return null;
   }, [cacheKey, persist, persistStaleMs]);
 
@@ -126,7 +152,7 @@ function useFetch<T>(
         const data = await fetcherRef.current();
         if (cacheKey) {
           memoryCache.set(cacheKey, { data, updatedAt: Date.now() });
-          if (persist) sessionWrite(cacheKey, data);
+          if (persist) stockageEcrire(cacheKey, data);
         }
         setState({ status: "success", data, error: null, isFetching: false });
       } catch (e) {
@@ -276,6 +302,38 @@ export async function prefetchCPTItems(
       await Promise.all([entryFetch, mediaFetch]);
     })
   );
+}
+
+// ─── Préchargement des pages ──────────────────────────────────────────────
+
+/**
+ * Récupère en arrière-plan les données de toutes les pages du site, pour que
+ * chaque navigation s'affiche sans attendre WordPress. Appelé une fois par
+ * App.tsx quand la première page est affichée. Une requête déjà en mémoire
+ * est sautée ; les erreurs sont ignorées (la page refera sa requête).
+ * Les clés et requêtes doivent rester identiques à celles des hooks.
+ */
+export function prechargerPages(): void {
+  const requetes: [string, string][] = [
+    ["gql-global", GQL_GLOBAL],
+    ["gql-accueil", GQL_ACCUEIL],
+    ["gql-page-prestations", GQL_PAGE_PRESTATIONS],
+    ["gql-cabinet", GQL_CABINET],
+    ["gql-page-equipe", GQL_PAGE_EQUIPE],
+    ["gql-therapeutes", GQL_THERAPEUTES],
+    ["gql-faq", GQL_FAQ],
+    ["gql-page-faq", GQL_PAGE_FAQ],
+  ];
+  for (const [nom, requete] of requetes) {
+    const cle = cleGQL(nom, requete);
+    if (memoryCache.has(cle)) continue;
+    graphqlFetch<unknown>(requete)
+      .then((data) => {
+        memoryCache.set(cle, { data, updatedAt: Date.now() });
+        stockageEcrire(cle, data);
+      })
+      .catch(() => {});
+  }
 }
 
 // ─── GraphQL — exemple documenté ──────────────────────────────────────────
@@ -650,7 +708,7 @@ function fromGQLPageFaq(d: GQLPageFaqResponse | null): PageFaq | null {
 export function usePageFaq() {
   const state = useFetch<GQLPageFaqResponse>(
     () => graphqlFetch<GQLPageFaqResponse>(GQL_PAGE_FAQ),
-    { cacheKey: "gql-page-faq", staleMs: 120_000, persist: true }
+    { cacheKey: cleGQL("gql-page-faq", GQL_PAGE_FAQ), staleMs: 120_000, persist: true }
   );
   const data = useMemo(() => fromGQLPageFaq(state.data), [state.data]);
   return { ...state, data };
@@ -734,7 +792,7 @@ function fromGQLCabinet(d: GQLCabinetResponse | null): CabinetOptions | null {
 export function useGlobalOptions() {
   const state = useFetch<GQLGlobalResponse>(
     () => graphqlFetch<GQLGlobalResponse>(GQL_GLOBAL),
-    { cacheKey: "gql-global", staleMs: 120_000, persist: true }
+    { cacheKey: cleGQL("gql-global", GQL_GLOBAL), staleMs: 120_000, persist: true }
   );
   const data = useMemo(() => fromGQLGlobal(state.data), [state.data]);
   return { ...state, data };
@@ -743,7 +801,7 @@ export function useGlobalOptions() {
 export function useAccueilOptions() {
   const state = useFetch<GQLAccueilResponse>(
     () => graphqlFetch<GQLAccueilResponse>(GQL_ACCUEIL),
-    { cacheKey: "gql-accueil", staleMs: 120_000, persist: true }
+    { cacheKey: cleGQL("gql-accueil", GQL_ACCUEIL), staleMs: 120_000, persist: true }
   );
   const data = useMemo(() => fromGQLAccueil(state.data), [state.data]);
   return { ...state, data };
@@ -752,7 +810,7 @@ export function useAccueilOptions() {
 export function usePagePrestations() {
   const state = useFetch<GQLPagePrestationsResponse>(
     () => graphqlFetch<GQLPagePrestationsResponse>(GQL_PAGE_PRESTATIONS),
-    { cacheKey: "gql-page-prestations", staleMs: 120_000, persist: true }
+    { cacheKey: cleGQL("gql-page-prestations", GQL_PAGE_PRESTATIONS), staleMs: 120_000, persist: true }
   );
   const data = useMemo(() => fromGQLPagePrestations(state.data), [state.data]);
   return { ...state, data };
@@ -761,7 +819,7 @@ export function usePagePrestations() {
 export function useFaqOptions() {
   const state = useFetch<GQLFaqResponse>(
     () => graphqlFetch<GQLFaqResponse>(GQL_FAQ),
-    { cacheKey: "gql-faq", staleMs: 120_000, persist: true }
+    { cacheKey: cleGQL("gql-faq", GQL_FAQ), staleMs: 120_000, persist: true }
   );
   const data = useMemo(() => fromGQLFaq(state.data), [state.data]);
   return { ...state, data };
@@ -770,7 +828,7 @@ export function useFaqOptions() {
 export function useCabinetOptions() {
   const state = useFetch<GQLCabinetResponse>(
     () => graphqlFetch<GQLCabinetResponse>(GQL_CABINET),
-    { cacheKey: "gql-cabinet", staleMs: 120_000, persist: true }
+    { cacheKey: cleGQL("gql-cabinet", GQL_CABINET), staleMs: 120_000, persist: true }
   );
   const data = useMemo(() => fromGQLCabinet(state.data), [state.data]);
   return { ...state, data };
@@ -910,7 +968,7 @@ function fromGQLPageEquipe(d: GQLPageEquipeResponse | null): PageEquipe | null {
 export function usePageEquipe() {
   const state = useFetch<GQLPageEquipeResponse>(
     () => graphqlFetch<GQLPageEquipeResponse>(GQL_PAGE_EQUIPE),
-    { cacheKey: "gql-page-equipe", staleMs: 120_000, persist: true }
+    { cacheKey: cleGQL("gql-page-equipe", GQL_PAGE_EQUIPE), staleMs: 120_000, persist: true }
   );
   const data = useMemo(() => fromGQLPageEquipe(state.data), [state.data]);
   return { ...state, data };
@@ -920,7 +978,7 @@ export function usePageEquipe() {
 export function useTherapeutes() {
   const state = useFetch<GQLTherapeutesResponse>(
     () => graphqlFetch<GQLTherapeutesResponse>(GQL_THERAPEUTES),
-    { cacheKey: "gql-therapeutes", staleMs: 120_000, persist: true }
+    { cacheKey: cleGQL("gql-therapeutes", GQL_THERAPEUTES), staleMs: 120_000, persist: true }
   );
   const therapeutes = useMemo(
     () => (state.data?.therapeutes?.nodes ?? []).map(fromGQLTherapeute),

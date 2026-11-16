@@ -120,25 +120,27 @@ export function ContactPage() {
                       />
                       {s.days}
                     </span>
-                    <span className="text-[15px]">{s.hours}</span>
+                    <span>{s.hours}</span>
                   </div>
                 ))}
               </div>
-              <div className="border-t border-line mt-3 pt-[18px] flex flex-wrap justify-between items-center gap-x-6 gap-y-3 text-[15px]">
+              <div className="border-t border-line mt-3 pt-[18px] flex flex-wrap justify-between items-center gap-x-6 gap-y-3">
                 {email && <a href={`mailto:${email}`} className="font-semibold">{email}</a>}
                 <SocialLinks links={g?.social} />
               </div>
             </div>
 
+            {/* Même typographie que la carte : intitulé .intitule, valeur
+                en corps de texte 16 px. */}
             {adresse && (
-              <div className="text-[15px] flex flex-col">
-                <span className="font-semibold">Adresse</span>
+              <div className="flex flex-col gap-1">
+                <span className="intitule">Adresse</span>
                 <span>{adresse}</span>
               </div>
             )}
             {phone && (
-              <div className="text-[15px] flex flex-col">
-                <span className="font-semibold">Téléphone</span>
+              <div className="flex flex-col gap-1">
+                <span className="intitule">Téléphone</span>
                 <a href={`tel:${tel}`}>{phone}</a>
               </div>
             )}

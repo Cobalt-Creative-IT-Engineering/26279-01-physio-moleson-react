@@ -1,5 +1,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
-import reliefSrc from "../../assets/decor/relief.jpeg";
+// AVIF 1024 px (128 Ko au lieu de 445 Ko en JPEG) : affiché à 55 % d'opacité
+// et fondu dans le vert, la perte de finesse ne se voit pas.
+import reliefSrc from "../../assets/decor/relief.avif";
 import { SiteHeader } from "./Header";
 
 /**

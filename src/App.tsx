@@ -15,6 +15,7 @@ import { THEMES }      from "./themes/index";
 import { Decorations } from "./themes/Decorations";
 import { initMeta, setPageMeta } from "./lib/meta";
 import { initRebond } from "./lib/rebond";
+import { prechargerPages } from "./hooks/useWordPress";
 
 // ─── Application du thème ─────────────────────────────────────────────────────
 const _theme = THEMES[ACTIVE_THEME];
@@ -76,6 +77,14 @@ function shouldShowComingSoon(): boolean {
 
 export default function App() {
   const { route, anchor } = useRoute();
+
+  // Préchargement des données de toutes les pages, une fois la première
+  // affichée : les navigations suivantes n'attendent plus WordPress. Le
+  // délai laisse passer en priorité les requêtes de la page courante.
+  useEffect(() => {
+    const t = setTimeout(prechargerPages, 1200);
+    return () => clearTimeout(t);
+  }, []);
 
   // Infos du site WordPress (une seule fois) → initialise le module meta.
   useEffect(() => {
