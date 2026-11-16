@@ -37,7 +37,7 @@ function Cabinet({ c }: { c: CabinetItem }) {
   return (
     <section ref={ref} id={ancre(c.titre)} className="section-y scroll-mt-4">
       <div className="container-x flex flex-wrap gap-[clamp(28px,4vw,64px)] items-start">
-        <div className="reveal reveal-gauche flex-[1_1_340px] flex flex-col gap-[18px]">
+        <div className="reveal reveal-gauche flex-[1_1_340px] min-w-0 flex flex-col gap-[18px]">
           {c.tag && <span className="intitule">{c.tag}</span>}
           <h2 className="text-[clamp(22px,2vw,28px)] leading-[1.15] tracking-[-0.01em]">{c.titre}</h2>
           {c.schedule.length > 0 && (
@@ -47,10 +47,12 @@ function Cabinet({ c }: { c: CabinetItem }) {
                 {c.schedule.map((d, i) => (
                   <div
                     key={`${i}-${d.day}`}
-                    className={`flex items-center gap-3 px-4 py-3 overflow-x-auto ${i > 0 ? "border-t border-line" : ""}`}
+                    className={`flex items-baseline gap-3 px-4 py-3 ${i > 0 ? "border-t border-line" : ""}`}
                   >
                     <span className="flex-[0_0_78px] font-display text-[15px]">{d.day}</span>
-                    <div className="flex gap-1.5">
+                    {/* Pastilles qui passent à la ligne : pas de débordement
+                        sur mobile quand un jour compte beaucoup de thérapeutes. */}
+                    <div className="flex flex-wrap gap-1.5 min-w-0">
                       {d.names.map((n) => (
                         <span key={n} className="chip">{n}</span>
                       ))}

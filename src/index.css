@@ -787,6 +787,14 @@ a:not(.btn):hover { text-decoration: underline; text-underline-offset: 4px; }
 .prose-custom ol { padding-left: 1.4em; }
 .prose-custom ul { list-style: disc; }
 .prose-custom ol { list-style: decimal; }
+.prose-custom li + li { margin-top: 6px; }
+.prose-custom li::marker { color: var(--color-olive); }
+/* Sur fond sombre (encadré Sensopro…), puces jaunes comme dans la maquette. */
+.on-dark .prose-custom li::marker { color: var(--color-jaune); }
+.prose-custom strong,
+.prose-custom b { font-weight: 700; }
+.prose-custom em,
+.prose-custom i { font-style: italic; }
 
 /* ─── Héros de l'accueil : apparition du titre ───────────────────────────
    Les mots du nom montent l'un après l'autre, puis l'accroche suit.
