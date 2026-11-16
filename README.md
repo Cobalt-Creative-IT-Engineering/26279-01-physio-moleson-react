@@ -162,8 +162,8 @@ add_action('init', function () {
 
 **Tout le contenu vient de WordPress, sans texte de repli** : un champ vide n'est pas affiché.
 Seules exceptions, faute de champ ACF : les langues des thérapeutes
-([src/config/contenu.ts](src/config/contenu.ts)), les horaires du secrétariat et le lien
-Tbooking de l'en-tête et du pied de page ([src/config/site.ts](src/config/site.ts)).
+([src/config/contenu.ts](src/config/contenu.ts)) et le lien Tbooking de l'en-tête et du pied de page
+([src/config/site.ts](src/config/site.ts)).
 
 | Page du site | Source WordPress (nom GraphQL) | Contenu |
 |---|---|---|
@@ -172,7 +172,7 @@ Tbooking de l'en-tête et du pied de page ([src/config/site.ts](src/config/site.
 | Cabinet | page d'options `pageCabinet`, groupe `cabinet` | `banner`, répéteur `cabinet` (titre, détails : tag, galerie, planning jour → thérapeutes) |
 | Équipe | type `therapeutes` + page d'options `pageEquipe`, groupe `equipe` | fiches (rôle, biographie, spécialités, photo, URL Tbooking) ; `bannerEquipe`, `imageDeFond` du carrousel, relation `therapeute` (sélection et ordre, vide = tous) |
 | FAQ | type `faqQuestions` + page d'options `pageFAQs`, groupe `pageFaq` | questions (question, réponse, catégories) ; `bannerFaq` (sous-champ `sousTitrre`, faute conservée), relation `faq` (sélection et ordre, vide = toutes) |
-| Contact, en-tête, pied de page | page d'options `optGlobale`, groupe `optionsGlobale` | téléphone, e-mail, adresses, réseaux sociaux, logo, résumé. La bannière Contact reprend la vidéo de l'accueil. |
+| Contact, en-tête, pied de page | page d'options `optGlobale`, groupe `optionsGlobale` | téléphone, e-mail, adresses, horaires du secrétariat (`horaireSecretariat` : jours, horaires), réseaux sociaux (WhatsApp : lien ou simple numéro), carte (`carteGoogle` : URL d'intégration Google Maps, sinon recherche sur la première adresse), logo, résumé. La bannière Contact reprend la vidéo de l'accueil. |
 
 Règles à respecter côté WordPress, toutes apprises à nos dépens :
 
@@ -199,7 +199,6 @@ Les principaux points d'entrée de configuration :
 
 - `src/config/site.ts`
   - `SITE_CONFIG` — nom du site, langue, description (utilisés comme valeurs par défaut pour les meta tags)
-  - `SECRETARIAT` — horaires du secrétariat (téléphone, e-mail, adresses et réseaux sociaux viennent des options globales ACF)
   - `TBOOKING_URL` — prise de rendez-vous de l'en-tête et du pied de page (les autres boutons Tbooking viennent d'ACF et sont masqués sans URL)
   - `NAV_ITEMS` — items de navigation
   - `ACTIVE_THEME` — sélectionne le thème visuel actif (voir [src/themes/](src/themes/))

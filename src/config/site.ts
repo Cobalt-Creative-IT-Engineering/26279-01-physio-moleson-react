@@ -27,16 +27,6 @@ export const SITE_CONFIG = {
   description: "Cabinet de physiothérapie à Bulle. Une équipe de cinq thérapeutes diplômé·e·s à votre écoute, au pied du Moléson.",
 } as const;
 
-// ─── Secrétariat ──────────────────────────────────────────────────────────
-// Horaires du secrétariat téléphonique (pas de champ ACF). Téléphone,
-// e-mail, adresses et réseaux sociaux viennent des options globales ACF.
-// `highlight` = ligne mise en avant.
-
-export const SECRETARIAT = [
-  { days: "Mercredi non-stop",  hours: "09:00–12:00, 13:00–17:00", highlight: true  },
-  { days: "Lun, Mar, Jeu, Ven", hours: "Sur rappel, 07:30–18:00",  highlight: false },
-] as const;
-
 // ─── Prise de rendez-vous ─────────────────────────────────────────────────
 // Agenda Tbooking du cabinet, ouvert dans un nouvel onglet. Une fiche
 // thérapeute peut fournir son propre lien (champ ACF `urlTbooking`).

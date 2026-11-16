@@ -130,6 +130,10 @@ export type SocialLinks = {
 export interface GlobalOptions {
   logo:      WPImage | null;
   resume:    string;
+  /** URL d'intégration Google Maps (champ `carteGoogle`), vide si absente ou invalide. */
+  carte: string;
+  /** Horaires du secrétariat téléphonique (répéteur `horaireSecretariat`). */
+  secretariat: { jours: string; horaires: string }[];
   phone:     string;
   email:     string;
   addresses: CabinetAddress[];

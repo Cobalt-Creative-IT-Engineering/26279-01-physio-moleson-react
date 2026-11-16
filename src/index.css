@@ -528,8 +528,11 @@ a:not(.btn):hover { text-decoration: underline; text-underline-offset: 4px; }
      annulées par la règle globale prefers-reduced-motion. */
   .equipe-slider {
     --biais: clamp(36px, 6vw, 100px);
-    --losange: clamp(220px, 32vw, 380px);
-    --pas: clamp(160px, 29vw, 370px);
+    --losange: clamp(280px, 42vw, 520px);
+    /* Écart central → voisin, déduit de la taille : le voisin réduit (0,58)
+       commence après le losange central, l'espace de 8 px et la flèche de
+       44 px (0,79 × losange + 52 px), avec un peu d'air. */
+    --pas: calc(var(--losange) * 0.8 + 68px);
     position: relative;
     overflow: hidden;
     margin-top: clamp(40px, 5vw, 72px);
@@ -619,11 +622,13 @@ a:not(.btn):hover { text-decoration: underline; text-underline-offset: 4px; }
     transition: background-color 0.2s ease, color 0.2s ease;
   }
   .eq-fleche:hover { background: var(--color-sable); color: var(--color-vert); }
-  .eq-fleche-g { left: calc(50% - var(--losange) / 2 - 22px); }
-  .eq-fleche-d { right: calc(50% - var(--losange) / 2 - 22px); }
+  /* Flèches juste à l'extérieur des pointes du losange central (8 px d'air). */
+  .eq-fleche-g { left: calc(50% - var(--losange) / 2 - 52px); }
+  .eq-fleche-d { right: calc(50% - var(--losange) / 2 - 52px); }
   /* Petits écrans : place au seul portrait central, flèches sur les bords. */
   @media (max-width: 640px) {
-    .equipe-slider { --losange: min(72vw, 300px); }
+    /* Le losange laisse 2 × 52 px pour les flèches sur les bords. */
+    .equipe-slider { --losange: min(calc(100vw - 112px), 360px); }
     .eq-item[data-pos="gauche"],
     .eq-item[data-pos="droite"] { opacity: 0; pointer-events: none; }
     .eq-fleche-g { left: 0; }

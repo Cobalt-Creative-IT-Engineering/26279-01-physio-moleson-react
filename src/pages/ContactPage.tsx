@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useGlobalOptions, useAccueilOptions } from "../hooks/useWordPress";
 import { PageBanner } from "../components/layout";
 import { SocialLinks, Apparition } from "../components/ui";
-import { SECRETARIAT } from "../config/site";
 import { lienTel } from "../lib/telephone";
 import { setPageMeta } from "../lib/meta";
 
@@ -83,7 +82,11 @@ export function ContactPage() {
     .sort((x, y) => x.street.localeCompare(y.street, "fr", { numeric: true }));
   const first     = addresses[0];
   const ville     = first ? `${first.postcode} ${first.city}`.trim() : "";
-  const mapQuery  = first ? encodeURIComponent(`${first.street}, ${ville}`) : "";
+  // Carte : l'URL Google Maps saisie dans ACF (`carteGoogle`), sinon une
+  // recherche sur la première adresse, elle aussi issue d'ACF.
+  const carte     = g?.carte || (first
+    ? `https://maps.google.com/maps?q=${encodeURIComponent(`${first.street}, ${ville}`)}&z=16&output=embed`
+    : "");
   // « Rue Saint-Denis 66 et 68 » quand les deux adresses partagent la rue.
   const numeros   = addresses.map((a) => a.street.match(/(\d+)$/)?.[1]).filter(Boolean);
   const adresse   = !first
@@ -97,7 +100,9 @@ export function ContactPage() {
       <PageBanner title="Nous contacter" video={accueil?.heros.video} />
 
       <section id="contact-form" className="section-y">
-        <Apparition className="container-x grid grid-cols-[repeat(auto-fit,minmax(min(100%,320px),1fr))] gap-[clamp(32px,5vw,80px)]">
+        {/* Deux colonnes seulement si chacune a au moins 380 px : en tablette,
+            coordonnées puis formulaire, l'un sous l'autre. */}
+        <Apparition className="container-x grid grid-cols-[repeat(auto-fit,minmax(min(100%,380px),1fr))] gap-[clamp(32px,5vw,80px)]">
           <div className="reveal reveal-gauche flex flex-col gap-[18px]">
             <h2 className="h2">Une question ? Écrivez-nous.</h2>
             <p className="max-w-[420px]">
@@ -111,39 +116,29 @@ export function ContactPage() {
                 {phone && <a href={`tel:${tel}`} className="font-bold">{phone}</a>}
               </div>
               <div className="flex flex-col">
-                {SECRETARIAT.map((s) => (
-                  <div key={s.days} className="flex flex-wrap justify-between items-baseline gap-x-5 gap-y-1.5 py-3">
+                {(g?.secretariat ?? []).map((s) => (
+                  <div key={s.jours} className="flex flex-wrap justify-between items-baseline gap-x-5 gap-y-1.5 py-3">
                     <span className="flex items-center gap-3">
-                      <span
-                        aria-hidden
-                        className={`w-2 h-2 rounded-full flex-none ${s.highlight ? "bg-vert" : "bg-olive"}`}
-                      />
-                      {s.days}
+                      <span aria-hidden className="w-2 h-2 rounded-full flex-none bg-olive" />
+                      {s.jours}
                     </span>
-                    <span>{s.hours}</span>
+                    <span>{s.horaires}</span>
                   </div>
                 ))}
               </div>
-              <div className="border-t border-line mt-3 pt-[18px] flex flex-wrap justify-between items-center gap-x-6 gap-y-3">
+              {/* Toutes les coordonnées dans la carte, une seule fois chacune :
+                  téléphone (en tête), adresse, puis e-mail et réseaux. */}
+              {adresse && (
+                <div className="border-t border-line mt-3 pt-[18px] flex flex-col gap-1">
+                  <span className="intitule">Adresse</span>
+                  <span>{adresse}</span>
+                </div>
+              )}
+              <div className="border-t border-line mt-[18px] pt-[18px] flex flex-wrap justify-between items-center gap-x-6 gap-y-3">
                 {email && <a href={`mailto:${email}`} className="font-semibold">{email}</a>}
                 <SocialLinks links={g?.social} />
               </div>
             </div>
-
-            {/* Même typographie que la carte : intitulé .intitule, valeur
-                en corps de texte 16 px. */}
-            {adresse && (
-              <div className="flex flex-col gap-1">
-                <span className="intitule">Adresse</span>
-                <span>{adresse}</span>
-              </div>
-            )}
-            {phone && (
-              <div className="flex flex-col gap-1">
-                <span className="intitule">Téléphone</span>
-                <a href={`tel:${tel}`}>{phone}</a>
-              </div>
-            )}
           </div>
 
           {/* Encadré olive (on-dark : texte blanc, survol des boutons en blanc) ;
@@ -154,19 +149,19 @@ export function ContactPage() {
         </Apparition>
       </section>
 
-      {first && (
+      {carte && (
       <section id="contact-carte" className="section-y">
         <Apparition className="container-x flex flex-col gap-6">
           <h2 className="reveal reveal-gauche h2">Nous trouver</h2>
           <div className="reveal [--reveal-delay:150ms] flex flex-col gap-2.5">
             <div className="flex flex-col gap-0.5">
               <span className="font-display font-medium text-[20px]">Physio du Moléson</span>
-              <span className="text-[15px] text-muted">{first.street}, {ville}</span>
+              {first && <span className="text-[15px] text-muted">{first.street}, {ville}</span>}
             </div>
             <div className="rounded-tile overflow-hidden border border-line h-[clamp(320px,36vw,440px)] bg-sable">
               <iframe
-                title={`Carte — ${first.street}, ${ville}`}
-                src={`https://maps.google.com/maps?q=${mapQuery}&z=16&output=embed`}
+                title={first ? `Carte — ${first.street}, ${ville}` : "Carte — Physio du Moléson"}
+                src={carte}
                 className="w-full h-full border-0 block"
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"

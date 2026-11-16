@@ -390,6 +390,8 @@ const GQL_GLOBAL = `
         logo { node { sourceUrl altText databaseId mediaDetails { width height } } }
         adresses { lieu adresse npa ville }
         reseauxSociaux { facebook instagram linkedin whatsapp }
+        horaireSecretariat { jours horaires }
+        carteGoogle
       }
     }
   }
@@ -401,6 +403,8 @@ type GQLGlobalResponse = {
       telephone: string | null;
       email: string | null;
       resume: string | null;
+      horaireSecretariat: { jours: string | null; horaires: string | null }[] | null;
+      carteGoogle: string | null;
       logo: GQLMediaEdge;
       adresses: { lieu: string | null; adresse: string | null; npa: string | null; ville: string | null }[] | null;
       reseauxSociaux: { facebook: string | null; instagram: string | null; linkedin: string | null; whatsapp: string | null } | null;
@@ -408,12 +412,38 @@ type GQLGlobalResponse = {
   } | null;
 };
 
+/**
+ * Champ WhatsApp : un lien est gardé tel quel ; un numéro (« 076 237 00 53 »)
+ * devient un lien wa.me au format international (indicatif suisse par défaut).
+ */
+function lienWhatsapp(valeur: string | null | undefined): string | undefined {
+  const v = valeur?.trim();
+  if (!v) return undefined;
+  if (/^https?:\/\//i.test(v)) return v;
+  const chiffres = v.replace(/[^\d+]/g, "");
+  const international = chiffres.startsWith("+")
+    ? chiffres.slice(1)
+    : chiffres.startsWith("00")
+      ? chiffres.slice(2)
+      : chiffres.startsWith("0")
+        ? `41${chiffres.slice(1)}`
+        : chiffres;
+  return international ? `https://wa.me/${international}` : undefined;
+}
+
 function fromGQLGlobal(d: GQLGlobalResponse | null): GlobalOptions | null {
   const g = d?.optGlobale?.optionsGlobale;
   if (!g) return null;
   return {
     logo:  fromGQLMedia(g.logo ?? null),
     resume: g.resume?.trim() ?? "",
+    // Seule une URL d'intégration Google Maps est acceptée dans l'iframe.
+    carte: /^https:\/\/(www\.google\.[a-z.]+\/maps|maps\.google\.[a-z.]+\/)/i.test(g.carteGoogle?.trim() ?? "")
+      ? g.carteGoogle!.trim()
+      : "",
+    secretariat: (g.horaireSecretariat ?? [])
+      .map((h) => ({ jours: h.jours?.trim() ?? "", horaires: h.horaires?.trim() ?? "" }))
+      .filter((h) => h.jours),
     phone: g.telephone ?? "",
     email: g.email ?? "",
     addresses: (g.adresses ?? []).map((a, i): CabinetAddress => ({
@@ -427,7 +457,7 @@ function fromGQLGlobal(d: GQLGlobalResponse | null): GlobalOptions | null {
       instagram: g.reseauxSociaux?.instagram || undefined,
       facebook:  g.reseauxSociaux?.facebook  || undefined,
       linkedin:  g.reseauxSociaux?.linkedin  || undefined,
-      whatsapp:  g.reseauxSociaux?.whatsapp  || undefined,
+      whatsapp:  lienWhatsapp(g.reseauxSociaux?.whatsapp),
     } as SocialLinks,
   };
 }
