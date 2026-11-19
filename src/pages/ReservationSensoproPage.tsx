@@ -5,10 +5,10 @@ import { setPageMeta } from "../lib/meta";
 
 /**
  * Adresse du formulaire de réservation Amelia (page WordPress
- * « reservation-sensopro »). Le paramètre `embed` fait router la requête vers
+ * « reservation-sensopro »). Le paramètre `cadre` (pas `embed` : réservé par WordPress, qui servirait sa carte de partage) fait router la requête vers
  * WordPress par le .htaccess ; sans lui, la même URL sert cette page React.
  */
-const FORMULAIRE_URL = "/reservation-sensopro/?embed=1";
+const FORMULAIRE_URL = "/reservation-sensopro/?cadre=1";
 
 /**
  * Réservation de la salle Sensopro : formulaire Amelia de WordPress dans un

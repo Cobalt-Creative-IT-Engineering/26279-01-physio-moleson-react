@@ -22,13 +22,13 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false,
         },
-        // Iframe du formulaire Sensopro (?embed=1) → WordPress ; sans le
+        // Iframe du formulaire Sensopro (?cadre=1) → WordPress ; sans le
         // paramètre, la page React (sinon elle s'afficherait dans son propre cadre).
         "/reservation-sensopro": {
           target,
           changeOrigin: true,
           secure: false,
-          bypass: (req) => (/[?&]embed=1(&|$)/.test(req.url ?? "") ? undefined : req.url),
+          bypass: (req) => (/[?&]cadre=1(&|$)/.test(req.url ?? "") ? undefined : req.url),
         },
         // Scripts, styles et requêtes du plugin Amelia chargés par l'iframe.
         "/wp-content": { target, changeOrigin: true, secure: false },

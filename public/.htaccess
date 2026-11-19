@@ -165,12 +165,12 @@ ErrorDocument 503 /.infomaniak-maintenance.html
 # Formulaire de réservation Sensopro (plugin Amelia)
 #
 # La page React /reservation-sensopro affiche dans un iframe la page WordPress
-# du même nom. Les deux partagent l'URL : seule la requête marquée ?embed=1
+# du même nom. Les deux partagent l'URL : seule la requête marquée ?cadre=1
 # (celle de l'iframe) est confiée à WordPress, qui résout la page d'après l'URL.
 # ---------------------------------------------------------------------------
 <IfModule mod_rewrite.c>
   RewriteCond %{DOCUMENT_ROOT}/index.php -f
-  RewriteCond %{QUERY_STRING} (^|&)embed=1(&|$)
+  RewriteCond %{QUERY_STRING} (^|&)cadre=1(&|$)
   RewriteRule ^reservation-sensopro/?$ /index.php [L,QSA]
 </IfModule>
 
