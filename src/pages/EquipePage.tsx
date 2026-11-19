@@ -3,7 +3,6 @@ import { useTherapeutes, usePageEquipe } from "../hooks/useWordPress";
 import type { Therapeute } from "../types/wordpress";
 import { PageBanner, BannerText } from "../components/layout";
 import { Skeleton, WPContent, Apparition } from "../components/ui";
-import { LANGUES, LANGUE_PAR_DEFAUT } from "../config/contenu";
 import { setPageMeta } from "../lib/meta";
 
 /* ─── Données affichées ────────────────────────────────────────────────── */
@@ -27,10 +26,7 @@ const texte = (html: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-/**
- * Fiche WordPress. Seules les langues, sans champ ACF, sont cherchées par
- * prénom dans contenu.ts.
- */
+/** Fiche WordPress ; champ vide = rien d'affiché. */
 function toMembre(t: Therapeute): Membre {
   const [first, ...rest] = t.name.trim().split(" ");
   const bioHtml = t.bio;
@@ -41,11 +37,11 @@ function toMembre(t: Therapeute): Membre {
     first,
     last:      rest.join(" "),
     name:      t.name,
-    role:      t.role || "Physiothérapeute",
+    role:      t.role,
     bioHtml,
     bioCourte: texte(bioHtml),
     specialites,
-    langues:   LANGUES[first] ?? LANGUE_PAR_DEFAUT,
+    langues:   t.langues,
     photo:     t.photo,
     // Pas d'URL Tbooking sur la fiche = pas de bouton de rendez-vous.
     tbooking:  t.tbookingUrl,
@@ -146,7 +142,7 @@ function Slider({ membres, onOpen }: { membres: Membre[]; onOpen: (key: string) 
           <span className="font-medium text-[clamp(28px,3vw,40px)] tracking-[-0.01em]">{m.first}</span>
           <span className="font-normal text-[15px] mt-1 uppercase tracking-[0.12em] text-on-dark-soft">{m.last}</span>
         </h2>
-        <span className="text-[14px] text-on-dark-soft">{m.role}</span>
+        {m.role && <span className="text-[14px] text-on-dark-soft">{m.role}</span>}
         {m.bioCourte && <p className="text-[15px] leading-[1.6] line-clamp-3 mt-1">{m.bioCourte}</p>}
         <div className="flex flex-wrap justify-center gap-3 mt-3">
           <button type="button" onClick={() => onOpen(m.key)} className="btn btn-contour">
@@ -226,7 +222,7 @@ function Portrait({ m, onClose }: { m: Membre; onClose: () => void }) {
           <h2 id="portrait-nom" className="text-[clamp(28px,3vw,38px)] leading-[1.1] tracking-[-0.01em] pr-12">
             {m.name}
           </h2>
-          <span className="text-[15px] text-muted">{m.role}</span>
+          {m.role && <span className="text-[15px] text-muted">{m.role}</span>}
 
           <span className="intitule mt-[18px]">Approche &amp; expérience</span>
           <WPContent html={m.bioHtml} className="text-[15.5px]" />
@@ -237,9 +233,11 @@ function Portrait({ m, onClose }: { m: Membre; onClose: () => void }) {
                 <Pastilles titre="Spécialités" items={m.specialites} />
               </div>
             )}
-            <div className="flex-[1_1_160px]">
-              <Pastilles titre="Langues" items={m.langues} />
-            </div>
+            {m.langues.length > 0 && (
+              <div className="flex-[1_1_160px]">
+                <Pastilles titre="Langues" items={m.langues} />
+              </div>
+            )}
           </div>
 
           {m.tbooking && (

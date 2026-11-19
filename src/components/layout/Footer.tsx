@@ -24,6 +24,8 @@ export function Footer() {
           largeur : la dernière s'aligne sur le bord droit du trait. */}
       <div className="flex flex-wrap justify-between gap-x-[clamp(24px,4vw,64px)] gap-y-8 max-w-container mx-auto">
         <div className="flex flex-col gap-5 max-w-[320px]">
+          {/* -ml : le fichier du logo a ~14 px de marge transparente à gauche ;
+              on la compense pour aligner le dessin sur le texte du dessous. */}
           {g?.logo ? (
             // Même traitement que le logo local (raster noir passé en blanc).
             <img
@@ -31,10 +33,10 @@ export function Footer() {
               alt={g.logo.alt || SITE_CONFIG.name}
               width={110}
               height={110}
-              className="block object-contain logo-inverse w-[110px] h-[110px] opacity-90"
+              className="block object-contain logo-inverse w-[110px] h-[110px] -ml-[14px] opacity-90"
             />
           ) : (
-            <Logo variant="light" size={110} className="w-[110px] h-[110px] opacity-90" />
+            <Logo variant="light" size={110} className="w-[110px] h-[110px] -ml-[14px] opacity-90" />
           )}
           {g?.resume && <p className="text-on-dark-soft whitespace-pre-line">{g.resume}</p>}
           <SocialLinks variant="contour" links={g?.social} />
@@ -59,7 +61,7 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="pied-bas max-w-container mx-auto mt-8 pt-5 flex flex-wrap justify-between gap-3 text-[12px]">
+      <div className="pied-bas max-w-container mx-auto mt-8 pt-5 flex flex-wrap justify-between gap-3 text-[15px]">
         <span>© {new Date().getFullYear()} {SITE_CONFIG.name}</span>
         <span>
           Développé par{" "}

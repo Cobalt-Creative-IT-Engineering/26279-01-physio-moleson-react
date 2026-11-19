@@ -457,7 +457,6 @@ a:not(.btn):hover { text-decoration: underline; text-underline-offset: 4px; }
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
     gap: clamp(24px, 3vw, 40px) clamp(20px, 2.4vw, 32px);
-    margin-top: clamp(40px, 5vw, 72px);
     align-items: start;
   }
   @media (min-width: 1100px) {
@@ -676,7 +675,7 @@ a:not(.btn):hover { text-decoration: underline; text-underline-offset: 4px; }
        ::before, même découpe décalée de 3 px vers le bas. */
     background: var(--color-olive);
     color: var(--color-on-dark-soft);
-    font-size: 14px;
+    font-size: 18px;
     line-height: 1.6;
   }
   .pied::before {
@@ -691,7 +690,7 @@ a:not(.btn):hover { text-decoration: underline; text-underline-offset: 4px; }
   .pied-titre {
     font-family: var(--font-display);
     font-weight: 500;
-    font-size: 13px;
+    font-size: 15px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--color-on-dark);

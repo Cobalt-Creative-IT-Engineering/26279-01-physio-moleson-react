@@ -241,4 +241,5 @@ export interface Therapeute {
   extras:       string;
   photo:        WPImage | null;
   tbookingUrl:  string;
+  langues:      string[];
 }

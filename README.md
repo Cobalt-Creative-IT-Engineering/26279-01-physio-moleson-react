@@ -90,8 +90,7 @@ soulèvement des cartes de prestation au survol. Les règles détaillées sont d
     │   ├── useReveal.ts        <- Apparition au défilement
     │   └── useWordPress.ts     <- Requêtes GraphQL par page, cache, préchargement
     ├── config/
-    │   ├── site.ts             <- Nom du site, navigation, secrétariat, Tbooking, thème
-    │   └── contenu.ts          <- Seuls contenus sans champ ACF (langues des thérapeutes)
+    │   └── site.ts             <- Nom du site, navigation, Tbooking, thème
     ├── assets/                 <- Logo, relief des bannières (AVIF)
     ├── components/
     │   ├── layout/             <- En-tête, bannière des pages, pied de page
@@ -161,16 +160,15 @@ add_action('init', function () {
 #### Contenu WordPress (ACF)
 
 **Tout le contenu vient de WordPress, sans texte de repli** : un champ vide n'est pas affiché.
-Seules exceptions, faute de champ ACF : les langues des thérapeutes
-([src/config/contenu.ts](src/config/contenu.ts)) et le lien Tbooking de l'en-tête et du pied de page
-([src/config/site.ts](src/config/site.ts)).
+Seule exception, faute de champ ACF : le lien Tbooking de l'en-tête et du pied de page
+([src/config/site.ts](src/config/site.ts)), et les textes d'intro de la page Contact.
 
 | Page du site | Source WordPress (nom GraphQL) | Contenu |
 |---|---|---|
 | Accueil | page d'options `accueil`, groupe `accueils` | `banner` (titre, sous-titre, description, 2 boutons, vidéo), `slogan`, `imageSection1` (montagne au-dessus des valeurs), `valeurs` (`imageDeFond`, `valeur1` → `valeur4`) |
 | Prestations | page d'options `prestationPage`, groupe `prestations` | `banner`, répéteur `prestations` (titre, description, `iconeFixe`, `iconeEnMouvement`), sous-groupe `sensopro` (titre, sous-titre, description, bouton, `gallerie`) |
 | Cabinet | page d'options `pageCabinet`, groupe `cabinet` | `banner`, répéteur `cabinet` (titre, détails : tag, galerie, planning jour → thérapeutes) |
-| Équipe | type `therapeutes` + page d'options `pageEquipe`, groupe `equipe` | fiches (rôle, biographie, spécialités, photo, URL Tbooking) ; `bannerEquipe`, `imageDeFond` du carrousel, relation `therapeute` (sélection et ordre, vide = tous) |
+| Équipe | type `therapeutes` + page d'options `pageEquipe`, groupe `equipe` | fiches (rôle, biographie, spécialités, langues `langue`, photo, URL Tbooking) ; `bannerEquipe`, `imageDeFond` du carrousel, relation `therapeute` (sélection et ordre, vide = tous) |
 | FAQ | type `faqQuestions` + page d'options `pageFAQs`, groupe `pageFaq` | questions (question, réponse, catégories) ; `bannerFaq` (sous-champ `sousTitrre`, faute conservée), relation `faq` (sélection et ordre, vide = toutes) |
 | Contact, en-tête, pied de page | page d'options `optGlobale`, groupe `optionsGlobale` | téléphone, e-mail, adresses, horaires du secrétariat (`horaireSecretariat` : jours, horaires), réseaux sociaux (WhatsApp : lien ou simple numéro), carte (`carteGoogle` : URL d'intégration Google Maps, sinon recherche sur la première adresse), logo, résumé. La bannière Contact reprend la vidéo de l'accueil. |
 

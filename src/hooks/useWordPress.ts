@@ -913,6 +913,7 @@ const GQL_THERAPEUTES = `
           biographie
           specialites
           urlTbooking
+          langue
           photo { node { sourceUrl altText databaseId mediaDetails { width height } } }
         }
       }
@@ -930,6 +931,8 @@ type GQLTherapeuteNode = {
     biographie: string | null;
     specialites: string | null;
     urlTbooking: string | null;
+    // Case à cocher : liste (une valeur seule peut arriver en chaîne).
+    langue: string | string[] | null;
     photo: GQLMediaEdge;
   } | null;
 };
@@ -947,6 +950,7 @@ function fromGQLTherapeute(n: GQLTherapeuteNode): Therapeute {
     extras:      a?.specialites ?? "",
     photo:       fromGQLMedia(a?.photo ?? null),
     tbookingUrl: a?.urlTbooking ?? "",
+    langues:     (Array.isArray(a?.langue) ? a.langue : a?.langue ? [a.langue] : []).filter(Boolean),
   };
 }
 

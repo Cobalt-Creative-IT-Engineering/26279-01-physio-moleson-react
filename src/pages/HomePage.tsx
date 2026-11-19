@@ -164,12 +164,9 @@ function Valeurs({ data, montagne }: { data: AccueilOptions["valeurs"]; montagne
     <div className="valeurs-bloc">
     {/* Montagne au-dessus de la bande, visible aussi dans le biseau. */}
     {haut && <div aria-hidden className="valeurs-montagne" style={{ backgroundImage: `url(${haut})` }} />}
-    <section id="valeurs" ref={ref} aria-labelledby="valeurs-titre" className="valeurs on-dark">
+    <section id="valeurs" ref={ref} aria-label="Nos valeurs" className="valeurs on-dark">
       {fond && <div aria-hidden className="valeurs-fond" style={{ backgroundImage: `url(${fond})` }} />}
       <div className="container-x relative">
-        <h2 id="valeurs-titre" className="reveal text-on-dark text-center text-[clamp(36px,4.5vw,60px)] leading-none tracking-[-0.02em]">
-          Nos valeurs
-        </h2>
         <div className="valeurs-grille">
           {valeurs.map((v, i) => (
             <ValeurCarte key={`${i}-${v.titre}`} v={v} delai={DELAIS[i] ?? ""} />
