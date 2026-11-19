@@ -8,6 +8,7 @@ import { EquipePage }    from "./pages/EquipePage";
 import { CabinetPage }   from "./pages/CabinetPage";
 import { FaqPage }       from "./pages/FaqPage";
 import { ContactPage }   from "./pages/ContactPage";
+import { ReservationSensoproPage } from "./pages/ReservationSensoproPage";
 import { ComingSoonPage } from "./pages/ComingSoonPage";
 import { NotFoundPage }  from "./pages/NotFoundPage";
 import { ACTIVE_THEME, FORCE_COMING_SOON, COMING_SOON_UNTIL } from "./config/site";
@@ -51,6 +52,7 @@ const PAGE_LABELS: Record<string, string> = {
   "/equipe":      "Équipe",
   "/faq":         "Questions fréquentes",
   "/contact":     "Contact",
+  "/reservation-sensopro": "Réservation Sensopro",
 };
 
 /**
@@ -151,6 +153,7 @@ function resolvePage(route: string) {
   if (route === "/equipe")            return <EquipePage />;
   if (route === "/faq")               return <FaqPage />;
   if (route === "/contact")           return <ContactPage />;
+  if (route === "/reservation-sensopro") return <ReservationSensoproPage />;
   if (REDIRECTS[route])               return <PrestationsPage />; // redirigé
   return null;
 }
