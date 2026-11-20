@@ -200,8 +200,10 @@ export function HomePage() {
       <Heros data={data?.heros} loading={loading} />
 
       <section id="a-propos" ref={introRef} className="pt-[clamp(72px,9vw,128px)]">
-        <div className="container-x grid grid-cols-[repeat(auto-fit,minmax(min(100%,360px),1fr))] gap-[clamp(28px,5vw,80px)] items-start">
-          <h2 className="reveal reveal-gauche text-vert text-[clamp(44px,6vw,84px)] leading-none tracking-[-0.025em]">
+        {/* Dès 1024 px, le titre prend un peu plus de la moitié de la largeur :
+            moins de lignes. Lignes équilibrées (text-wrap: balance). */}
+        <div className="container-x grid grid-cols-1 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] gap-[clamp(28px,5vw,80px)] items-start">
+          <h2 className="reveal reveal-gauche text-vert text-[clamp(36px,4.2vw,60px)] leading-[1.05] tracking-[-0.025em] [text-wrap:balance]">
             {slogan?.titre}
           </h2>
           <div className="flex flex-col gap-[22px] items-start">

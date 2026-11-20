@@ -61,7 +61,7 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="pied-bas max-w-container mx-auto mt-8 pt-5 flex flex-wrap justify-between gap-3 text-[15px]">
+      <div className="pied-bas max-w-container mx-auto mt-8 pt-5 flex flex-wrap justify-between gap-3 text-[14px]">
         <span>© {new Date().getFullYear()} {SITE_CONFIG.name}</span>
         <span>
           Développé par{" "}

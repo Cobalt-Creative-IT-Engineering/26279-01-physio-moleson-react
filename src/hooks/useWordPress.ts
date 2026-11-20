@@ -914,6 +914,7 @@ const GQL_THERAPEUTES = `
           specialites
           urlTbooking
           langue
+          ordre
           photo { node { sourceUrl altText databaseId mediaDetails { width height } } }
         }
       }
@@ -933,6 +934,8 @@ type GQLTherapeuteNode = {
     urlTbooking: string | null;
     // Case à cocher : liste (une valeur seule peut arriver en chaîne).
     langue: string | string[] | null;
+    // Ordre d'apparition dans le carrousel (nombre ; vide = en fin de liste).
+    ordre: number | null;
     photo: GQLMediaEdge;
   } | null;
 };
@@ -1014,8 +1017,14 @@ export function useTherapeutes() {
     () => graphqlFetch<GQLTherapeutesResponse>(GQL_THERAPEUTES),
     { cacheKey: cleGQL("gql-therapeutes", GQL_THERAPEUTES), staleMs: 120_000, persist: true }
   );
+  // Tri par le champ ACF `ordre` (croissant) ; sans ordre, en fin de liste,
+  // dans l'ordre de WordPress (tri stable).
   const therapeutes = useMemo(
-    () => (state.data?.therapeutes?.nodes ?? []).map(fromGQLTherapeute),
+    () =>
+      (state.data?.therapeutes?.nodes ?? [])
+        .map((n) => ({ t: fromGQLTherapeute(n), ordre: n.therapeutes?.ordre ?? Infinity }))
+        .sort((a, b) => a.ordre - b.ordre)
+        .map((x) => x.t),
     [state.data]
   );
   return { ...state, therapeutes };

@@ -224,21 +224,28 @@ function Portrait({ m, onClose }: { m: Membre; onClose: () => void }) {
           </h2>
           {m.role && <span className="text-[15px] text-muted">{m.role}</span>}
 
-          <span className="intitule mt-[18px]">Approche &amp; expérience</span>
-          <WPContent html={m.bioHtml} className="text-[15.5px]" />
+          {/* Spécialités et langues d'abord, puis la biographie. */}
+          {(m.specialites.length > 0 || m.langues.length > 0) && (
+            <div className="mt-[18px] flex flex-wrap gap-x-8 gap-y-5">
+              {m.specialites.length > 0 && (
+                <div className="flex-[1_1_220px]">
+                  <Pastilles titre="Spécialités" items={m.specialites} />
+                </div>
+              )}
+              {m.langues.length > 0 && (
+                <div className="flex-[1_1_160px]">
+                  <Pastilles titre="Langues" items={m.langues} />
+                </div>
+              )}
+            </div>
+          )}
 
-          <div className="mt-[22px] border-t border-line pt-5 flex flex-wrap gap-x-8 gap-y-5">
-            {m.specialites.length > 0 && (
-              <div className="flex-[1_1_220px]">
-                <Pastilles titre="Spécialités" items={m.specialites} />
-              </div>
-            )}
-            {m.langues.length > 0 && (
-              <div className="flex-[1_1_160px]">
-                <Pastilles titre="Langues" items={m.langues} />
-              </div>
-            )}
-          </div>
+          {m.bioHtml && (
+            <div className="mt-[22px] border-t border-line pt-5 flex flex-col gap-2.5">
+              <span className="intitule">Approche &amp; expérience</span>
+              <WPContent html={m.bioHtml} className="text-[15.5px]" />
+            </div>
+          )}
 
           {m.tbooking && (
             <a
@@ -274,12 +281,11 @@ export function EquipePage() {
   const { data: page } = usePageEquipe();
   const banner = page?.banner;
   const fond = page?.fond ?? null;
-  // Sélection de la page Équipe (champ Relation) : ces thérapeutes, dans cet
-  // ordre ; sans sélection, tous les thérapeutes publiés.
+  // Ordre : champ `ordre` de chaque fiche (déjà trié par useTherapeutes).
+  // Sélection de la page Équipe (champ Relation) : ne garde que ces
+  // thérapeutes ; sans sélection, tous les thérapeutes publiés.
   const choix = page?.therapeutes ?? [];
-  const liste = choix.length
-    ? choix.map((id) => therapeutes.find((t) => t.id === id)).filter((t): t is Therapeute => !!t)
-    : therapeutes;
+  const liste = choix.length ? therapeutes.filter((t) => choix.includes(t.id)) : therapeutes;
   const membres = liste.map(toMembre);
   const open = membres.find((m) => m.key === openKey) ?? null;
 
