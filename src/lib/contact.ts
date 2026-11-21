@@ -29,9 +29,12 @@ export async function envoyerContact(donnees: FormData, jeton: string): Promise<
   donnees.set("_wpcf7_turnstile_response", jeton);
 
   try {
+    // Délai maximal : si WordPress reste bloqué (envoi de l'e-mail), on
+    // l'annonce au lieu de laisser « Envoi… » indéfiniment.
     const r = await fetch(`/wp-json/contact-form-7/v1/contact-forms/${CONTACT_FORM_ID}/feedback`, {
       method: "POST",
       body: donnees,
+      signal: AbortSignal.timeout(30_000),
     });
     const d = (await r.json()) as ReponseCF7;
     if (d.status === "mail_sent") return { ok: true, message: d.message ?? "" };

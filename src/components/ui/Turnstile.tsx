@@ -59,6 +59,9 @@ export const Turnstile = forwardRef<TurnstileHandle, { onToken: (jeton: string) 
             sitekey: TURNSTILE_SITE_KEY,
             language: "fr",
             theme: "light",
+            // Invisible si la vérification passe d'elle-même ; le widget ne
+            // s'affiche que si Cloudflare demande une action au visiteur.
+            appearance: "interaction-only",
             callback: (t: string) => rappel.current(t),
             "expired-callback": () => rappel.current(""),
             "error-callback": () => rappel.current(""),
