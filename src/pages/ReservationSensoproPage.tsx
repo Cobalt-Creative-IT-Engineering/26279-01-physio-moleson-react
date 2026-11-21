@@ -73,9 +73,18 @@ export function ReservationSensoproPage() {
 
       <section id="reservation" className="section-y">
         <div className="container-x max-w-[860px]">
+          {/* Texte d'introduction écrit ici, à la demande du client (pas de champ ACF). */}
+          <div className="flex flex-col gap-3 mb-[clamp(28px,4vw,44px)]">
+            <h2 className="h2">Réserver une séance</h2>
+            <p className="text-[17px] leading-[1.65] max-w-[640px]">
+              Réservez ici vos séances d'entraînement sur l'appareil Sensopro. Choisissez une date et
+              un horaire disponibles, puis complétez vos informations pour confirmer votre réservation.
+            </p>
+          </div>
           {/* Garde-fou : si la requête n'est pas routée vers WordPress, l'iframe
               recevrait cette même page React ; on ne l'imbrique pas une seconde fois. */}
           {window.self === window.top && (
+          <div className="border border-line rounded-[20px] p-[clamp(12px,2.4vw,28px)]">
           <iframe
             ref={cadre}
             src={FORMULAIRE_URL}
@@ -84,6 +93,7 @@ export function ReservationSensoproPage() {
             style={{ height: hauteur }}
             className="w-full border-0 block"
           />
+          </div>
           )}
         </div>
       </section>

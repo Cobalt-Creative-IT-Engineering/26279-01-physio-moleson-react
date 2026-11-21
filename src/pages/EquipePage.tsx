@@ -139,10 +139,10 @@ function Slider({ membres, onOpen }: { membres: Membre[]; onOpen: (key: string) 
       {/* Fiche courte du portrait actif, annoncée à chaque changement. */}
       <div aria-live="polite" className="flex flex-col items-center text-center gap-2 max-w-[560px] mt-2">
         <h2 className="flex flex-col font-display leading-[1.1]">
-          <span className="font-medium text-[clamp(28px,3vw,40px)] tracking-[-0.01em]">{m.first}</span>
-          <span className="font-normal text-[15px] mt-1 uppercase tracking-[0.12em] text-on-dark-soft">{m.last}</span>
+          <span className="font-medium text-[clamp(36px,4vw,56px)] tracking-[-0.015em]">{m.first}</span>
+          <span className="font-normal text-[clamp(17px,1.6vw,21px)] mt-1.5 uppercase tracking-[0.12em] text-on-dark-soft">{m.last}</span>
         </h2>
-        {m.role && <span className="text-[14px] text-on-dark-soft">{m.role}</span>}
+        {m.role && <span className="text-[18px] font-semibold text-on-dark-soft">{m.role}</span>}
         {m.bioCourte && <p className="text-[15px] leading-[1.6] line-clamp-3 mt-1">{m.bioCourte}</p>}
         <div className="flex flex-wrap justify-center gap-3 mt-3">
           <button type="button" onClick={() => onOpen(m.key)} className="btn btn-contour">
