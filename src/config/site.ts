@@ -33,6 +33,16 @@ export const SITE_CONFIG = {
 
 export const TBOOKING_URL = "https://www.tbooking.ch/fr/physio-du-moleson/2854-3711";
 
+// ─── Formulaire de contact ────────────────────────────────────────────────
+// Envoi par Contact Form 7 (API REST de WordPress), protégé par Cloudflare
+// Turnstile. Valeurs publiques : l'identifiant du formulaire CF7 et la clé de
+// site Turnstile, la même que dans CF7 → Intégration (la clé secrète reste
+// dans WordPress). Vide = formulaire
+// non branché : un message d'indisponibilité s'affiche à l'envoi.
+
+export const CONTACT_FORM_ID: string = "752";
+export const TURNSTILE_SITE_KEY: string = "0x4AAAAAAGLtT5qZL2dQwi0d";
+
 // ─── Navigation principale ────────────────────────────────────────────────
 // Le bouton « Prendre rendez-vous » (TBOOKING_URL) s'ajoute à droite.
 

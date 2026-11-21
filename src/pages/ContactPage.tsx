@@ -1,29 +1,52 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useGlobalOptions, useAccueilOptions } from "../hooks/useWordPress";
 import { PageBanner } from "../components/layout";
-import { SocialLinks, Apparition } from "../components/ui";
+import { SocialLinks, Apparition, Turnstile } from "../components/ui";
+import type { TurnstileHandle } from "../components/ui";
+import { envoyerContact } from "../lib/contact";
+import { TURNSTILE_SITE_KEY } from "../config/site";
 import { lienTel } from "../lib/telephone";
 import { setPageMeta } from "../lib/meta";
 
 /* ─── Formulaire ───────────────────────────────────────────────────────── */
 
-function ContactForm() {
-  const [sent, setSent] = useState(false);
+// Noms des champs = noms des balises du formulaire Contact Form 7.
+const CHAMPS = { nom: "contact-nom", tel: "contact-telephone", email: "contact-email", message: "contact-message" };
 
-  const submit = (e: React.FormEvent<HTMLFormElement>) => {
+function ContactForm() {
+  const [etat, setEtat] = useState<"saisie" | "envoi" | "envoye">("saisie");
+  const [jeton, setJeton] = useState("");
+  const [erreur, setErreur] = useState("");
+  const [erreurs, setErreurs] = useState<Record<string, string>>({});
+  const captcha = useRef<TurnstileHandle>(null);
+  // Sans clé Turnstile (formulaire non branché), pas d'attente de jeton.
+  const captchaRequis = TURNSTILE_SITE_KEY !== "";
+
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // TODO : envoi SIMULÉ, comme dans la maquette. Brancher un vrai backend
-    // (Formspree, endpoint WordPress…) avant la mise en ligne.
-    e.currentTarget.reset();
-    setSent(true);
+    const form = e.currentTarget;
+    setEtat("envoi");
+    setErreur("");
+    setErreurs({});
+    const r = await envoyerContact(new FormData(form), jeton);
+    if (r.ok) {
+      form.reset();
+      setEtat("envoye");
+    } else {
+      setErreur(r.message);
+      setErreurs(r.champs);
+      setEtat("saisie");
+    }
+    // Un jeton Turnstile ne sert qu'une fois.
+    captcha.current?.reset();
   };
 
-  if (sent) {
+  if (etat === "envoye") {
     return (
       <div role="status" className="flex flex-col gap-3.5 items-start py-5">
         <h3 className="text-[26px]">Merci, votre message est envoyé.</h3>
         <p>Nous vous répondons dans les meilleurs délais.</p>
-        <button type="button" onClick={() => setSent(false)} className="btn btn-contour text-[14px] px-[18px] py-2.5">
+        <button type="button" onClick={() => setEtat("saisie")} className="btn btn-contour text-[14px] px-[18px] py-2.5">
           Écrire un autre message
         </button>
       </div>
@@ -31,28 +54,44 @@ function ContactForm() {
   }
 
   const label = "flex flex-col gap-2 text-[14px] font-semibold";
+  const aide = (champ: string) =>
+    erreurs[champ] && <span className="text-[13px] font-normal text-jaune">{erreurs[champ]}</span>;
 
   return (
     <form onSubmit={submit} className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-[18px]">
       <label className={label}>
         Nom et prénom
-        <input name="nom" required autoComplete="name" className="champ" />
+        <input name={CHAMPS.nom} required autoComplete="name" className="champ" />
+        {aide(CHAMPS.nom)}
       </label>
       <label className={label}>
         Téléphone
-        <input name="tel" type="tel" autoComplete="tel" className="champ" />
+        <input name={CHAMPS.tel} type="tel" autoComplete="tel" className="champ" />
+        {aide(CHAMPS.tel)}
       </label>
       <label className={`${label} col-span-full`}>
         E-mail
-        <input name="email" type="email" required autoComplete="email" className="champ" />
+        <input name={CHAMPS.email} type="email" required autoComplete="email" className="champ" />
+        {aide(CHAMPS.email)}
       </label>
       <label className={`${label} col-span-full`}>
         Message
-        <textarea name="message" required rows={5} className="champ resize-y" />
+        <textarea name={CHAMPS.message} required rows={5} className="champ resize-y" />
+        {aide(CHAMPS.message)}
       </label>
+      <Turnstile ref={captcha} onToken={setJeton} className="col-span-full flex justify-center" />
+      {erreur && (
+        <p role="alert" className="col-span-full text-[14px] font-semibold text-jaune">{erreur}</p>
+      )}
       <div className="col-span-full flex flex-wrap items-center justify-between gap-3.5">
         <span className="text-[13px]">Pas de données médicales sensibles par ce formulaire.</span>
-        <button type="submit" className="btn btn-jaune">Envoyer le message</button>
+        <button
+          type="submit"
+          disabled={etat === "envoi" || (captchaRequis && !jeton)}
+          className="btn btn-jaune disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {etat === "envoi" ? "Envoi…" : "Envoyer le message"}
+        </button>
       </div>
     </form>
   );
