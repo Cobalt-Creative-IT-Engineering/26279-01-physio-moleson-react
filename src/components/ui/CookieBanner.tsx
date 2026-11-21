@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { PAGE_CONFIDENTIALITE } from "../../config/site";
 
 const STORAGE_KEY = "physio-moleson:cookie-consent";
 
@@ -51,39 +52,27 @@ export function CookieBanner() {
     <div
       role="dialog"
       aria-live="polite"
-      aria-label="Consentement aux cookies"
+      aria-label="Cookies"
       className="fixed inset-x-0 bottom-0 z-[60] px-4 pb-4 pointer-events-none"
       style={{ animation: "slideUp 350ms cubic-bezier(0.2,0,0,1)" }}
     >
-      <div
-        className="mx-auto max-w-3xl pointer-events-auto card p-6 md:p-7 flex flex-col md:flex-row md:items-center gap-5"
-      >
-        <div className="flex-1">
-          <div className="font-display text-lg text-ink mb-1">
-            Cookies & confidentialité
-          </div>
-          <p className="text-[16px] text-ink">
-            Nous utilisons des cookies pour mesurer l'audience du site et
-            améliorer votre expérience. Aucun cookie publicitaire n'est déposé.
-          </p>
-        </div>
-
-        <div className="flex gap-2.5 shrink-0">
+      <div className="mx-auto max-w-3xl pointer-events-auto card p-5 md:p-6 flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+        <p className="flex-1 text-[15px] text-ink">
+          Ce site utilise des cookies afin de vous offrir une expérience optimale
+          de navigation. En continuant de visiter ce site, vous acceptez
+          l'utilisation de ces cookies.{" "}
+          <a href={PAGE_CONFIDENTIALITE} className="underline underline-offset-2 font-semibold">
+            En savoir plus
+          </a>
+        </p>
+        {/* Enveloppe : bouton aligné à droite en ligne, à gauche en colonne. */}
+        <div className="shrink-0">
           <button
             type="button"
-            className="btn btn-contour"
-            style={{ padding: "10px 18px" }}
-            onClick={() => choose("declined")}
-          >
-            Refuser
-          </button>
-          <button
-            type="button"
-            className="btn btn-jaune"
-            style={{ padding: "10px 20px" }}
+            className="btn btn-jaune text-[15px] px-5 py-2.5"
             onClick={() => choose("accepted")}
           >
-            Accepter
+            J'ai compris
           </button>
         </div>
       </div>

@@ -170,6 +170,7 @@ Seule exception, faute de champ ACF : le lien Tbooking de l'en-tête et du pied 
 | Cabinet | page d'options `pageCabinet`, groupe `cabinet` | `banner`, répéteur `cabinet` (titre, détails : tag, galerie, planning jour → thérapeutes) |
 | Équipe | type `therapeutes` + page d'options `pageEquipe`, groupe `equipe` | fiches (rôle, biographie, spécialités, langues `langue`, `ordre` dans le carrousel, photo, URL Tbooking) ; `bannerEquipe`, `imageDeFond` du carrousel, relation `therapeute` (sélection, vide = tous) |
 | FAQ | type `faqQuestions` + page d'options `pageFAQs`, groupe `pageFaq` | questions (question, réponse, catégories) ; `bannerFaq` (sous-champ `sousTitrre`, faute conservée), relation `faq` (sélection et ordre, vide = toutes) |
+| Conditions d'utilisation (`/conditions-utilisation`) | texte dans `ConditionsPage.tsx` (pas de WordPress) ; coordonnées de l'exploitant depuis `optGlobale` | liée depuis la bannière des cookies et le pied de page |
 | Contact, en-tête, pied de page | page d'options `optGlobale`, groupe `optionsGlobale` | téléphone, e-mail, adresses, horaires du secrétariat (`horaireSecretariat` : jours, horaires), réseaux sociaux (WhatsApp : lien ou simple numéro), carte (`carteGoogle` : URL d'intégration Google Maps, sinon recherche sur la première adresse), logo, résumé. La bannière Contact reprend la vidéo de l'accueil. |
 
 Règles à respecter côté WordPress, toutes apprises à nos dépens :

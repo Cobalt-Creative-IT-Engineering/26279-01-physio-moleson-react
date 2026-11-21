@@ -36,6 +36,12 @@ export const TBOOKING_URL = "https://www.tbooking.ch/fr/physio-du-moleson/2854-3
 // ─── Navigation principale ────────────────────────────────────────────────
 // Le bouton « Prendre rendez-vous » (TBOOKING_URL) s'ajoute à droite.
 
+/**
+ * Page « Conditions d'utilisation et protection des données », liée depuis
+ * la bannière des cookies et le pied de page.
+ */
+export const PAGE_CONFIDENTIALITE = "/conditions-utilisation";
+
 export const NAV_ITEMS = [
   { id: 1, title: "Accueil",     url: "/" },
   { id: 2, title: "Le cabinet",  url: "/cabinet" },

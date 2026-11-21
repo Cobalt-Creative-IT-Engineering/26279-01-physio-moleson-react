@@ -1,4 +1,4 @@
-import { SITE_CONFIG, NAV_ITEMS, TBOOKING_URL } from "../../config/site";
+import { SITE_CONFIG, NAV_ITEMS, TBOOKING_URL, PAGE_CONFIDENTIALITE } from "../../config/site";
 import { lienTel } from "../../lib/telephone";
 import { useGlobalOptions } from "../../hooks/useWordPress";
 import { Logo, SocialLinks } from "../ui";
@@ -61,9 +61,14 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="pied-bas max-w-container mx-auto mt-8 pt-5 flex flex-wrap justify-between gap-3 text-[14px]">
+      {/* Trois colonnes dès 768 px : ©, lien juridique centré, crédit à droite.
+          En dessous, les trois l'un sous l'autre, alignés à gauche. */}
+      <div className="pied-bas max-w-container mx-auto mt-8 pt-5 grid gap-3 md:grid-cols-[1fr_auto_1fr] md:items-baseline text-[14px]">
         <span>© {new Date().getFullYear()} {SITE_CONFIG.name}</span>
-        <span>
+        <a href={PAGE_CONFIDENTIALITE} className="md:text-center">
+          Conditions d'utilisation et protection des données
+        </a>
+        <span className="md:text-right">
           Développé par{" "}
           <a href="https://cobalt-it.ch/" target="_blank" rel="noreferrer" className="font-bold">
             Cobalt
