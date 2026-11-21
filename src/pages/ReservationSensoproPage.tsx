@@ -74,7 +74,9 @@ export function ReservationSensoproPage() {
       <section id="reservation" className="section-y">
         <div className="container-x max-w-[860px]">
           {/* Texte d'introduction écrit ici, à la demande du client (pas de champ ACF). */}
-          <div className="flex flex-col gap-3 mb-[clamp(28px,4vw,44px)]">
+          {/* Retrait = marge intérieure du cadre + son trait (1 px) : le texte
+              s'aligne sur le bord du formulaire, pas sur celui du cadre. */}
+          <div className="flex flex-col gap-3 mb-[clamp(28px,4vw,44px)] px-[calc(clamp(12px,2.4vw,28px)+1px)]">
             <h2 className="h2">Réserver une séance</h2>
             <p className="text-[17px] leading-[1.65] max-w-[640px]">
               Réservez ici vos séances d'entraînement sur l'appareil Sensopro. Choisissez une date et
