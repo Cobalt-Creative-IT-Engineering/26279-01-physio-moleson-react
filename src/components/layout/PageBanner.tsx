@@ -22,19 +22,11 @@ function BannerVideo({ src }: { src: string }) {
 
   return (
     <>
-      <video
-        key={src}
-        ref={ref}
-        aria-hidden
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
-        className="absolute inset-0 w-full h-full object-cover"
-      >
-        <source src={src} />
-      </video>
+      <div aria-hidden className="banniere-video">
+        <video key={src} ref={ref} autoPlay muted loop playsInline preload="auto">
+          <source src={src} />
+        </video>
+      </div>
       <div aria-hidden className="banniere-voile" />
     </>
   );

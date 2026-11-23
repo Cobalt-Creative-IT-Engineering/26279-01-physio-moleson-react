@@ -53,28 +53,23 @@ function Heros({ data, loading }: { data: AccueilOptions["heros"] | undefined; l
     <section className="banniere heros on-dark">
       <div aria-hidden className="heros-rayures" />
       {showVideo && video && (
-        <video
-          key={video}
-          ref={videoRef}
-          aria-hidden
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          className="absolute inset-0 w-full h-full object-cover"
-        >
-          <source src={video} type="video/mp4" />
-        </video>
+        <div aria-hidden className="banniere-video">
+          {/* Pas de `type` : le fichier ACF peut être un .mp4 ou un .mov. */}
+          <video key={video} ref={videoRef} autoPlay muted loop playsInline preload="auto">
+            <source src={video} />
+          </video>
+        </div>
       )}
       <div aria-hidden className="heros-voile" />
 
       <SiteHeader />
 
-      <div className="container-x relative z-[2] mt-auto pb-[clamp(64px,9vw,112px)] flex flex-col gap-[22px]">
+      {/* Tailles et espaces suivent aussi la hauteur (svh) : sur un écran bas,
+          toute la bannière, pointe comprise, tient dans la fenêtre. */}
+      <div className="container-x relative z-[2] mt-auto pb-[clamp(20px,min(9vw,30svh-180px),112px)] flex flex-col gap-[clamp(10px,2.2svh,22px)]">
         {lignes.length > 0 && (
           <h1
-            className="font-medium text-[clamp(48px,7.5vw,104px)] leading-[0.98] tracking-[-0.025em]"
+            className="font-medium text-[clamp(40px,min(7.5vw,11svh),104px)] leading-[0.98] tracking-[-0.025em]"
             aria-label={lignes.join(" ")}
           >
             {words.map((line, li) => (
@@ -98,7 +93,7 @@ function Heros({ data, loading }: { data: AccueilOptions["heros"] | undefined; l
         {!loading && (
           <>
             <p
-              className="hero-tagline font-display text-[clamp(22px,2.4vw,32px)] leading-[1.25] max-w-[640px]"
+              className="hero-tagline font-display text-[clamp(20px,min(2.4vw,3.8svh),32px)] leading-[1.25] max-w-[640px]"
               style={{ animationDelay: `${afterTitle}ms` }}
             >
               {data?.sousTitre}

@@ -55,7 +55,7 @@
   --radius-field: 10px;
 
   --gutter:    clamp(20px, 5vw, 64px);   /* marges latérales            */
-  --pointe:    clamp(48px, 8vw, 120px);  /* bord bas en V des bannières */
+  --pointe:    clamp(48px, min(8vw, 13svh), 120px);  /* bord bas en V des bannières */
   --crete:     clamp(40px, 5.5vw, 88px); /* hauteur de la crête du pied */
   --pied-marge: clamp(96px, 11vw, 160px); /* blanc au-dessus du pied    */
   --tige-haut: clamp(16px, 2vw, 28px);   /* remontée de la tige         */
@@ -157,6 +157,42 @@ a:not(.btn):hover { text-decoration: underline; text-underline-offset: 4px; }
     );
     padding-bottom: var(--pointe);
   }
+  /* Même pointe, peinte par-dessus en couleur de page : si un navigateur
+     n'applique pas le clip-path à la vidéo (composée à part par le GPU), la
+     forme reste visible. */
+  .banniere::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    z-index: 1;
+    height: var(--pointe);
+    background: var(--color-bg);
+    clip-path: polygon(0 0, 50% 100%, 100% 0, 100% 100%, 0 100%);
+    pointer-events: none;
+  }
+  /* Vidéo de fond : plein cadre ; sur un écran en hauteur, carré en haut de
+     la bannière, fondu dans le vert. Une vidéo 16:9 recadrée sur toute la
+     hauteur n'y montrerait qu'un tiers de sa largeur. */
+  .banniere-video {
+    position: absolute;
+    inset: 0;
+  }
+  .banniere-video video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  @media (max-width: 767px) and (orientation: portrait) {
+    .banniere-video { bottom: auto; height: min(100%, 100vw); }
+    .banniere-video::after {
+      content: "";
+      position: absolute;
+      inset: 45% 0 -1px;
+      background: linear-gradient(180deg, transparent, var(--color-vert));
+    }
+    .heros-rayures:has(+ .banniere-video) { display: none; }
+  }
   /* Voile sur la vidéo de fond : texte blanc lisible, même dégradé que le
      héros de l'accueil. */
   .banniere-voile {
@@ -204,8 +240,8 @@ a:not(.btn):hover { text-decoration: underline; text-underline-offset: 4px; }
 
   /* Héros de l'accueil : fond rayé sous la vidéo, même pointe. */
   .heros {
-    min-height: max(600px, 100vh);
-    min-height: max(600px, 100svh);
+    min-height: max(560px, 100vh);
+    min-height: max(560px, 100svh);
     display: flex;
     flex-direction: column;
   }
