@@ -135,6 +135,8 @@ export interface GlobalOptions {
   /** Horaires du secrétariat téléphonique (répéteur `horaireSecretariat`). */
   secretariat: { jours: string; horaires: string }[];
   phone:     string;
+  /** Numéro WhatsApp tel que saisi (vide si le champ contient un lien). */
+  whatsappNumero: string;
   email:     string;
   addresses: CabinetAddress[];
   social:    SocialLinks;

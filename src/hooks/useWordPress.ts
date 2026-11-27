@@ -445,6 +445,9 @@ function fromGQLGlobal(d: GQLGlobalResponse | null): GlobalOptions | null {
       .map((h) => ({ jours: h.jours?.trim() ?? "", horaires: h.horaires?.trim() ?? "" }))
       .filter((h) => h.jours),
     phone: g.telephone ?? "",
+    whatsappNumero: /^https?:\/\//i.test(g.reseauxSociaux?.whatsapp?.trim() ?? "")
+      ? ""
+      : g.reseauxSociaux?.whatsapp?.trim() ?? "",
     email: g.email ?? "",
     addresses: (g.adresses ?? []).map((a, i): CabinetAddress => ({
       id:       i,

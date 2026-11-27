@@ -43,24 +43,35 @@ function Glyph({ name }: { name: Network }) {
   );
 }
 
+function GlyphTel() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden>
+      <path d="M5 3.5h3.5l1.8 4.5-2.3 1.4a11 11 0 0 0 6.6 6.6l1.4-2.3 4.5 1.8V19a1.5 1.5 0 0 1-1.6 1.5A16.5 16.5 0 0 1 3.5 5.1 1.5 1.5 0 0 1 5 3.5z" />
+    </svg>
+  );
+}
+
 /**
  * Pastilles rondes des réseaux sociaux. `links` : liens des options globales
  * WordPress (champ ACF `reseauxSociaux`) ; un réseau sans URL est masqué.
  * `variant` : « sable » sur fond clair, « contour » sur aplat vert.
+ * `tel` : lien `tel:` facultatif, ajouté en première pastille.
  */
 export function SocialLinks({
   links: wp,
   variant = "sable",
+  tel,
 }: {
   links?: SocialLinksData;
   variant?: "sable" | "contour";
+  tel?: string;
 }) {
   const source: Partial<Record<Network, string>> = wp ?? {};
   const links = NETWORKS
     .map((name) => [name, source[name]] as const)
     .filter((l): l is readonly [Network, string] => !!l[1]);
 
-  if (links.length === 0) return null;
+  if (links.length === 0 && !tel) return null;
 
   const cls =
     variant === "sable"
@@ -69,6 +80,11 @@ export function SocialLinks({
 
   return (
     <div className="flex gap-2.5">
+      {tel && (
+        <a href={`tel:${tel}`} aria-label="Téléphone" className={cls}>
+          <GlyphTel />
+        </a>
+      )}
       {links.map(([name, url]) => (
         <a key={name} href={url} target="_blank" rel="noopener noreferrer" aria-label={LABELS[name]} className={cls}>
           <Glyph name={name} />

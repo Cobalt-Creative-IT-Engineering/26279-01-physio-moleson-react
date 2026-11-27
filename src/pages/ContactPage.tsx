@@ -53,7 +53,7 @@ function ContactForm() {
     );
   }
 
-  const label = "flex flex-col gap-2 text-[14px] font-semibold";
+  const label = "flex flex-col gap-2 text-[18px] font-semibold";
   const aide = (champ: string) =>
     erreurs[champ] && <span className="text-[13px] font-normal text-jaune">{erreurs[champ]}</span>;
 
@@ -115,6 +115,7 @@ export function ContactPage() {
   // Coordonnées des options globales ACF ; champ vide = rien d'affiché.
   const phone     = g?.phone ?? "";
   const tel       = lienTel(phone);
+  const whatsapp  = g?.whatsappNumero ?? "";
   const email     = g?.email ?? "";
   // Ordre de la rue (66 avant 68), quel que soit celui saisi dans WordPress.
   const addresses = [...(g?.addresses ?? [])]
@@ -150,10 +151,18 @@ export function ContactPage() {
             </p>
 
             <div className="card mt-2.5 p-[clamp(20px,2.6vw,28px)]">
-              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1.5 pb-2">
-                <span className="intitule">Secrétariat téléphonique</span>
-                {phone && <a href={`tel:${tel}`} className="font-bold">{phone}</a>}
-              </div>
+              <h3 className="text-[20px] pb-2.5">Secrétariat téléphonique</h3>
+              {/* Phrase d'intro (texte de la page Contact, faute de champ ACF) ;
+                  numéros issus des options globales, partie masquée si vide. */}
+              {(phone || whatsapp) && (
+                <p className="pb-1">
+                  Notre secrétariat est atteignable
+                  {phone && <> au numéro fixe <a href={`tel:${tel}`} className="font-semibold whitespace-nowrap">{phone}</a></>}
+                  {phone && whatsapp && " ou"}
+                  {whatsapp && g?.social.whatsapp && <> par WhatsApp au numéro <a href={g.social.whatsapp} target="_blank" rel="noopener noreferrer" className="font-semibold whitespace-nowrap">{whatsapp}</a></>}
+                  .
+                </p>
+              )}
               <div className="flex flex-col">
                 {(g?.secretariat ?? []).map((s) => (
                   <div key={s.jours} className="flex flex-wrap justify-between items-baseline gap-x-5 gap-y-1.5 py-3">
@@ -166,16 +175,16 @@ export function ContactPage() {
                 ))}
               </div>
               {/* Toutes les coordonnées dans la carte, une seule fois chacune :
-                  téléphone (en tête), adresse, puis e-mail et réseaux. */}
+                  téléphone (dans la phrase), adresse, puis e-mail et réseaux. */}
               {adresse && (
-                <div className="border-t border-line mt-3 pt-[18px] flex flex-col gap-1">
-                  <span className="intitule">Adresse</span>
+                <div className="border-t border-line mt-3 pt-[18px] flex flex-col gap-1.5">
+                  <h3 className="text-[20px]">Adresse</h3>
                   <span>{adresse}</span>
                 </div>
               )}
               <div className="border-t border-line mt-[18px] pt-[18px] flex flex-wrap justify-between items-center gap-x-6 gap-y-3">
                 {email && <a href={`mailto:${email}`} className="font-semibold">{email}</a>}
-                <SocialLinks links={g?.social} />
+                <SocialLinks links={g?.social} tel={phone ? tel : undefined} />
               </div>
             </div>
           </div>
