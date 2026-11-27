@@ -39,7 +39,7 @@ export function Footer() {
             <Logo variant="light" size={110} className="w-[110px] h-[110px] -ml-[14px] opacity-90" />
           )}
           {g?.resume && <p className="text-on-dark-soft whitespace-pre-line">{g.resume}</p>}
-          <SocialLinks variant="contour" links={g?.social} />
+          <SocialLinks variant="contour" links={g?.social} tel={phone ? tel : undefined} />
         </div>
 
         <div className="flex flex-col gap-1.5">
